@@ -1,18 +1,35 @@
+# Builds cloud déclenchés à chaque push sur main.
+# Prérequis (une seule fois) :
+#   - Codemagic : webhook du dépôt GitHub configuré (Settings de l'app Codemagic → Webhooks)
+#   - Codemagic : groupe de variables "vercel" avec VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID
+#   - Vercel : projet créé SANS intégration Git (Codemagic déploie lui-même via le CLI)
+
+definitions:
+  triggering: &push_main
+    events:
+      - push
+    branch_patterns:
+      - pattern: main
+        include: true
+    cancel_previous_builds: true
+
 workflows:
   android-apk:
     name: Android APK (test install)
     max_build_duration: 30
     instance_type: linux_x2
     working_directory: app
+    triggering: *push_main
     environment:
       flutter: stable
     scripts:
       - name: Get Flutter packages
         script: flutter pub get
-      - name: Build Android APK (debug, fast, installable)
+      - name: Build Android APK (debug, installable)
         script: flutter build apk --debug
     artifacts:
-      - app/build/app/outputs/flutter-apk/*.apk
+      # Glob valable que le chemin soit résolu depuis la racine du dépôt ou depuis app/
+      - "**/build/app/outputs/flutter-apk/*.apk"
     publishing:
       email:
         recipients:
@@ -26,22 +43,22 @@ workflows:
     max_build_duration: 20
     instance_type: linux_x2
     working_directory: app
+    triggering: *push_main
     environment:
       flutter: stable
-      vars:
-        VERCEL_ORG_ID: $VERCEL_ORG_ID
-        VERCEL_PROJECT_ID: $VERCEL_PROJECT_ID
-        VERCEL_TOKEN: $VERCEL_TOKEN
+      groups:
+        - vercel
     scripts:
       - name: Get Flutter packages
         script: flutter pub get
       - name: Build Flutter Web
         script: flutter build web --release
-      - name: Install Vercel CLI
-        script: npm install -g vercel
       - name: Deploy to Vercel
-        script: |
-          cd build/web
-          vercel deploy --token=$VERCEL_TOKEN --prod --yes
-    artifacts:
-      - app/build/web/**
+        script: npx --yes vercel@latest deploy build/web --prod --yes --token "$VERCEL_TOKEN"
+    publishing:
+      email:
+        recipients:
+          - yanisgaroui1@gmail.com
+        notify:
+          success: false
+          failure: true
