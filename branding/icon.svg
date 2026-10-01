@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#16263D"/>
+      <stop offset="1" stop-color="#0B1422"/>
+    </linearGradient>
+  </defs>
+  <rect width="1024" height="1024" rx="224" fill="url(#bg)"/>
+  <!-- Y en forme de route : deux voies qui fusionnent -->
+  <path d="M292 250 L512 520 L732 250 M512 520 L512 800" fill="none" stroke="#F5B700" stroke-width="150" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- marquage central de la route -->
+  <path d="M512 560 L512 790" fill="none" stroke="#16263D" stroke-width="22" stroke-linecap="round" stroke-dasharray="48 44"/>
+</svg>

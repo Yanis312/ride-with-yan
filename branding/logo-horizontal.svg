@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 512">
+  <rect width="1600" height="512" fill="#FFFFFF"/>
+  <g transform="translate(56 56) scale(0.390625)">
+    <rect width="1024" height="1024" rx="224" fill="#11203A"/>
+    <path d="M292 250 L512 520 L732 250 M512 520 L512 800" fill="none" stroke="#F5B700" stroke-width="150" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M512 560 L512 790" fill="none" stroke="#11203A" stroke-width="22" stroke-linecap="round" stroke-dasharray="48 44"/>
+  </g>
+  <text x="520" y="250" font-family="Segoe UI, Inter, Helvetica, Arial, sans-serif" font-size="150" font-weight="300" fill="#11203A">Ride with</text>
+  <text x="520" y="410" font-family="Segoe UI, Inter, Helvetica, Arial, sans-serif" font-size="170" font-weight="800" fill="#F5B700" letter-spacing="6">YAN</text>
+</svg>

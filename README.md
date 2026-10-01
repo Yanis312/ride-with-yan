@@ -1,4 +1,6 @@
-﻿# Ride with Yan
+﻿<p align="center"><img src="branding/logo-preview.png" width="480" alt="Ride with Yan"></p>
+
+# Ride with Yan
 
 Application tablette bilingue (FR/EN) pour passagers de taxi/VTC : divertissement, actualités, question du jour, mini-boutique.
 
@@ -18,3 +20,4 @@ cd app
 flutter pub get
 flutter run -d chrome
 ```
+
