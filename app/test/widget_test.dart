@@ -1,30 +1,71 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
-import 'package:ride_with_yan/main.dart';
+import 'package:ride_with_yan/app.dart';
+import 'package:ride_with_yan/session/session_controller.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  Future<void> pumpApp(WidgetTester tester, SessionController session) async {
+    tester.view.physicalSize = const Size(1280, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(RideWithYanApp(session: session));
+    await tester.pump(const Duration(seconds: 3));
+  }
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+  Future<void> chooseLanguage(WidgetTester tester, String label) async {
+    await tester.tap(find.text('Ride with Yan'));
+    await tester.pump(const Duration(seconds: 1));
+    await tester.tap(find.text(label));
+    await tester.pump(const Duration(seconds: 2));
+    await tester.pump(); // retire l'accueil une fois la transition finie
+  }
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
+  // Arrête le minuteur d'inactivité et laisse finir les animations de
+  // l'accueil, sinon le test échoue avec des timers en attente.
+  Future<void> endSession(WidgetTester tester, SessionController session) async {
+    session.reset();
     await tester.pump();
+    await tester.pump(const Duration(seconds: 3));
+  }
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+  testWidgets('choisir le français ouvre le menu en français', (tester) async {
+    final session = SessionController();
+    addTearDown(session.dispose);
+    await pumpApp(tester, session);
+
+    expect(find.text('Bienvenue  ·  Welcome'), findsOneWidget);
+
+    await chooseLanguage(tester, 'Français');
+
+    expect(find.text('Bonne route !'), findsOneWidget);
+    expect(find.text('Question du jour'), findsOneWidget);
+    await endSession(tester, session);
+  });
+
+  testWidgets('le bouton de langue bascule en anglais', (tester) async {
+    final session = SessionController();
+    addTearDown(session.dispose);
+    await pumpApp(tester, session);
+    await chooseLanguage(tester, 'Français');
+
+    await tester.tap(find.byIcon(Icons.translate_rounded));
+    await tester.pump(const Duration(seconds: 1));
+
+    expect(find.text('Enjoy the ride!'), findsOneWidget);
+    await endSession(tester, session);
+  });
+
+  testWidgets("retour à l'accueil après inactivité", (tester) async {
+    final session = SessionController(inactivityTimeout: const Duration(seconds: 5));
+    addTearDown(session.dispose);
+    await pumpApp(tester, session);
+    await chooseLanguage(tester, 'English');
+    expect(find.text('Enjoy the ride!'), findsOneWidget);
+
+    await tester.pump(const Duration(seconds: 6));
+    await tester.pump(const Duration(seconds: 1));
+
+    expect(session.isActive, isFalse);
+    expect(find.text('Bienvenue  ·  Welcome'), findsOneWidget);
   });
 }

@@ -27,6 +27,8 @@ jobs:
           channel: stable
           cache: true
       - run: flutter pub get
+      - run: flutter analyze
+      - run: flutter test
       - run: flutter build web --release --base-href /ride-with-yan/
       - uses: actions/upload-pages-artifact@v3
         with:

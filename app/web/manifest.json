@@ -1,12 +1,12 @@
 {
-    "name": "ride_with_yan",
-    "short_name": "ride_with_yan",
+    "name": "Ride with Yan",
+    "short_name": "Ride with Yan",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
-    "orientation": "portrait-primary",
+    "background_color": "#0B1422",
+    "theme_color": "#0B1422",
+    "description": "Divertissement et infos pour les passagers.",
+    "orientation": "any",
     "prefer_related_applications": false,
     "icons": [
         {

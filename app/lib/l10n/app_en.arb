@@ -1,0 +1,20 @@
+{
+  "@@locale": "en",
+  "homeGreeting": "Enjoy the ride!",
+  "homeSubtitle": "Make yourself comfortable and pick a section.",
+  "sectionAbout": "About Yan",
+  "sectionAboutHint": "Your driver, services and contact",
+  "sectionEntertainment": "Entertainment",
+  "sectionEntertainmentHint": "YouTube videos",
+  "sectionNews": "News",
+  "sectionNewsHint": "Sports, finance, world",
+  "sectionPoll": "Question of the day",
+  "sectionPollHint": "Vote and see the results",
+  "sectionStore": "Store",
+  "sectionStoreHint": "Small items on board",
+  "sectionWeather": "Weather",
+  "sectionWeatherHint": "Weather at your destination",
+  "comingSoon": "Coming soon",
+  "switchLanguage": "Français",
+  "backToWelcome": "Back to welcome"
+}

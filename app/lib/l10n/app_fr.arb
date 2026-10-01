@@ -1,0 +1,20 @@
+{
+  "@@locale": "fr",
+  "homeGreeting": "Bonne route !",
+  "homeSubtitle": "Installez-vous, choisissez une section.",
+  "sectionAbout": "À propos de Yan",
+  "sectionAboutHint": "Qui conduit, services et contact",
+  "sectionEntertainment": "Divertissement",
+  "sectionEntertainmentHint": "Vidéos YouTube",
+  "sectionNews": "Actualités",
+  "sectionNewsHint": "Sport, finance, monde",
+  "sectionPoll": "Question du jour",
+  "sectionPollHint": "Votez et voyez les résultats",
+  "sectionStore": "Boutique",
+  "sectionStoreHint": "Petits articles à bord",
+  "sectionWeather": "Météo",
+  "sectionWeatherHint": "Le temps à destination",
+  "comingSoon": "Bientôt disponible",
+  "switchLanguage": "English",
+  "backToWelcome": "Retour à l'accueil"
+}
