@@ -1,8 +1,6 @@
-# Builds cloud déclenchés à chaque push sur main.
-# Prérequis (une seule fois) :
-#   - Codemagic : webhook du dépôt GitHub configuré (Settings de l'app Codemagic → Webhooks)
-#   - Codemagic : groupe de variables "vercel" avec VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID
-#   - Vercel : projet créé SANS intégration Git (Codemagic déploie lui-même via le CLI)
+# Build de l'APK Android dans le cloud à chaque push sur main.
+# Prérequis : webhook GitHub -> https://api.codemagic.io/hooks/<appId>
+# L'aperçu web est géré par GitHub Actions (.github/workflows/web-preview.yml).
 
 definitions:
   triggering: &push_main
@@ -36,29 +34,4 @@ workflows:
           - yanisgaroui1@gmail.com
         notify:
           success: true
-          failure: true
-
-  web-preview:
-    name: Flutter Web preview (Vercel)
-    max_build_duration: 20
-    instance_type: linux_x2
-    working_directory: app
-    triggering: *push_main
-    environment:
-      flutter: stable
-      groups:
-        - vercel
-    scripts:
-      - name: Get Flutter packages
-        script: flutter pub get
-      - name: Build Flutter Web
-        script: flutter build web --release
-      - name: Deploy to Vercel
-        script: npx --yes vercel@latest deploy build/web --prod --yes --token "$VERCEL_TOKEN"
-    publishing:
-      email:
-        recipients:
-          - yanisgaroui1@gmail.com
-        notify:
-          success: false
           failure: true
