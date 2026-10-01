@@ -1,0 +1,47 @@
+workflows:
+  android-apk:
+    name: Android APK (test install)
+    max_build_duration: 30
+    instance_type: linux_x2
+    working_directory: app
+    environment:
+      flutter: stable
+    scripts:
+      - name: Get Flutter packages
+        script: flutter pub get
+      - name: Build Android APK (debug, fast, installable)
+        script: flutter build apk --debug
+    artifacts:
+      - app/build/app/outputs/flutter-apk/*.apk
+    publishing:
+      email:
+        recipients:
+          - yanisgaroui1@gmail.com
+        notify:
+          success: true
+          failure: true
+
+  web-preview:
+    name: Flutter Web preview (Vercel)
+    max_build_duration: 20
+    instance_type: linux_x2
+    working_directory: app
+    environment:
+      flutter: stable
+      vars:
+        VERCEL_ORG_ID: $VERCEL_ORG_ID
+        VERCEL_PROJECT_ID: $VERCEL_PROJECT_ID
+        VERCEL_TOKEN: $VERCEL_TOKEN
+    scripts:
+      - name: Get Flutter packages
+        script: flutter pub get
+      - name: Build Flutter Web
+        script: flutter build web --release
+      - name: Install Vercel CLI
+        script: npm install -g vercel
+      - name: Deploy to Vercel
+        script: |
+          cd build/web
+          vercel deploy --token=$VERCEL_TOKEN --prod --yes
+    artifacts:
+      - app/build/web/**
