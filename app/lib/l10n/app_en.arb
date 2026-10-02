@@ -22,5 +22,11 @@
   "entertainmentCta": "Watch",
   "pollQuestion": "What's your favourite city?",
   "aboutCta": "Services & collaborations",
-  "driverEyebrow": "Your driver"
+  "driverEyebrow": "Your driver",
+  "greetingLead1": "Welcome.",
+  "greetingTail1": "The lounge is yours.",
+  "greetingLead2": "Relax.",
+  "greetingTail2": "We'll take care of the rest.",
+  "greetingLead3": "Enjoy the journey.",
+  "greetingTail3": "Everything is at your fingertips."
 }

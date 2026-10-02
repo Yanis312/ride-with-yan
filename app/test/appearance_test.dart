@@ -3,7 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:ride_with_yan/theme/appearance_controller.dart';
 
 void main() {
-  AppearanceController at(int hour) => AppearanceController(clock: () => DateTime(2026, 10, 2, hour));
+  AppearanceController at(int hour) =>
+      AppearanceController(clock: () => DateTime(2026, 10, 2, hour));
 
   test('automatique : clair le jour, sombre la nuit', () {
     final day = at(10);

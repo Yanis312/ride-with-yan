@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
@@ -6,55 +8,63 @@ import '../theme/app_icons.dart';
 import '../theme/app_theme.dart';
 import '../theme/appearance_controller.dart';
 import '../widgets/glass.dart';
+import '../widgets/liquid_metal_logo.dart';
 import '../widgets/mesh_background.dart';
 import '../widgets/road_logo.dart';
 import '../widgets/scene_vignettes.dart';
 
-/// Une phase de l'écran de veille : une phrase bilingue, une ambiance de
-/// couleurs et une illustration animée.
+/// Une phase de l'écran de veille : une ambiance de couleurs, une
+/// illustration animée et plusieurs phrases bilingues possibles.
 class _Phase {
-  const _Phase(this.scene, this.lead, this.tail, this.icon);
+  const _Phase(this.scene, this.icon, this.lines);
 
   final Scene scene;
-  final String lead;
-  final String tail;
   final IconData icon;
+
+  /// Variantes (français, anglais) : l'une d'elles est tirée au hasard.
+  final List<(String, String)> lines;
 }
 
 const _phases = [
-  _Phase(Scene.intro, 'Bienvenue à bord.', 'Welcome aboard.', AppIcons.sparkle),
-  _Phase(
-    Scene.cinema,
-    'Regardez un film.',
-    'Watch a movie.',
-    AppIcons.filmSlate,
-  ),
-  _Phase(
-    Scene.games,
-    'Jouez à un jeu.',
-    'Play a game.',
-    AppIcons.gameController,
-  ),
-  _Phase(Scene.poll, 'Donnez votre avis.', 'Have your say.', AppIcons.chartBar),
-  _Phase(
-    Scene.news,
-    "Suivez l'actualité.",
-    'Catch up on the news.',
-    AppIcons.newspaper,
-  ),
-  _Phase(
-    Scene.collab,
-    'Découvrez ce que je crée.',
-    'See what I build.',
-    AppIcons.code,
-  ),
-  _Phase(
-    Scene.finale,
-    'Feel free to discover!',
-    'Explorez librement, tout est à vous.',
-    AppIcons.handTap,
-  ),
+  _Phase(Scene.intro, AppIcons.sparkle, [
+    ('Bienvenue à bord.', 'Welcome aboard.'),
+    ('Ravi de vous accueillir.', 'Glad to have you on board.'),
+  ]),
+  _Phase(Scene.cinema, AppIcons.filmSlate, [
+    ('Regardez un film.', 'Watch a movie.'),
+    ('Le cinéma, en route.', 'Cinema on the go.'),
+  ]),
+  _Phase(Scene.games, AppIcons.gameController, [
+    ('Jouez à un jeu.', 'Play a game.'),
+    ('Un petit défi ?', 'Up for a challenge?'),
+  ]),
+  _Phase(Scene.poll, AppIcons.chartBar, [
+    ('Donnez votre avis.', 'Have your say.'),
+    ('Votre ville préférée ?', "What's your favourite city?"),
+  ]),
+  _Phase(Scene.news, AppIcons.newspaper, [
+    ("Suivez l'actualité.", 'Catch up on the news.'),
+    ("Le monde, d'un coup d'œil.", 'The world at a glance.'),
+  ]),
+  _Phase(Scene.collab, AppIcons.code, [
+    ('Découvrez ce que je crée.', 'See what I build.'),
+    ('Sites, apps, automatisations.', 'Websites, apps, automation.'),
+  ]),
+  _Phase(Scene.finale, AppIcons.handTap, [
+    ('Feel free to discover!', 'Explorez librement, tout est à vous.'),
+    ('Feel free to discover!', "Touchez l'écran, la suite est à vous."),
+  ]),
 ];
+
+/// Ordre d'un cycle : l'accueil d'abord, "Feel free to discover" à la fin,
+/// et les autres phases mélangées au hasard (sans répéter la dernière vue).
+List<int> _shuffledCycle(math.Random random, {int? avoidFirst}) {
+  final middle = [for (var i = 1; i < _phases.length - 1; i++) i];
+  do {
+    middle.shuffle(random);
+  } while (middle.length > 1 && middle.first == avoidFirst);
+  return [0, ...middle, _phases.length - 1];
+}
 
 /// Écran de veille haut de gamme : les phases défilent toutes seules,
 /// chacune avec son fond et son mouvement. Un toucher propose la langue.
@@ -79,8 +89,15 @@ class _WelcomeScreenState extends State<WelcomeScreen>
     duration: const Duration(seconds: 6),
   );
 
-  int _index = 0;
+  final _random = math.Random();
+  late List<int> _order = _shuffledCycle(_random);
+  int _step = 0;
+  int _cycle = 0;
+  int _variant =
+      0; // le tout premier écran est toujours la phrase d'accueil classique
   bool _choosingLanguage = false;
+
+  _Phase get _phase => _phases[_order[_step]];
 
   @override
   void initState() {
@@ -100,7 +117,15 @@ class _WelcomeScreenState extends State<WelcomeScreen>
 
   void _onPhaseEnd(AnimationStatus status) {
     if (status != AnimationStatus.completed || !mounted) return;
-    setState(() => _index = (_index + 1) % _phases.length);
+    setState(() {
+      _step++;
+      if (_step == _order.length) {
+        _step = 0;
+        _cycle++;
+        _order = _shuffledCycle(_random, avoidFirst: _order[_order.length - 2]);
+      }
+      _variant = _random.nextInt(_phase.lines.length);
+    });
     _phaseClock.forward(from: 0);
   }
 
@@ -115,7 +140,8 @@ class _WelcomeScreenState extends State<WelcomeScreen>
 
   @override
   Widget build(BuildContext context) {
-    final phase = _phases[_index];
+    final phase = _phase;
+    final line = phase.lines[_variant];
     final size = MediaQuery.sizeOf(context);
     final compact = size.width < 760;
 
@@ -143,17 +169,21 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                         child: compact
                             ? _CompactStage(
                                 phase: phase,
-                                index: _index,
+                                line: line,
+                                index: _step,
+                                textKey: ValueKey('$_cycle-$_step'),
                                 loop: _loop,
                               )
                             : _WideStage(
                                 phase: phase,
-                                index: _index,
+                                line: line,
+                                index: _step,
+                                textKey: ValueKey('$_cycle-$_step'),
                                 loop: _loop,
                               ),
                       ),
                       _Footer(
-                        index: _index,
+                        index: _step,
                         clock: _phaseClock,
                         onStart: _openLanguages,
                         compact: compact,
@@ -195,7 +225,7 @@ class _Header extends StatelessWidget {
             style: AppText.display(26, color: p.text),
           ),
         ),
-        _RoundIconButton(
+        LiquidIconButton(
           icon: context.isDark ? AppIcons.sun : AppIcons.moon,
           onTap: appearance.toggle,
         ),
@@ -204,41 +234,20 @@ class _Header extends StatelessWidget {
   }
 }
 
-class _RoundIconButton extends StatelessWidget {
-  const _RoundIconButton({required this.icon, required this.onTap});
-
-  final IconData icon;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final p = context.palette;
-    return Pressable(
-      onTap: onTap,
-      child: Container(
-        width: 52,
-        height: 52,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: p.glass,
-          border: Border.all(color: p.hairline),
-        ),
-        child: Icon(icon, color: p.text, size: 22),
-      ),
-    );
-  }
-}
-
 /// Tablette paysage : la phrase à gauche, l'illustration à droite.
 class _WideStage extends StatelessWidget {
   const _WideStage({
     required this.phase,
+    required this.line,
     required this.index,
+    required this.textKey,
     required this.loop,
   });
 
   final _Phase phase;
+  final (String, String) line;
   final int index;
+  final Key textKey;
   final Animation<double> loop;
 
   @override
@@ -251,7 +260,9 @@ class _WideStage extends StatelessWidget {
             Expanded(
               flex: 11,
               child: _PhaseText(
+                key: textKey,
                 phase: phase,
+                line: line,
                 index: index,
                 size: c.maxWidth > 1100 ? 96 : 80,
               ),
@@ -278,12 +289,16 @@ class _WideStage extends StatelessWidget {
 class _CompactStage extends StatelessWidget {
   const _CompactStage({
     required this.phase,
+    required this.line,
     required this.index,
+    required this.textKey,
     required this.loop,
   });
 
   final _Phase phase;
+  final (String, String) line;
   final int index;
+  final Key textKey;
   final Animation<double> loop;
 
   @override
@@ -296,7 +311,13 @@ class _CompactStage extends StatelessWidget {
           children: [
             _AnimatedVignette(phase: phase, loop: loop, size: vignette),
             const SizedBox(height: 28),
-            _PhaseText(phase: phase, index: index, size: 50),
+            _PhaseText(
+              key: textKey,
+              phase: phase,
+              line: line,
+              index: index,
+              size: 50,
+            ),
           ],
         );
       },
@@ -339,26 +360,28 @@ class _AnimatedVignette extends StatelessWidget {
 }
 
 /// Phrase de la phase : compteur, ligne principale en serif, ligne secondaire
-/// en italique. Chaque changement de phase rejoue l'entrée.
+/// en italique. Chaque nouvelle phase rejoue l'entrée (la clé change).
 class _PhaseText extends StatelessWidget {
   const _PhaseText({
+    super.key,
     required this.phase,
+    required this.line,
     required this.index,
     required this.size,
   });
 
   final _Phase phase;
+  final (String, String) line;
   final int index;
   final double size;
 
   @override
   Widget build(BuildContext context) {
     final p = context.palette;
-    final counter =
-        '${(index + 1).toString().padLeft(2, '0')} / ${_phases.length.toString().padLeft(2, '0')}';
+    String two(int n) => n.toString().padLeft(2, '0');
+    final counter = '${two(index + 1)} / ${two(_phases.length)}';
 
     return Column(
-      key: ValueKey(index),
       mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -374,14 +397,14 @@ class _PhaseText extends StatelessWidget {
             .fadeIn(duration: 500.ms, curve: AppMotion.spring)
             .slideX(begin: -0.2, curve: AppMotion.spring),
         const SizedBox(height: 22),
-        Text(phase.lead, style: AppText.display(size, color: p.text))
+        Text(line.$1, style: AppText.display(size, color: p.text))
             .animate()
             .fadeIn(delay: 120.ms, duration: 800.ms, curve: AppMotion.spring)
             .slideY(begin: 0.25, delay: 120.ms, curve: AppMotion.spring)
             .blurXY(begin: 10, end: 0, delay: 120.ms, duration: 800.ms),
         const SizedBox(height: 16),
         Text(
-              phase.tail,
+              line.$2,
               style: AppText.display(
                 size * 0.42,
                 style: FontStyle.italic,
@@ -505,13 +528,13 @@ class _LanguageSheet extends StatelessWidget {
               constraints: const BoxConstraints(maxWidth: 560),
               child: Padding(
                 padding: const EdgeInsets.all(20),
-                child: BezelCard(
+                child: LiquidPill(
                   radius: 40,
                   padding: const EdgeInsets.fromLTRB(36, 40, 36, 36),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const RoadLogo(size: 64, showTile: false, glow: 0.6),
+                      const LiquidMetalLogo(size: 96),
                       const SizedBox(height: 24),
                       Text(
                         'Choisissez votre langue',

@@ -98,7 +98,11 @@ class _TopBar extends StatelessWidget {
                 ),
         ),
         if (!compact) ...[const _Clock(), const SizedBox(width: 12)],
-        _ThemeToggle(onTap: appearance.toggle),
+        LiquidIconButton(
+          icon: context.isDark ? AppIcons.sun : AppIcons.moon,
+          onTap: appearance.toggle,
+          size: 48,
+        ),
         const SizedBox(width: 12),
         PillButton(
           label: l10n.switchLanguage,
@@ -108,42 +112,6 @@ class _TopBar extends StatelessWidget {
         ),
       ],
     ).animate().fadeIn(duration: AppMotion.medium, curve: AppMotion.spring);
-  }
-}
-
-class _ThemeToggle extends StatelessWidget {
-  const _ThemeToggle({required this.onTap});
-
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final p = context.palette;
-    return Pressable(
-      onTap: onTap,
-      child: Container(
-        width: 48,
-        height: 48,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: p.glass,
-          border: Border.all(color: p.hairline),
-        ),
-        child: AnimatedSwitcher(
-          duration: AppMotion.medium,
-          transitionBuilder: (child, a) => RotationTransition(
-            turns: Tween(begin: 0.6, end: 1.0).animate(a),
-            child: FadeTransition(opacity: a, child: child),
-          ),
-          child: Icon(
-            context.isDark ? AppIcons.sun : AppIcons.moon,
-            key: ValueKey(context.isDark),
-            color: p.text,
-            size: 21,
-          ),
-        ),
-      ),
-    );
   }
 }
 
@@ -177,13 +145,8 @@ class _ClockState extends State<_Clock> {
   Widget build(BuildContext context) {
     final p = context.palette;
     final locale = Localizations.localeOf(context).languageCode;
-    return Container(
+    return LiquidPill(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-      decoration: BoxDecoration(
-        color: p.glass,
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: p.hairline),
-      ),
       child: Text.rich(
         TextSpan(
           children: [
@@ -308,13 +271,19 @@ class _Greeting extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     final p = context.palette;
     final size = MediaQuery.sizeOf(context).width < 760 ? 44.0 : 64.0;
+    final (lead, tail) = switch (SessionScope.of(context).greeting) {
+      1 => (l10n.greetingLead1, l10n.greetingTail1),
+      2 => (l10n.greetingLead2, l10n.greetingTail2),
+      3 => (l10n.greetingLead3, l10n.greetingTail3),
+      _ => (l10n.greetingLead, l10n.greetingTail),
+    };
 
     return Text.rich(
           TextSpan(
             children: [
-              TextSpan(text: '${l10n.greetingLead} '),
+              TextSpan(text: '$lead '),
               TextSpan(
-                text: l10n.greetingTail,
+                text: tail,
                 style: AppText.display(
                   size,
                   style: FontStyle.italic,

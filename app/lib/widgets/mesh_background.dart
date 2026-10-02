@@ -4,6 +4,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 
 import '../theme/app_theme.dart';
 
@@ -254,7 +255,11 @@ class _MeshBackgroundState extends State<MeshBackground>
   MeshPalette get _current =>
       MeshPalette.lerp(_from!, _to!, AppMotion.spring.transform(_blend.value));
 
-  void _onTick(Duration elapsed) => _time.value = elapsed.inMicroseconds / 1e6;
+  /// Point de départ aléatoire : chaque passager voit d'autres vagues.
+  final double _seed = math.Random().nextDouble() * 400;
+
+  void _onTick(Duration elapsed) =>
+      _time.value = _seed + elapsed.inMicroseconds / 1e6;
 
   @override
   void dispose() {
@@ -267,21 +272,26 @@ class _MeshBackgroundState extends State<MeshBackground>
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      fit: StackFit.expand,
-      children: [
-        RepaintBoundary(
-          child: CustomPaint(
-            painter: _MeshPainter(
-              shader: _shader,
-              time: _time,
-              blend: _blend,
-              palette: () => _current,
+    // Le fond sert de source de réfraction aux éléments Liquid Glass.
+    return LiquidGlassScope(
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          GlassBackgroundSource(
+            child: RepaintBoundary(
+              child: CustomPaint(
+                painter: _MeshPainter(
+                  shader: _shader,
+                  time: _time,
+                  blend: _blend,
+                  palette: () => _current,
+                ),
+              ),
             ),
           ),
-        ),
-        widget.child,
-      ],
+          widget.child,
+        ],
+      ),
     );
   }
 }

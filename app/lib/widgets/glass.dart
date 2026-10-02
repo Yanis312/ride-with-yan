@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 
 import '../theme/app_theme.dart';
 
@@ -157,50 +158,115 @@ class PillButton extends StatelessWidget {
     final fg = filled ? Brand.ink : p.text;
     final circle = large ? 44.0 : 36.0;
 
+    final content = Padding(
+      padding: EdgeInsets.fromLTRB(large ? 30 : 22, 6, 6, 6),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            label,
+            style: AppText.body(
+              large ? 20 : 16,
+              weight: FontWeight.w600,
+              color: fg,
+            ),
+          ),
+          SizedBox(width: large ? 18 : 14),
+          Container(
+            width: circle,
+            height: circle,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: filled ? Brand.ink.withValues(alpha: 0.12) : p.hairline,
+            ),
+            child: IconTheme(
+              data: IconThemeData(color: fg, size: large ? 20 : 17),
+              child: DefaultTextStyle(
+                style: AppText.body(13, weight: FontWeight.w600, color: fg),
+                child: trailing ?? const SizedBox.shrink(),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+
     return Pressable(
       onTap: onTap,
-      child: Container(
-        padding: EdgeInsets.fromLTRB(large ? 30 : 22, 6, 6, 6),
-        decoration: BoxDecoration(
-          gradient: filled
-              ? const LinearGradient(
-                  colors: [Brand.goldSoft, Brand.gold, Color(0xFFE59A00)],
-                )
-              : null,
-          color: filled ? null : p.glass,
-          borderRadius: BorderRadius.circular(999),
-          border: filled ? null : Border.all(color: p.hairline),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              label,
-              style: AppText.body(
-                large ? 20 : 16,
-                weight: FontWeight.w600,
-                color: fg,
-              ),
-            ),
-            SizedBox(width: large ? 18 : 14),
-            Container(
-              width: circle,
-              height: circle,
-              alignment: Alignment.center,
+      child: filled
+          ? DecoratedBox(
               decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: filled ? Brand.ink.withValues(alpha: 0.12) : p.hairline,
-              ),
-              child: IconTheme(
-                data: IconThemeData(color: fg, size: large ? 20 : 17),
-                child: DefaultTextStyle(
-                  style: AppText.body(13, weight: FontWeight.w600, color: fg),
-                  child: trailing ?? const SizedBox.shrink(),
+                gradient: const LinearGradient(
+                  colors: [Brand.goldSoft, Brand.gold, Color(0xFFE59A00)],
                 ),
+                borderRadius: BorderRadius.circular(999),
               ),
-            ),
-          ],
-        ),
+              child: content,
+            )
+          : LiquidPill(child: content),
+    );
+  }
+}
+
+/// Surface "Liquid Glass" façon iOS 26 en forme de pilule : elle réfracte
+/// le fond animé placé derrière (voir MeshBackground).
+class LiquidPill extends StatelessWidget {
+  const LiquidPill({
+    super.key,
+    required this.child,
+    this.radius = 999,
+    this.padding,
+  });
+
+  final Widget child;
+  final double radius;
+  final EdgeInsetsGeometry? padding;
+
+  @override
+  Widget build(BuildContext context) {
+    return GlassContainer(
+      shape: LiquidRoundedSuperellipse(borderRadius: radius),
+      padding: padding,
+      settings: LiquidGlassSettings(
+        glassColor: context.isDark
+            ? const Color(0x14FFFFFF)
+            : const Color(0x59FFFFFF),
+        thickness: 22,
+        blur: 8,
+        lightIntensity: 0.6,
+      ),
+      child: child,
+    );
+  }
+}
+
+/// Bouton rond en verre liquide (icône seule).
+class LiquidIconButton extends StatelessWidget {
+  const LiquidIconButton({
+    super.key,
+    required this.icon,
+    required this.onTap,
+    this.size = 52,
+  });
+
+  final IconData icon;
+  final VoidCallback onTap;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    return GlassButton(
+      width: size,
+      height: size,
+      onTap: onTap,
+      icon: Icon(icon, color: context.palette.text, size: size * 0.42),
+      settings: LiquidGlassSettings(
+        glassColor: context.isDark
+            ? const Color(0x14FFFFFF)
+            : const Color(0x59FFFFFF),
+        thickness: 24,
+        blur: 8,
       ),
     );
   }

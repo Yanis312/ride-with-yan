@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -38,7 +40,7 @@ void main() {
   testWidgets('choisir le français ouvre le lounge en français', (
     tester,
   ) async {
-    final session = SessionController();
+    final session = SessionController(random: _FirstChoice());
     addTearDown(session.dispose);
     await pumpApp(tester, session);
 
@@ -55,7 +57,7 @@ void main() {
   });
 
   testWidgets('le bouton de langue bascule en anglais', (tester) async {
-    final session = SessionController();
+    final session = SessionController(random: _FirstChoice());
     addTearDown(session.dispose);
     await pumpApp(tester, session);
     await chooseLanguage(tester, 'Français');
@@ -73,6 +75,7 @@ void main() {
   testWidgets("retour à l'accueil après inactivité", (tester) async {
     final session = SessionController(
       inactivityTimeout: const Duration(seconds: 5),
+      random: _FirstChoice(),
     );
     addTearDown(session.dispose);
     await pumpApp(tester, session);
@@ -86,4 +89,16 @@ void main() {
     expect(find.text('Bienvenue à bord.'), findsOneWidget);
     await tester.pump(const Duration(seconds: 3));
   });
+}
+
+/// Hasard prévisible : toujours le premier choix.
+class _FirstChoice implements math.Random {
+  @override
+  int nextInt(int max) => 0;
+
+  @override
+  double nextDouble() => 0;
+
+  @override
+  bool nextBool() => false;
 }

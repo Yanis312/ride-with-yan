@@ -77,4 +77,22 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get driverEyebrow => 'Votre chauffeur';
+
+  @override
+  String get greetingLead1 => 'Bienvenue.';
+
+  @override
+  String get greetingTail1 => 'Le lounge est à vous.';
+
+  @override
+  String get greetingLead2 => 'Détendez-vous.';
+
+  @override
+  String get greetingTail2 => 'On s\'occupe du reste.';
+
+  @override
+  String get greetingLead3 => 'Profitez du trajet.';
+
+  @override
+  String get greetingTail3 => 'Tout est à portée de main.';
 }

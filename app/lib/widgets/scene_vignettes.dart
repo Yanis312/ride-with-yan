@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 
 import '../theme/app_icons.dart';
 import '../theme/app_theme.dart';
+import 'liquid_metal_logo.dart';
 import 'mesh_background.dart';
-import 'road_logo.dart';
 
 /// Illustration animée propre à chaque phase de l'écran de veille.
 /// [loop] tourne en boucle de 0 à 1 ; chaque scène en tire son propre mouvement.
@@ -88,11 +88,7 @@ class _Intro extends StatelessWidget {
     return Center(
       child: Transform.translate(
         offset: Offset(0, _wave(t) * 8),
-        child: RoadLogo(
-          size: size * 0.62,
-          showTile: false,
-          glow: 0.55 + 0.45 * _wave(t, 0.25).abs(),
-        ),
+        child: LiquidMetalLogo(size: size * 0.78),
       ),
     );
   }

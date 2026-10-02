@@ -235,6 +235,42 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Votre chauffeur'**
   String get driverEyebrow;
+
+  /// No description provided for @greetingLead1.
+  ///
+  /// In fr, this message translates to:
+  /// **'Bienvenue.'**
+  String get greetingLead1;
+
+  /// No description provided for @greetingTail1.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le lounge est à vous.'**
+  String get greetingTail1;
+
+  /// No description provided for @greetingLead2.
+  ///
+  /// In fr, this message translates to:
+  /// **'Détendez-vous.'**
+  String get greetingLead2;
+
+  /// No description provided for @greetingTail2.
+  ///
+  /// In fr, this message translates to:
+  /// **'On s\'occupe du reste.'**
+  String get greetingTail2;
+
+  /// No description provided for @greetingLead3.
+  ///
+  /// In fr, this message translates to:
+  /// **'Profitez du trajet.'**
+  String get greetingLead3;
+
+  /// No description provided for @greetingTail3.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tout est à portée de main.'**
+  String get greetingTail3;
 }
 
 class _AppLocalizationsDelegate

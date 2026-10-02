@@ -1,15 +1,26 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/widgets.dart';
 
 /// État de la course en cours : langue choisie et retour automatique
 /// à l'accueil quand le passager n'a plus touché l'écran depuis un moment.
 class SessionController extends ChangeNotifier {
-  SessionController({this.inactivityTimeout = const Duration(seconds: 90)});
+  SessionController({
+    this.inactivityTimeout = const Duration(seconds: 90),
+    math.Random? random,
+  }) : _random = random ?? math.Random();
+
+  static const greetingCount = 4;
 
   final Duration inactivityTimeout;
 
+  final math.Random _random;
   Locale? _locale;
+  int _greeting = 0;
+
+  /// Formule d'accueil du lounge, tirée au hasard pour chaque passager.
+  int get greeting => _greeting;
   Timer? _inactivityTimer;
   int _generation = 0;
 
@@ -22,6 +33,11 @@ class SessionController extends ChangeNotifier {
   bool get isActive => _locale != null;
 
   void start(Locale locale) {
+    _greeting = _random.nextInt(greetingCount);
+    _setLocale(locale);
+  }
+
+  void _setLocale(Locale locale) {
     _locale = locale;
     _restartTimer();
     notifyListeners();
@@ -29,7 +45,8 @@ class SessionController extends ChangeNotifier {
 
   void switchLanguage() {
     if (_locale == null) return;
-    start(
+    // Même passager : on garde sa formule d'accueil.
+    _setLocale(
       _locale!.languageCode == 'fr' ? const Locale('en') : const Locale('fr'),
     );
   }

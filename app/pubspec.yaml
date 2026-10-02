@@ -14,6 +14,7 @@ dependencies:
     sdk: flutter
   flutter_animate: ^4.5.2
   intl: ^0.20.3
+  liquid_glass_widgets: ^1.8.1
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -23,8 +24,12 @@ flutter:
   uses-material-design: true
   generate: true
 
+  assets:
+    - assets/images/
+
   shaders:
     - shaders/mesh.frag
+    - shaders/liquid_metal.frag
 
   fonts:
     - family: Cormorant
