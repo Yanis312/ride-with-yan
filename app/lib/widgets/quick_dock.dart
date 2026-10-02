@@ -5,6 +5,7 @@ import '../navigation/sections.dart';
 import '../theme/app_icons.dart';
 import '../theme/app_theme.dart';
 import 'glass.dart';
+import 'heartbeat.dart';
 
 /// Dock en verre liquide : LinkedIn, Collaborations et Boutique, présent sur
 /// tous les écrans. [current] met en avant la section ouverte.
@@ -23,21 +24,24 @@ class QuickDock extends StatelessWidget {
       (Section.linkedin, AppIcons.linkedin, l10n.dockLinkedIn),
       (Section.collaboration, AppIcons.handshake, l10n.dockCollab),
       (Section.store, AppIcons.storefront, l10n.dockStore),
+      (Section.ads, AppIcons.megaphone, l10n.dockAds),
     ];
 
-    return LiquidPill(
-      padding: const EdgeInsets.all(5),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          for (final (section, icon, label) in items)
-            _DockItem(
-              icon: icon,
-              label: compact ? null : label,
-              selected: section == current,
-              onTap: () => openSection(context, section),
-            ),
-        ],
+    return Heartbeat(
+      child: LiquidPill(
+        padding: const EdgeInsets.all(5),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            for (final (section, icon, label) in items)
+              _DockItem(
+                icon: icon,
+                label: compact ? null : label,
+                selected: section == current,
+                onTap: () => openSection(context, section),
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -79,7 +83,19 @@ class _DockItem extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 20, color: fg),
+            Icon(
+              icon,
+              size: 20,
+              color: selected ? Brand.ink : Brand.gold,
+              shadows: selected
+                  ? null
+                  : [
+                      Shadow(
+                        color: Brand.gold.withValues(alpha: 0.8),
+                        blurRadius: 12,
+                      ),
+                    ],
+            ),
             if (label != null) ...[
               const SizedBox(width: 8),
               Text(

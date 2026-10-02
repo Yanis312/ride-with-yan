@@ -73,5 +73,27 @@
   "languagesTitle": "Langues",
   "contactTitle": "Parlons de votre projet",
   "contactScan": "Scannez un code avec votre téléphone",
-  "newOrder": "Nouvelle commande"
+  "newOrder": "Nouvelle commande",
+  "dockAds": "Votre pub",
+  "adsTitle": "Votre publicité à bord",
+  "adsHeadline": "Votre commerce ici.",
+  "adsPrice": "1 $ / mois",
+  "adsFreeBadge": "Gratuit à vie pour les premiers partenaires",
+  "adsPoint1": "Photo et description de votre commerce",
+  "adsPoint2": "Liens Instagram, TikTok et Facebook",
+  "adsPoint3": "Carte, adresse et téléphone",
+  "adsPoint4": "Vu par chaque passager, jour et nuit",
+  "adsCta": "Réserver ma place",
+  "adsTapHint": "Touchez une carte pour la retourner",
+  "adsExample": "Exemple",
+  "adsScanSocial": "Scannez pour ouvrir {network}",
+  "@adsScanSocial": {
+    "placeholders": {
+      "network": {
+        "type": "String"
+      }
+    }
+  },
+  "adsYourSpot": "Cette place est libre",
+  "adsYourSpotHint": "Soyez parmi les premiers : c’est gratuit, à vie."
 }

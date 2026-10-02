@@ -47,4 +47,14 @@ abstract final class AppIcons {
   static const trash = IconData(0xe4a6, fontFamily: _family);
   static const umbrella = IconData(0xe684, fontFamily: _family);
   static const whatsapp = IconData(0xe5d0, fontFamily: _family);
+  static const megaphone = IconData(0xe324, fontFamily: _family);
+  static const instagram = IconData(0xe2d0, fontFamily: _family);
+  static const tiktok = IconData(0xeaf2, fontFamily: _family);
+  static const facebook = IconData(0xe226, fontFamily: _family);
+  static const phone = IconData(0xe3b8, fontFamily: _family);
+  static const clock = IconData(0xe19a, fontFamily: _family);
+  static const navigation = IconData(0xeade, fontFamily: _family);
+  static const flip = IconData(0xe094, fontFamily: _family);
+  static const gift = IconData(0xe276, fontFamily: _family);
+  static const crown = IconData(0xe614, fontFamily: _family);
 }

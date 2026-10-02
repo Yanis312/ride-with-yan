@@ -59,5 +59,20 @@
   "languagesTitle": "Languages",
   "contactTitle": "Let's talk about your project",
   "contactScan": "Scan a code with your phone",
-  "newOrder": "New order"
+  "newOrder": "New order",
+  "dockAds": "Advertise",
+  "adsTitle": "Advertise on board",
+  "adsHeadline": "Your business here.",
+  "adsPrice": "$1 / month",
+  "adsFreeBadge": "Free for life for early partners",
+  "adsPoint1": "Photo and description of your business",
+  "adsPoint2": "Instagram, TikTok and Facebook links",
+  "adsPoint3": "Map, address and phone",
+  "adsPoint4": "Seen by every passenger, day and night",
+  "adsCta": "Book my spot",
+  "adsTapHint": "Tap a card to flip it",
+  "adsExample": "Example",
+  "adsScanSocial": "Scan to open {network}",
+  "adsYourSpot": "This spot is free",
+  "adsYourSpotHint": "Be one of the first: it’s free, for life."
 }

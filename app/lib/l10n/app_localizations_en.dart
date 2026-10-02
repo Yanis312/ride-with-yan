@@ -194,4 +194,51 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get newOrder => 'New order';
+
+  @override
+  String get dockAds => 'Advertise';
+
+  @override
+  String get adsTitle => 'Advertise on board';
+
+  @override
+  String get adsHeadline => 'Your business here.';
+
+  @override
+  String get adsPrice => '\$1 / month';
+
+  @override
+  String get adsFreeBadge => 'Free for life for early partners';
+
+  @override
+  String get adsPoint1 => 'Photo and description of your business';
+
+  @override
+  String get adsPoint2 => 'Instagram, TikTok and Facebook links';
+
+  @override
+  String get adsPoint3 => 'Map, address and phone';
+
+  @override
+  String get adsPoint4 => 'Seen by every passenger, day and night';
+
+  @override
+  String get adsCta => 'Book my spot';
+
+  @override
+  String get adsTapHint => 'Tap a card to flip it';
+
+  @override
+  String get adsExample => 'Example';
+
+  @override
+  String adsScanSocial(String network) {
+    return 'Scan to open $network';
+  }
+
+  @override
+  String get adsYourSpot => 'This spot is free';
+
+  @override
+  String get adsYourSpotHint => 'Be one of the first: it’s free, for life.';
 }

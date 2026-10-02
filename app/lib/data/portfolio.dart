@@ -6,7 +6,7 @@ import 'bilingual.dart';
 enum ShowcaseFrame { browser, phone, dashboard }
 
 /// Une réalisation de démonstration montrée dans la section Collaborations.
-/// Les démos sont dans /portfolio (HTML) et capturées dans assets/portfolio.
+/// Images et vidéos à placer dans assets/showcase/ puis à déclarer ici.
 @immutable
 class Showcase {
   const Showcase({
@@ -36,6 +36,7 @@ class ServiceTab {
     required this.pitch,
     required this.points,
     required this.showcases,
+    this.frame = ShowcaseFrame.browser,
   });
 
   final Bi label;
@@ -44,6 +45,9 @@ class ServiceTab {
   final Bi pitch;
   final List<Bi> points;
   final List<Showcase> showcases;
+
+  /// Cadre utilisé tant qu'aucune démo n'est fournie.
+  final ShowcaseFrame frame;
 }
 
 const serviceTabs = [
@@ -64,44 +68,12 @@ const serviceTabs = [
       Bi('Bilingue français et anglais', 'Bilingual French and English'),
       Bi('Mise en ligne et hébergement inclus', 'Launch and hosting included'),
     ],
-    showcases: [
-      Showcase(
-        title: 'Maison Safran',
-        kind: Bi('Restaurant gastronomique', 'Fine dining restaurant'),
-        image: 'assets/portfolio/restaurant.jpg',
-        video: 'assets/portfolio/restaurant.mp4',
-        frame: ShowcaseFrame.browser,
-        accent: Color(0xFFE8A23A),
-      ),
-      Showcase(
-        title: 'Atelier Lumen',
-        kind: Bi('Spa et soins', 'Spa and wellness'),
-        image: 'assets/portfolio/spa.jpg',
-        video: 'assets/portfolio/spa.mp4',
-        frame: ShowcaseFrame.browser,
-        accent: Color(0xFFE7B7A8),
-      ),
-      Showcase(
-        title: 'Nordhaus',
-        kind: Bi('Agence immobilière', 'Real estate agency'),
-        image: 'assets/portfolio/immobilier.jpg',
-        video: 'assets/portfolio/immobilier.mp4',
-        frame: ShowcaseFrame.browser,
-        accent: Color(0xFF1F4DFF),
-      ),
-      Showcase(
-        title: 'Pulse',
-        kind: Bi('Startup logicielle', 'Software startup'),
-        image: 'assets/portfolio/saas.jpg',
-        video: 'assets/portfolio/saas.mp4',
-        frame: ShowcaseFrame.browser,
-        accent: Color(0xFFC6FF3D),
-      ),
-    ],
+    showcases: [],
   ),
   ServiceTab(
     label: Bi('Applications', 'Mobile apps'),
     icon: AppIcons.deviceMobile,
+    frame: ShowcaseFrame.phone,
     headline: Bi('Votre app, dans leur poche.', 'Your app, in their pocket.'),
     pitch: Bi(
       'Applications Android et iPhone avec un seul code (Flutter), comme celle que vous utilisez en ce moment.',
@@ -113,26 +85,12 @@ const serviceTabs = [
       Bi('Notifications et paiements', 'Notifications and payments'),
       Bi('Publication sur les stores', 'Store publishing'),
     ],
-    showcases: [
-      Showcase(
-        title: 'Croque',
-        kind: Bi('Livraison de repas', 'Food delivery'),
-        image: 'assets/portfolio/app-livraison.jpg',
-        frame: ShowcaseFrame.phone,
-        accent: Color(0xFFFF6B3D),
-      ),
-      Showcase(
-        title: 'Stride',
-        kind: Bi('Suivi sportif', 'Fitness tracking'),
-        image: 'assets/portfolio/app-fitness.jpg',
-        frame: ShowcaseFrame.phone,
-        accent: Color(0xFF3EE6B4),
-      ),
-    ],
+    showcases: [],
   ),
   ServiceTab(
     label: Bi('Automatisation et IA', 'Automation and AI'),
     icon: AppIcons.robot,
+    frame: ShowcaseFrame.dashboard,
     headline: Bi(
       'Moins de tâches, plus de clients.',
       'Less busywork, more clients.',
@@ -147,14 +105,6 @@ const serviceTabs = [
       Bi('Rapports automatiques chaque matin', 'Automatic morning reports'),
       Bi('Solutions ERP sur mesure', 'Custom ERP solutions'),
     ],
-    showcases: [
-      Showcase(
-        title: 'Flux',
-        kind: Bi('Commandes automatisées', 'Automated orders'),
-        image: 'assets/portfolio/automatisation.jpg',
-        frame: ShowcaseFrame.dashboard,
-        accent: Color(0xFF7EE3A8),
-      ),
-    ],
+    showcases: [],
   ),
 ];

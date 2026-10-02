@@ -195,4 +195,52 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get newOrder => 'Nouvelle commande';
+
+  @override
+  String get dockAds => 'Votre pub';
+
+  @override
+  String get adsTitle => 'Votre publicité à bord';
+
+  @override
+  String get adsHeadline => 'Votre commerce ici.';
+
+  @override
+  String get adsPrice => '1 \$ / mois';
+
+  @override
+  String get adsFreeBadge => 'Gratuit à vie pour les premiers partenaires';
+
+  @override
+  String get adsPoint1 => 'Photo et description de votre commerce';
+
+  @override
+  String get adsPoint2 => 'Liens Instagram, TikTok et Facebook';
+
+  @override
+  String get adsPoint3 => 'Carte, adresse et téléphone';
+
+  @override
+  String get adsPoint4 => 'Vu par chaque passager, jour et nuit';
+
+  @override
+  String get adsCta => 'Réserver ma place';
+
+  @override
+  String get adsTapHint => 'Touchez une carte pour la retourner';
+
+  @override
+  String get adsExample => 'Exemple';
+
+  @override
+  String adsScanSocial(String network) {
+    return 'Scannez pour ouvrir $network';
+  }
+
+  @override
+  String get adsYourSpot => 'Cette place est libre';
+
+  @override
+  String get adsYourSpotHint =>
+      'Soyez parmi les premiers : c’est gratuit, à vie.';
 }

@@ -11,6 +11,7 @@ import '../l10n/app_localizations.dart';
 import '../navigation/sections.dart';
 import '../theme/app_icons.dart';
 import '../theme/app_theme.dart';
+import '../widgets/blueprint_mockup.dart';
 import '../widgets/glass.dart';
 import '../widgets/mesh_background.dart';
 import '../widgets/qr_card.dart';
@@ -162,7 +163,9 @@ class _ShowroomState extends State<_Showroom> {
   static const _autoAdvance = Duration(seconds: 9);
 
   // Point de départ au hasard : chaque passager découvre une autre démo d'abord.
-  late int _index = math.Random().nextInt(widget.tab.showcases.length);
+  late int _index = widget.tab.showcases.isEmpty
+      ? 0
+      : math.Random().nextInt(widget.tab.showcases.length);
   Timer? _timer;
 
   @override
@@ -193,6 +196,7 @@ class _ShowroomState extends State<_Showroom> {
   @override
   Widget build(BuildContext context) {
     final showcases = widget.tab.showcases;
+    if (showcases.isEmpty) return BlueprintMockup(frame: widget.tab.frame);
     final current = showcases[_index];
     final p = context.palette;
     final l10n = AppLocalizations.of(context);

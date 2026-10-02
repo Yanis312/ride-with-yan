@@ -457,6 +457,96 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Nouvelle commande'**
   String get newOrder;
+
+  /// No description provided for @dockAds.
+  ///
+  /// In fr, this message translates to:
+  /// **'Votre pub'**
+  String get dockAds;
+
+  /// No description provided for @adsTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Votre publicité à bord'**
+  String get adsTitle;
+
+  /// No description provided for @adsHeadline.
+  ///
+  /// In fr, this message translates to:
+  /// **'Votre commerce ici.'**
+  String get adsHeadline;
+
+  /// No description provided for @adsPrice.
+  ///
+  /// In fr, this message translates to:
+  /// **'1 \$ / mois'**
+  String get adsPrice;
+
+  /// No description provided for @adsFreeBadge.
+  ///
+  /// In fr, this message translates to:
+  /// **'Gratuit à vie pour les premiers partenaires'**
+  String get adsFreeBadge;
+
+  /// No description provided for @adsPoint1.
+  ///
+  /// In fr, this message translates to:
+  /// **'Photo et description de votre commerce'**
+  String get adsPoint1;
+
+  /// No description provided for @adsPoint2.
+  ///
+  /// In fr, this message translates to:
+  /// **'Liens Instagram, TikTok et Facebook'**
+  String get adsPoint2;
+
+  /// No description provided for @adsPoint3.
+  ///
+  /// In fr, this message translates to:
+  /// **'Carte, adresse et téléphone'**
+  String get adsPoint3;
+
+  /// No description provided for @adsPoint4.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vu par chaque passager, jour et nuit'**
+  String get adsPoint4;
+
+  /// No description provided for @adsCta.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réserver ma place'**
+  String get adsCta;
+
+  /// No description provided for @adsTapHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Touchez une carte pour la retourner'**
+  String get adsTapHint;
+
+  /// No description provided for @adsExample.
+  ///
+  /// In fr, this message translates to:
+  /// **'Exemple'**
+  String get adsExample;
+
+  /// No description provided for @adsScanSocial.
+  ///
+  /// In fr, this message translates to:
+  /// **'Scannez pour ouvrir {network}'**
+  String adsScanSocial(String network);
+
+  /// No description provided for @adsYourSpot.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cette place est libre'**
+  String get adsYourSpot;
+
+  /// No description provided for @adsYourSpotHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Soyez parmi les premiers : c’est gratuit, à vie.'**
+  String get adsYourSpotHint;
 }
 
 class _AppLocalizationsDelegate

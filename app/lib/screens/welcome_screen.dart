@@ -22,7 +22,8 @@ class _Phase {
   final Scene scene;
   final IconData icon;
 
-  /// Variantes (français, anglais) : l'une d'elles est tirée au hasard.
+  /// Variantes (français, anglais) : l'une est tirée au hasard, et la langue
+  /// affichée en grand aussi.
   final List<(String, String)> lines;
 }
 
@@ -48,12 +49,18 @@ const _phases = [
     ("Le monde, d'un coup d'œil.", 'The world at a glance.'),
   ]),
   _Phase(Scene.collab, AppIcons.code, [
-    ('Découvrez ce que je crée.', 'See what I build.'),
-    ('Sites, apps, automatisations.', 'Websites, apps, automation.'),
+    ('Envie d’un site web ou d’une app ?', 'Want a website or an app?'),
+    ('Voyez ce que je peux créer pour vous.', 'See what I can build for you.'),
+    ('Votre idée, mon prochain projet.', 'Your idea, my next project.'),
+  ]),
+  _Phase(Scene.ads, AppIcons.megaphone, [
+    ('Votre commerce ici ?', 'Your business here?'),
+    ('Faites-vous connaître à bord.', 'Get noticed on board.'),
+    ('Gratuit à vie pour les premiers.', 'Free for life for early partners.'),
   ]),
   _Phase(Scene.finale, AppIcons.handTap, [
-    ('Feel free to discover!', 'Explorez librement, tout est à vous.'),
-    ('Feel free to discover!', "Touchez l'écran, la suite est à vous."),
+    ('Explorez librement, tout est à vous.', 'Feel free to discover!'),
+    ('Touchez l’écran, la suite est à vous.', 'Feel free to discover!'),
   ]),
 ];
 
@@ -96,6 +103,9 @@ class _WelcomeScreenState extends State<WelcomeScreen>
   int _cycle = 0;
   int _variant =
       0; // le tout premier écran est toujours la phrase d'accueil classique
+
+  /// Grande phrase en anglais ou en français, tirée au hasard à chaque phase.
+  bool _englishFirst = false;
   bool _choosingLanguage = false;
 
   _Phase get _phase => _phases[_order[_step]];
@@ -126,6 +136,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
         _order = _shuffledCycle(_random, avoidFirst: _order[_order.length - 2]);
       }
       _variant = _random.nextInt(_phase.lines.length);
+      _englishFirst = _random.nextBool();
     });
     _phaseClock.forward(from: 0);
   }
@@ -142,7 +153,8 @@ class _WelcomeScreenState extends State<WelcomeScreen>
   @override
   Widget build(BuildContext context) {
     final phase = _phase;
-    final line = phase.lines[_variant];
+    final (fr, en) = phase.lines[_variant];
+    final line = _englishFirst ? (en, fr) : (fr, en);
     final size = MediaQuery.sizeOf(context);
     final compact = size.width < 760;
 
@@ -383,41 +395,62 @@ class _PhaseText extends StatelessWidget {
     final p = context.palette;
     String two(int n) => n.toString().padLeft(2, '0');
     final counter = '${two(index + 1)} / ${two(_phases.length)}';
+    // Les phrases longues passent en plus petit pour ne jamais déborder.
+    final n = line.$1.length;
+    final lead = n > 30 ? size * 0.66 : (n > 22 ? size * 0.8 : size);
 
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(phase.icon, size: 22, color: p.accentText),
-                const SizedBox(width: 12),
-                Text(counter, style: AppText.eyebrow(p.textMuted)),
-              ],
-            )
-            .animate()
-            .fadeIn(duration: 500.ms, curve: AppMotion.spring)
-            .slideX(begin: -0.2, curve: AppMotion.spring),
-        const SizedBox(height: 22),
-        Text(line.$1, style: AppText.display(size, color: p.text))
-            .animate()
-            .fadeIn(delay: 120.ms, duration: 800.ms, curve: AppMotion.spring)
-            .slideY(begin: 0.25, delay: 120.ms, curve: AppMotion.spring)
-            .blurXY(begin: 10, end: 0, delay: 120.ms, duration: 800.ms),
-        const SizedBox(height: 16),
-        Text(
-              line.$2,
-              style: AppText.display(
-                size * 0.42,
-                style: FontStyle.italic,
-                color: p.accentText,
-              ),
-            )
-            .animate()
-            .fadeIn(delay: 320.ms, duration: 800.ms, curve: AppMotion.spring)
-            .slideY(begin: 0.4, delay: 320.ms, curve: AppMotion.spring),
-      ],
+    // Filet de sécurité : si le bloc est trop haut, il rétrécit au lieu de déborder.
+    return LayoutBuilder(
+      builder: (context, c) => FittedBox(
+        fit: BoxFit.scaleDown,
+        alignment: Alignment.centerLeft,
+        child: SizedBox(
+          width: c.maxWidth,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(phase.icon, size: 22, color: p.accentText),
+                      const SizedBox(width: 12),
+                      Text(counter, style: AppText.eyebrow(p.textMuted)),
+                    ],
+                  )
+                  .animate()
+                  .fadeIn(duration: 500.ms, curve: AppMotion.spring)
+                  .slideX(begin: -0.2, curve: AppMotion.spring),
+              const SizedBox(height: 22),
+              Text(line.$1, style: AppText.display(lead, color: p.text))
+                  .animate()
+                  .fadeIn(
+                    delay: 120.ms,
+                    duration: 800.ms,
+                    curve: AppMotion.spring,
+                  )
+                  .slideY(begin: 0.25, delay: 120.ms, curve: AppMotion.spring)
+                  .blurXY(begin: 10, end: 0, delay: 120.ms, duration: 800.ms),
+              const SizedBox(height: 16),
+              Text(
+                    line.$2,
+                    style: AppText.display(
+                      size * 0.42,
+                      style: FontStyle.italic,
+                      color: p.accentText,
+                    ),
+                  )
+                  .animate()
+                  .fadeIn(
+                    delay: 320.ms,
+                    duration: 800.ms,
+                    curve: AppMotion.spring,
+                  )
+                  .slideY(begin: 0.4, delay: 320.ms, curve: AppMotion.spring),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

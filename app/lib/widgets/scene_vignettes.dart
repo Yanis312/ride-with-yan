@@ -40,6 +40,7 @@ class SceneVignette extends StatelessWidget {
             Scene.news => _News(t: t),
             Scene.collab => _Collab(t: t, size: size),
             Scene.finale => _Finale(t: t, size: size),
+            Scene.ads => _Ads(t: t, size: size),
           };
         },
       ),
@@ -509,6 +510,157 @@ class _Finale extends StatelessWidget {
           ),
         _GlassDisc(icon: AppIcons.handTap, diameter: size * 0.32),
       ],
+    );
+  }
+}
+
+/// Carte de commerce qui se retourne : la photo, puis l'adresse et les réseaux.
+class _Ads extends StatelessWidget {
+  const _Ads({required this.t, required this.size});
+
+  final double t;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    final angle = t * 2 * math.pi;
+    final showBack = math.cos(angle) < 0;
+    final card = showBack ? _AdBack(size: size) : _AdFront(size: size);
+
+    return Center(
+      child: Transform(
+        alignment: Alignment.center,
+        transform: Matrix4.identity()
+          ..setEntry(3, 2, 0.0012)
+          ..rotateY(angle + (showBack ? math.pi : 0)),
+        child: card,
+      ),
+    );
+  }
+}
+
+class _AdFront extends StatelessWidget {
+  const _AdFront({required this.size});
+
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: size * 0.78,
+      height: size * 0.95,
+      padding: const EdgeInsets.all(22),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(30),
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFFFCAF45), Color(0xFFE1306C), Color(0xFF833AB4)],
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFFE1306C).withValues(alpha: 0.5),
+            blurRadius: 60,
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(AppIcons.storefront, color: Colors.white, size: 44),
+          const Spacer(),
+          Text(
+            'Votre commerce',
+            style: AppText.display(34, color: Colors.white),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'Your business',
+            style: AppText.display(
+              22,
+              style: FontStyle.italic,
+              color: Colors.white70,
+            ),
+          ),
+          const SizedBox(height: 16),
+          const Row(
+            children: [
+              Icon(AppIcons.instagram, color: Colors.white, size: 26),
+              SizedBox(width: 12),
+              Icon(AppIcons.tiktok, color: Colors.white, size: 26),
+              SizedBox(width: 12),
+              Icon(AppIcons.facebook, color: Colors.white, size: 26),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AdBack extends StatelessWidget {
+  const _AdBack({required this.size});
+
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = context.palette;
+    Widget line(IconData icon, double width) => Padding(
+      padding: const EdgeInsets.only(bottom: 14),
+      child: Row(
+        children: [
+          Icon(icon, size: 22, color: const Color(0xFFE1306C)),
+          const SizedBox(width: 12),
+          Container(
+            width: width,
+            height: 10,
+            decoration: BoxDecoration(
+              color: p.text.withValues(alpha: 0.18),
+              borderRadius: BorderRadius.circular(99),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    return Container(
+      width: size * 0.78,
+      height: size * 0.95,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(30),
+        color: p.coreTop,
+        border: Border.all(
+          color: const Color(0xFFE1306C).withValues(alpha: 0.5),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          line(AppIcons.mapPin, size * 0.4),
+          line(AppIcons.phone, size * 0.3),
+          line(AppIcons.clock, size * 0.35),
+          line(AppIcons.instagram, size * 0.28),
+          const SizedBox(height: 8),
+          Container(
+            height: size * 0.22,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              gradient: LinearGradient(
+                colors: [
+                  const Color(0xFF3AA6FF).withValues(alpha: 0.35),
+                  const Color(0xFF7EE3A8).withValues(alpha: 0.35),
+                ],
+              ),
+            ),
+            child: const Center(
+              child: Icon(AppIcons.mapPin, size: 34, color: Color(0xFFE1306C)),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
