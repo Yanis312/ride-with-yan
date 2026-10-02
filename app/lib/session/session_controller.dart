@@ -11,6 +11,11 @@ class SessionController extends ChangeNotifier {
 
   Locale? _locale;
   Timer? _inactivityTimer;
+  int _generation = 0;
+
+  /// Augmente à chaque fin de session : l'accueil repart toujours de zéro
+  /// pour le passager suivant.
+  int get generation => _generation;
 
   /// Langue du passager, ou `null` tant qu'il est sur l'écran d'accueil.
   Locale? get locale => _locale;
@@ -40,6 +45,7 @@ class SessionController extends ChangeNotifier {
     _inactivityTimer = null;
     if (_locale == null) return;
     _locale = null;
+    _generation++;
     notifyListeners();
   }
 

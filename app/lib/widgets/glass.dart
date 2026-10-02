@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 
 import '../theme/app_theme.dart';
 
@@ -10,38 +11,50 @@ class BezelCard extends StatelessWidget {
     required this.child,
     this.radius = 32,
     this.padding = const EdgeInsets.all(28),
-    this.coreGradient,
+    this.tint,
   });
 
   final Widget child;
   final double radius;
   final EdgeInsets padding;
-  final Gradient? coreGradient;
+
+  /// Couleur d'ambiance qui teinte le noyau (carte mise en avant).
+  final Color? tint;
 
   static const _shell = 6.0;
 
   @override
   Widget build(BuildContext context) {
+    final p = context.palette;
+    final top = tint == null
+        ? p.coreTop
+        : Color.alphaBlend(tint!.withValues(alpha: 0.28), p.coreTop);
+
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: AppColors.glass,
+        color: p.glass,
         borderRadius: BorderRadius.circular(radius),
-        border: Border.all(color: AppColors.hairline),
+        border: Border.all(color: p.hairline),
+        boxShadow: [
+          BoxShadow(
+            color: p.shadow,
+            blurRadius: 40,
+            offset: const Offset(0, 18),
+          ),
+        ],
       ),
       child: Padding(
         padding: const EdgeInsets.all(_shell),
         child: DecoratedBox(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(radius - _shell),
-            gradient:
-                coreGradient ??
-                const LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [Color(0xFF15171D), Color(0xFF0C0D11)],
-                ),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [top, p.coreBottom],
+            ),
             // Reflet d'un pixel sur l'arête haute du noyau.
-            border: const Border(top: BorderSide(color: AppColors.highlight)),
+            border: Border(top: BorderSide(color: p.highlight)),
           ),
           child: Padding(padding: padding, child: child),
         ),
@@ -95,30 +108,33 @@ class _PressableState extends State<Pressable> {
 
 /// Petite étiquette en capitales espacées placée au-dessus d'un titre.
 class Eyebrow extends StatelessWidget {
-  const Eyebrow(this.label, {super.key});
+  const Eyebrow(this.label, {super.key, this.color});
 
   final String label;
+  final Color? color;
 
   @override
   Widget build(BuildContext context) {
+    final p = context.palette;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
       decoration: BoxDecoration(
-        color: AppColors.glass,
+        color: p.glass,
         borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: AppColors.hairline),
+        border: Border.all(color: p.hairline),
       ),
       child: Text(
         label.toUpperCase(),
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
-        style: AppText.eyebrow,
+        style: AppText.eyebrow(color ?? p.accentText),
       ),
     );
   }
 }
 
 /// Bouton pilule avec son icône nichée dans un cercle à droite.
+/// [filled] : or plein (action principale). Sinon verre translucide.
 class PillButton extends StatelessWidget {
   const PillButton({
     super.key,
@@ -137,7 +153,8 @@ class PillButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final fg = filled ? AppColors.ink : AppColors.text;
+    final p = context.palette;
+    final fg = filled ? Brand.ink : p.text;
     final circle = large ? 44.0 : 36.0;
 
     return Pressable(
@@ -145,9 +162,14 @@ class PillButton extends StatelessWidget {
       child: Container(
         padding: EdgeInsets.fromLTRB(large ? 30 : 22, 6, 6, 6),
         decoration: BoxDecoration(
-          color: filled ? AppColors.gold : AppColors.glass,
+          gradient: filled
+              ? const LinearGradient(
+                  colors: [Brand.goldSoft, Brand.gold, Color(0xFFE59A00)],
+                )
+              : null,
+          color: filled ? null : p.glass,
           borderRadius: BorderRadius.circular(999),
-          border: filled ? null : Border.all(color: AppColors.hairline),
+          border: filled ? null : Border.all(color: p.hairline),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -167,9 +189,7 @@ class PillButton extends StatelessWidget {
               alignment: Alignment.center,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: filled
-                    ? AppColors.ink.withValues(alpha: 0.12)
-                    : AppColors.hairline,
+                color: filled ? Brand.ink.withValues(alpha: 0.12) : p.hairline,
               ),
               child: IconTheme(
                 data: IconThemeData(color: fg, size: large ? 20 : 17),
@@ -183,5 +203,85 @@ class PillButton extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+/// Grand bouton d'appel à l'action : or dégradé, halo lumineux et reflet
+/// qui balaie la surface.
+class GlowButton extends StatelessWidget {
+  const GlowButton({
+    super.key,
+    required this.label,
+    required this.icon,
+    required this.onTap,
+  });
+
+  final String label;
+  final IconData icon;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final reduce = MediaQuery.disableAnimationsOf(context);
+
+    Widget pill = Container(
+      padding: const EdgeInsets.fromLTRB(34, 8, 8, 8),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(999),
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFFFFE08A), Brand.gold, Color(0xFFE08A00)],
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Brand.gold.withValues(alpha: 0.45),
+            blurRadius: 36,
+            spreadRadius: 2,
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Flexible(
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: AppText.body(
+                20,
+                weight: FontWeight.w600,
+                color: Brand.ink,
+              ),
+            ),
+          ),
+          const SizedBox(width: 20),
+          Container(
+            width: 48,
+            height: 48,
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              color: Brand.ink,
+            ),
+            child: Icon(icon, color: Brand.gold, size: 22),
+          ),
+        ],
+      ),
+    );
+
+    if (!reduce) {
+      pill = pill
+          .animate(onPlay: (c) => c.repeat())
+          .shimmer(
+            delay: 1800.ms,
+            duration: 1400.ms,
+            color: Colors.white.withValues(alpha: 0.3),
+          )
+          .animate(onPlay: (c) => c.repeat(reverse: true))
+          .scaleXY(end: 1.035, duration: 2200.ms, curve: Curves.easeInOutSine);
+    }
+
+    return Pressable(onTap: onTap, child: pill);
   }
 }

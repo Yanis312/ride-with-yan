@@ -73,7 +73,7 @@ class _RoadLogoPainter extends CustomPainter {
     final dashes = _interval(progress, 0.85, 1);
 
     final road = Paint()
-      ..color = AppColors.gold
+      ..color = Brand.gold
       ..style = PaintingStyle.stroke
       ..strokeWidth = 150
       ..strokeCap = StrokeCap.round
@@ -81,7 +81,7 @@ class _RoadLogoPainter extends CustomPainter {
 
     if (glow > 0) {
       final halo = Paint()
-        ..color = AppColors.gold.withValues(alpha: 0.35 * glow)
+        ..color = Brand.gold.withValues(alpha: 0.35 * glow)
         ..style = PaintingStyle.stroke
         ..strokeWidth = 150
         ..strokeCap = StrokeCap.round
@@ -92,9 +92,7 @@ class _RoadLogoPainter extends CustomPainter {
 
     if (dashes > 0) {
       final marking = Paint()
-        ..color = (showTile ? _tileTop : AppColors.ink).withValues(
-          alpha: dashes,
-        )
+        ..color = (showTile ? _tileTop : Brand.ink).withValues(alpha: dashes)
         ..strokeWidth = 22
         ..strokeCap = StrokeCap.round;
       for (var y = 560.0; y < 790; y += 92) {

@@ -17,7 +17,7 @@ void main() {
   }
 
   Future<void> chooseLanguage(WidgetTester tester, String label) async {
-    await tester.tapAt(const Offset(640, 120));
+    await tester.tapAt(const Offset(640, 300));
     await tester.pump(const Duration(seconds: 1));
     await tester.tap(find.text(label));
     await tester.pump(const Duration(seconds: 2));
@@ -42,7 +42,7 @@ void main() {
     addTearDown(session.dispose);
     await pumpApp(tester, session);
 
-    expect(find.text('BIENVENUE  ·  WELCOME'), findsOneWidget);
+    expect(find.text('Bienvenue à bord.'), findsOneWidget);
 
     await chooseLanguage(tester, 'Français');
 
@@ -83,7 +83,7 @@ void main() {
     await tester.pump(const Duration(seconds: 1));
 
     expect(session.isActive, isFalse);
-    expect(find.text('BIENVENUE  ·  WELCOME'), findsOneWidget);
+    expect(find.text('Bienvenue à bord.'), findsOneWidget);
     await tester.pump(const Duration(seconds: 3));
   });
 }
