@@ -10,3 +10,13 @@ Thumbs.db
 *.keystore
 *.jks
 key.properties
+
+# Ruflo local secrets and runtime data
+.env.local
+.env.*.local
+.claude-flow/data/
+.claude-flow/logs/
+.claude-flow/sessions/
+.swarm/
+.claude-flow/metrics/
+.claude-flow/learning/
