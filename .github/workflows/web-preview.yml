@@ -30,6 +30,8 @@ jobs:
       - run: flutter analyze
       - run: flutter test
       - run: flutter build web --release --base-href /ride-with-yan/
+      # Les sites de démo du portfolio sont publiés avec l'app
+      - run: cp -r ../portfolio build/web/portfolio
       - uses: actions/upload-pages-artifact@v3
         with:
           path: app/build/web

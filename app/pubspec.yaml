@@ -15,6 +15,8 @@ dependencies:
   flutter_animate: ^4.5.2
   intl: ^0.20.3
   liquid_glass_widgets: ^1.8.1
+  video_player: ^2.14.0
+  qr_flutter: ^4.1.0
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -26,6 +28,7 @@ flutter:
 
   assets:
     - assets/images/
+    - assets/portfolio/
 
   shaders:
     - shaders/mesh.frag

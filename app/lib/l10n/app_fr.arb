@@ -28,5 +28,50 @@
   "greetingLead2": "Détendez-vous.",
   "greetingTail2": "On s'occupe du reste.",
   "greetingLead3": "Profitez du trajet.",
-  "greetingTail3": "Tout est à portée de main."
+  "greetingTail3": "Tout est à portée de main.",
+  "dockLinkedIn": "LinkedIn",
+  "dockCollab": "Collaborations",
+  "dockStore": "Boutique",
+  "back": "Retour",
+  "collabTitle": "Collaborations",
+  "collabCta": "Discutons de votre projet",
+  "collabDemoBadge": "Démo réalisée par Yanis",
+  "storeTitle": "Boutique à bord",
+  "storeSubtitle": "Petits essentiels pour le trajet, payés par Interac.",
+  "addToCart": "Ajouter",
+  "cartTitle": "Votre panier",
+  "cartEmpty": "Votre panier est vide.",
+  "total": "Total",
+  "checkout": "Payer par Interac",
+  "stockLeft": "{count} en stock",
+  "@stockLeft": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "interacSend": "Envoyez {amount} par virement Interac à",
+  "@interacSend": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "interacCode": "Indiquez ce code dans le message",
+  "interacDone": "Virement envoyé",
+  "orderThanks": "Merci ! Yanis confirme votre commande dès réception du virement.",
+  "toConfigure": "À configurer",
+  "whatsappAsk": "Une question ? Écrivez-moi sur WhatsApp",
+  "scanLinkedIn": "Scannez pour ouvrir mon profil",
+  "scanHint": "Le code ouvre l'app LinkedIn si elle est installée, sinon votre navigateur.",
+  "profilePreview": "Aperçu du profil",
+  "aboutTitle": "À propos",
+  "experienceTitle": "Expérience",
+  "skillsTitle": "Compétences",
+  "languagesTitle": "Langues",
+  "contactTitle": "Parlons de votre projet",
+  "contactScan": "Scannez un code avec votre téléphone",
+  "newOrder": "Nouvelle commande"
 }

@@ -30,7 +30,10 @@ class SceneVignette extends StatelessWidget {
         builder: (context, _) {
           final t = loop.value;
           return switch (scene) {
-            Scene.intro || Scene.lounge => _Intro(t: t, size: size),
+            Scene.intro ||
+            Scene.lounge ||
+            Scene.store ||
+            Scene.profile => _Intro(t: t, size: size),
             Scene.cinema => _Cinema(t: t),
             Scene.games => _Games(t: t, size: size),
             Scene.poll => _Poll(t: t, size: size),

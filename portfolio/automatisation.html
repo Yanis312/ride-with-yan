@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Flux · Automatisation démo</title>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:Geist, sans-serif; background:#0b0d12; color:#e9ecf2; min-height:100vh; padding:40px 56px;
+         background-image:radial-gradient(rgba(233,236,242,.07) 1px, transparent 1px); background-size:22px 22px; }
+  header { display:flex; justify-content:space-between; align-items:center; margin-bottom:40px; }
+  header b { font-size:22px; } header span { font:13px "Geist Mono"; color:#7ee3a8; border:1px solid rgba(126,227,168,.35); border-radius:999px; padding:7px 14px; }
+  h1 { font-size:64px; font-weight:500; letter-spacing:-.04em; line-height:1; max-width:780px; margin-bottom:56px; }
+  h1 em { font-style:normal; color:#7ee3a8; }
+  .flow { position:relative; height:420px; }
+  .node { position:absolute; width:250px; background:#141821; border:1px solid rgba(233,236,242,.1); border-radius:20px; padding:18px; box-shadow:0 30px 60px rgba(0,0,0,.35); }
+  .node small { font:12px "Geist Mono"; color:#8a93a6; } .node b { display:block; font-size:18px; margin-top:6px; } .node p { color:#8a93a6; font-size:14px; margin-top:6px; }
+  .node i { display:inline-block; width:34px; height:34px; border-radius:10px; margin-bottom:10px; }
+  svg { position:absolute; inset:0; width:100%; height:100%; }
+  path { fill:none; stroke:#7ee3a8; stroke-width:2; stroke-dasharray:6 8; opacity:.7; }
+  .chat { position:absolute; right:0; bottom:-10px; width:330px; background:#e9ecf2; color:#0b0d12; border-radius:24px; padding:18px; }
+  .msg { background:#d9dee8; border-radius:14px; padding:10px 12px; font-size:14px; margin-top:8px; width:85%; }
+  .msg.bot { background:#0b0d12; color:#e9ecf2; margin-left:auto; }
+</style>
+</head>
+<body>
+<header><b>Flux</b><span>● 1 284 tâches automatisées ce mois-ci</span></header>
+<h1>Votre entreprise tourne, <em>même quand vous dormez.</em></h1>
+<div class="flow">
+  <svg viewBox="0 0 1200 420" preserveAspectRatio="none"><path d="M250 70 C 330 70, 330 200, 410 200"/><path d="M660 200 C 740 200, 740 80, 820 80"/><path d="M660 200 C 740 200, 740 320, 820 320"/></svg>
+  <div class="node" style="left:0;top:20px"><i style="background:linear-gradient(135deg,#5b8cff,#8fb0ff)"></i><small>DÉCLENCHEUR</small><b>Nouvelle commande</b><p>Shopify · en temps réel</p></div>
+  <div class="node" style="left:410px;top:140px"><i style="background:linear-gradient(135deg,#7ee3a8,#2f9e6e)"></i><small>IA</small><b>Analyse et tri</b><p>Priorité, langue, client VIP</p></div>
+  <div class="node" style="left:820px;top:20px"><i style="background:linear-gradient(135deg,#ffb547,#ff6b3d)"></i><small>ACTION</small><b>Facture + courriel</b><p>Envoyés en 3 secondes</p></div>
+  <div class="node" style="left:820px;top:260px"><i style="background:linear-gradient(135deg,#c084fc,#7c3aed)"></i><small>ACTION</small><b>Alerte WhatsApp</b><p>Si commande > 500 $</p></div>
+</div>
+<div class="chat" style="position:fixed;right:56px;bottom:40px"><b>Assistant IA du magasin</b>
+  <div class="msg">Est-ce que la veste existe en taille M&nbsp;?</div>
+  <div class="msg bot">Oui, 3 en stock. Je vous la réserve jusqu'à 18 h&nbsp;?</div>
+</div>
+</body>
+</html>

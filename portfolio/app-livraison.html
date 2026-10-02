@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Croque · App démo</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:"Bricolage Grotesque", sans-serif; background:#fff7ef; color:#1b1410; padding:56px 20px 30px; min-height:100vh; }
+  .top { display:flex; justify-content:space-between; align-items:center; }
+  .top small { color:#8c7a6b; } .top b { display:block; font-size:18px; }
+  .avatar { width:44px; height:44px; border-radius:50%; background:linear-gradient(135deg,#ff6b3d,#ffb547); }
+  h1 { font-size:40px; line-height:1; letter-spacing:-.03em; margin:26px 0 18px; }
+  .search { background:#fff; border-radius:18px; padding:16px 18px; color:#a3917f; box-shadow:0 10px 30px rgba(27,20,16,.06); }
+  .cats { display:flex; gap:10px; margin:20px 0; overflow:hidden; }
+  .cats span { padding:10px 16px; border-radius:999px; background:#fff; font-weight:500; white-space:nowrap; }
+  .cats span:first-child { background:#1b1410; color:#fff7ef; }
+  .promo { border-radius:28px; padding:22px; color:#fff; background:linear-gradient(135deg,#ff6b3d,#ff9a3d); position:relative; overflow:hidden; height:170px; }
+  .promo b { font-size:30px; line-height:1.05; display:block; width:60%; }
+  .promo::after { content:""; position:absolute; right:-30px; bottom:-40px; width:170px; height:170px; border-radius:50%; background:radial-gradient(circle at 35% 35%, #ffe2b8, #ffb547 50%, #c2410c); }
+  .card { display:flex; gap:14px; align-items:center; background:#fff; border-radius:22px; padding:12px; margin-top:14px; }
+  .card i { width:74px; height:74px; border-radius:16px; flex:none; }
+  .card b { display:block; font-size:18px; } .card span { color:#8c7a6b; font-size:14px; }
+  .card em { margin-left:auto; font-style:normal; font-weight:700; }
+  .bar { position:fixed; left:20px; right:20px; bottom:20px; background:#1b1410; color:#fff7ef; border-radius:22px; padding:16px 20px; display:flex; justify-content:space-between; font-weight:500; }
+</style>
+</head>
+<body>
+<div class="top"><div><small>Livrer à</small><b>Plateau Mont-Royal</b></div><div class="avatar"></div></div>
+<h1>Qu'est-ce qui vous fait envie&nbsp;?</h1>
+<div class="search">Pizza, sushi, poké...</div>
+<div class="cats"><span>Populaire</span><span>Burgers</span><span>Asiatique</span><span>Végé</span></div>
+<div class="promo"><b>Livraison offerte ce soir</b></div>
+<div class="card"><i style="background:linear-gradient(135deg,#ffb547,#c2410c)"></i><div><b>Pizzeria Bella</b><span>20 min · 4,8 ★</span></div><em>18 $</em></div>
+<div class="card"><i style="background:linear-gradient(135deg,#7bd389,#2f855a)"></i><div><b>Poké Lagoon</b><span>15 min · 4,9 ★</span></div><em>16 $</em></div>
+<div class="bar"><span>Panier · 2 articles</span><span>34,50 $</span></div>
+</body>
+</html>

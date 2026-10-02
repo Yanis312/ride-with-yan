@@ -72,6 +72,22 @@ void main() {
     await endSession(tester, session);
   });
 
+  testWidgets("le dock ouvre la boutique depuis l'écran de veille", (
+    tester,
+  ) async {
+    final session = SessionController(random: _FirstChoice());
+    addTearDown(session.dispose);
+    await pumpApp(tester, session);
+
+    await tester.tap(find.text('Boutique'));
+    await tester.pump(const Duration(seconds: 2));
+    await tester.pump();
+
+    expect(session.isActive, isTrue);
+    expect(find.text('Boutique à bord'), findsOneWidget);
+    await endSession(tester, session);
+  });
+
   testWidgets("retour à l'accueil après inactivité", (tester) async {
     final session = SessionController(
       inactivityTimeout: const Duration(seconds: 5),

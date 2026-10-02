@@ -9,7 +9,18 @@ import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import '../theme/app_theme.dart';
 
 /// Ambiances de fond. Chaque phase de l'écran de veille a la sienne.
-enum Scene { lounge, intro, cinema, games, poll, news, collab, finale }
+enum Scene {
+  lounge,
+  intro,
+  cinema,
+  games,
+  poll,
+  news,
+  collab,
+  finale,
+  store,
+  profile,
+}
 
 @immutable
 class MeshPalette {
@@ -114,6 +125,20 @@ class MeshPalette {
       Color(0xFF5A3A00),
       intensity: 0.95,
     ),
+    Scene.store: MeshPalette(
+      Color(0xFF0B0607),
+      Color(0xFFE5533D),
+      Color(0xFFF5B700),
+      Color(0xFF7A1F3D),
+      Color(0xFF2A1240),
+    ),
+    Scene.profile: MeshPalette(
+      Color(0xFF050B14),
+      Color(0xFF0A66C2),
+      Color(0xFF3A8DFF),
+      Color(0xFF0E2A52),
+      Color(0xFF8A6200),
+    ),
   };
 
   /// Palettes claires dédiées : pastels lumineux sur blanc froid (éclaircir
@@ -176,6 +201,20 @@ class MeshPalette {
       Color(0xFFC9D8FF),
       Color(0xFFFFE6A8),
       intensity: 0.95,
+    ),
+    Scene.store: MeshPalette(
+      Color(0xFFFFF5F2),
+      Color(0xFFFFB3A3),
+      Color(0xFFFFD978),
+      Color(0xFFF7B8CF),
+      Color(0xFFD9C8FF),
+    ),
+    Scene.profile: MeshPalette(
+      Color(0xFFF2F6FC),
+      Color(0xFFA6C8F0),
+      Color(0xFFBFD8FF),
+      Color(0xFFD6E4F7),
+      Color(0xFFFFE29A),
     ),
   };
 }

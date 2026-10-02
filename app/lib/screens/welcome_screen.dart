@@ -10,6 +10,7 @@ import '../theme/appearance_controller.dart';
 import '../widgets/glass.dart';
 import '../widgets/liquid_metal_logo.dart';
 import '../widgets/mesh_background.dart';
+import '../widgets/quick_dock.dart';
 import '../widgets/road_logo.dart';
 import '../widgets/scene_vignettes.dart';
 
@@ -225,6 +226,8 @@ class _Header extends StatelessWidget {
             style: AppText.display(26, color: p.text),
           ),
         ),
+        QuickDock(compact: MediaQuery.sizeOf(context).width < 760),
+        const SizedBox(width: 12),
         LiquidIconButton(
           icon: context.isDark ? AppIcons.sun : AppIcons.moon,
           onTap: appearance.toggle,
@@ -572,6 +575,14 @@ class _LanguageSheet extends StatelessWidget {
                           ),
                         ],
                       ),
+                      const SizedBox(height: 28),
+                      Text(
+                        'Ou allez directement à  ·  Or jump straight to',
+                        textAlign: TextAlign.center,
+                        style: AppText.body(14, color: p.textMuted),
+                      ),
+                      const SizedBox(height: 12),
+                      const QuickDock(),
                     ],
                   ),
                 ),

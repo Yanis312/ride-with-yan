@@ -3,6 +3,8 @@ import 'dart:math' as math;
 
 import 'package:flutter/widgets.dart';
 
+import '../data/store_catalog.dart';
+
 /// État de la course en cours : langue choisie et retour automatique
 /// à l'accueil quand le passager n'a plus touché l'écran depuis un moment.
 class SessionController extends ChangeNotifier {
@@ -16,6 +18,9 @@ class SessionController extends ChangeNotifier {
   final Duration inactivityTimeout;
 
   final math.Random _random;
+
+  /// Panier du passager, vidé en fin de session.
+  final cart = Cart();
   Locale? _locale;
   int _greeting = 0;
 
@@ -62,6 +67,7 @@ class SessionController extends ChangeNotifier {
     _inactivityTimer = null;
     if (_locale == null) return;
     _locale = null;
+    cart.clear();
     _generation++;
     notifyListeners();
   }
@@ -73,6 +79,7 @@ class SessionController extends ChangeNotifier {
 
   @override
   void dispose() {
+    cart.dispose();
     _inactivityTimer?.cancel();
     super.dispose();
   }

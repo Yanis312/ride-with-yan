@@ -271,6 +271,192 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Tout est à portée de main.'**
   String get greetingTail3;
+
+  /// No description provided for @dockLinkedIn.
+  ///
+  /// In fr, this message translates to:
+  /// **'LinkedIn'**
+  String get dockLinkedIn;
+
+  /// No description provided for @dockCollab.
+  ///
+  /// In fr, this message translates to:
+  /// **'Collaborations'**
+  String get dockCollab;
+
+  /// No description provided for @dockStore.
+  ///
+  /// In fr, this message translates to:
+  /// **'Boutique'**
+  String get dockStore;
+
+  /// No description provided for @back.
+  ///
+  /// In fr, this message translates to:
+  /// **'Retour'**
+  String get back;
+
+  /// No description provided for @collabTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Collaborations'**
+  String get collabTitle;
+
+  /// No description provided for @collabCta.
+  ///
+  /// In fr, this message translates to:
+  /// **'Discutons de votre projet'**
+  String get collabCta;
+
+  /// No description provided for @collabDemoBadge.
+  ///
+  /// In fr, this message translates to:
+  /// **'Démo réalisée par Yanis'**
+  String get collabDemoBadge;
+
+  /// No description provided for @storeTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Boutique à bord'**
+  String get storeTitle;
+
+  /// No description provided for @storeSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Petits essentiels pour le trajet, payés par Interac.'**
+  String get storeSubtitle;
+
+  /// No description provided for @addToCart.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter'**
+  String get addToCart;
+
+  /// No description provided for @cartTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Votre panier'**
+  String get cartTitle;
+
+  /// No description provided for @cartEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Votre panier est vide.'**
+  String get cartEmpty;
+
+  /// No description provided for @total.
+  ///
+  /// In fr, this message translates to:
+  /// **'Total'**
+  String get total;
+
+  /// No description provided for @checkout.
+  ///
+  /// In fr, this message translates to:
+  /// **'Payer par Interac'**
+  String get checkout;
+
+  /// No description provided for @stockLeft.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count} en stock'**
+  String stockLeft(int count);
+
+  /// No description provided for @interacSend.
+  ///
+  /// In fr, this message translates to:
+  /// **'Envoyez {amount} par virement Interac à'**
+  String interacSend(String amount);
+
+  /// No description provided for @interacCode.
+  ///
+  /// In fr, this message translates to:
+  /// **'Indiquez ce code dans le message'**
+  String get interacCode;
+
+  /// No description provided for @interacDone.
+  ///
+  /// In fr, this message translates to:
+  /// **'Virement envoyé'**
+  String get interacDone;
+
+  /// No description provided for @orderThanks.
+  ///
+  /// In fr, this message translates to:
+  /// **'Merci ! Yanis confirme votre commande dès réception du virement.'**
+  String get orderThanks;
+
+  /// No description provided for @toConfigure.
+  ///
+  /// In fr, this message translates to:
+  /// **'À configurer'**
+  String get toConfigure;
+
+  /// No description provided for @whatsappAsk.
+  ///
+  /// In fr, this message translates to:
+  /// **'Une question ? Écrivez-moi sur WhatsApp'**
+  String get whatsappAsk;
+
+  /// No description provided for @scanLinkedIn.
+  ///
+  /// In fr, this message translates to:
+  /// **'Scannez pour ouvrir mon profil'**
+  String get scanLinkedIn;
+
+  /// No description provided for @scanHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le code ouvre l\'app LinkedIn si elle est installée, sinon votre navigateur.'**
+  String get scanHint;
+
+  /// No description provided for @profilePreview.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aperçu du profil'**
+  String get profilePreview;
+
+  /// No description provided for @aboutTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'À propos'**
+  String get aboutTitle;
+
+  /// No description provided for @experienceTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Expérience'**
+  String get experienceTitle;
+
+  /// No description provided for @skillsTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Compétences'**
+  String get skillsTitle;
+
+  /// No description provided for @languagesTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Langues'**
+  String get languagesTitle;
+
+  /// No description provided for @contactTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Parlons de votre projet'**
+  String get contactTitle;
+
+  /// No description provided for @contactScan.
+  ///
+  /// In fr, this message translates to:
+  /// **'Scannez un code avec votre téléphone'**
+  String get contactScan;
+
+  /// No description provided for @newOrder.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nouvelle commande'**
+  String get newOrder;
 }
 
 class _AppLocalizationsDelegate

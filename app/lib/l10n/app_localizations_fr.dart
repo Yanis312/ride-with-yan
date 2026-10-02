@@ -95,4 +95,104 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get greetingTail3 => 'Tout est à portée de main.';
+
+  @override
+  String get dockLinkedIn => 'LinkedIn';
+
+  @override
+  String get dockCollab => 'Collaborations';
+
+  @override
+  String get dockStore => 'Boutique';
+
+  @override
+  String get back => 'Retour';
+
+  @override
+  String get collabTitle => 'Collaborations';
+
+  @override
+  String get collabCta => 'Discutons de votre projet';
+
+  @override
+  String get collabDemoBadge => 'Démo réalisée par Yanis';
+
+  @override
+  String get storeTitle => 'Boutique à bord';
+
+  @override
+  String get storeSubtitle =>
+      'Petits essentiels pour le trajet, payés par Interac.';
+
+  @override
+  String get addToCart => 'Ajouter';
+
+  @override
+  String get cartTitle => 'Votre panier';
+
+  @override
+  String get cartEmpty => 'Votre panier est vide.';
+
+  @override
+  String get total => 'Total';
+
+  @override
+  String get checkout => 'Payer par Interac';
+
+  @override
+  String stockLeft(int count) {
+    return '$count en stock';
+  }
+
+  @override
+  String interacSend(String amount) {
+    return 'Envoyez $amount par virement Interac à';
+  }
+
+  @override
+  String get interacCode => 'Indiquez ce code dans le message';
+
+  @override
+  String get interacDone => 'Virement envoyé';
+
+  @override
+  String get orderThanks =>
+      'Merci ! Yanis confirme votre commande dès réception du virement.';
+
+  @override
+  String get toConfigure => 'À configurer';
+
+  @override
+  String get whatsappAsk => 'Une question ? Écrivez-moi sur WhatsApp';
+
+  @override
+  String get scanLinkedIn => 'Scannez pour ouvrir mon profil';
+
+  @override
+  String get scanHint =>
+      'Le code ouvre l\'app LinkedIn si elle est installée, sinon votre navigateur.';
+
+  @override
+  String get profilePreview => 'Aperçu du profil';
+
+  @override
+  String get aboutTitle => 'À propos';
+
+  @override
+  String get experienceTitle => 'Expérience';
+
+  @override
+  String get skillsTitle => 'Compétences';
+
+  @override
+  String get languagesTitle => 'Langues';
+
+  @override
+  String get contactTitle => 'Parlons de votre projet';
+
+  @override
+  String get contactScan => 'Scannez un code avec votre téléphone';
+
+  @override
+  String get newOrder => 'Nouvelle commande';
 }

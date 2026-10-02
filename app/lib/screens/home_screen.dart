@@ -5,12 +5,14 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:intl/intl.dart';
 
 import '../l10n/app_localizations.dart';
+import '../navigation/sections.dart';
 import '../session/session_controller.dart';
 import '../theme/app_icons.dart';
 import '../theme/app_theme.dart';
 import '../theme/appearance_controller.dart';
 import '../widgets/glass.dart';
 import '../widgets/mesh_background.dart';
+import '../widgets/quick_dock.dart';
 import '../widgets/road_logo.dart';
 
 /// Lounge principal : grille "bento" asymétrique, la section la plus
@@ -97,7 +99,8 @@ class _TopBar extends StatelessWidget {
                   style: AppText.display(26, color: p.text),
                 ),
         ),
-        if (!compact) ...[const _Clock(), const SizedBox(width: 12)],
+        QuickDock(compact: compact),
+        const SizedBox(width: 12),
         LiquidIconButton(
           icon: context.isDark ? AppIcons.sun : AppIcons.moon,
           onTap: appearance.toggle,
@@ -186,7 +189,14 @@ class _BentoLayout extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const _Greeting(),
+        const Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Expanded(child: _Greeting()),
+            SizedBox(width: 16),
+            _Clock(),
+          ],
+        ),
         const SizedBox(height: 28),
         Expanded(
           child: Row(
@@ -334,6 +344,7 @@ class _Tiles {
         title: l10n.sectionStore,
         hint: l10n.sectionStoreHint,
         tint: const Color(0xFFE5533D),
+        onTap: () => openSection(context, Section.store),
       ),
       const _AboutTile(),
     );
@@ -527,7 +538,7 @@ class _AboutTile extends StatelessWidget {
     final p = context.palette;
 
     return Pressable(
-      onTap: () => _comingSoon(context, l10n.sectionAbout),
+      onTap: () => openSection(context, Section.collaboration),
       child: BezelCard(
         tint: const Color(0xFF0FA37F),
         child: Column(
@@ -596,18 +607,20 @@ class _SmallTile extends StatelessWidget {
     required this.title,
     required this.hint,
     this.tint,
+    this.onTap,
   });
 
   final IconData icon;
   final String title;
   final String hint;
   final Color? tint;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     final p = context.palette;
     return Pressable(
-      onTap: () => _comingSoon(context, title),
+      onTap: onTap ?? () => _comingSoon(context, title),
       child: BezelCard(
         tint: tint,
         padding: const EdgeInsets.all(24),
