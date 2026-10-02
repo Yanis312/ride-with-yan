@@ -98,18 +98,6 @@ abstract class AppLocalizations {
     Locale('fr'),
   ];
 
-  /// No description provided for @homeGreeting.
-  ///
-  /// In fr, this message translates to:
-  /// **'Bonne route !'**
-  String get homeGreeting;
-
-  /// No description provided for @homeSubtitle.
-  ///
-  /// In fr, this message translates to:
-  /// **'Installez-vous, choisissez une section.'**
-  String get homeSubtitle;
-
   /// No description provided for @sectionAbout.
   ///
   /// In fr, this message translates to:
@@ -199,6 +187,54 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Retour à l\'accueil'**
   String get backToWelcome;
+
+  /// No description provided for @loungeEyebrow.
+  ///
+  /// In fr, this message translates to:
+  /// **'Lounge à bord'**
+  String get loungeEyebrow;
+
+  /// No description provided for @greetingLead.
+  ///
+  /// In fr, this message translates to:
+  /// **'Bonne route.'**
+  String get greetingLead;
+
+  /// No description provided for @greetingTail.
+  ///
+  /// In fr, this message translates to:
+  /// **'Installez-vous.'**
+  String get greetingTail;
+
+  /// No description provided for @featuredEyebrow.
+  ///
+  /// In fr, this message translates to:
+  /// **'À la une'**
+  String get featuredEyebrow;
+
+  /// No description provided for @entertainmentCta.
+  ///
+  /// In fr, this message translates to:
+  /// **'Regarder'**
+  String get entertainmentCta;
+
+  /// No description provided for @pollQuestion.
+  ///
+  /// In fr, this message translates to:
+  /// **'Quelle est votre ville préférée ?'**
+  String get pollQuestion;
+
+  /// No description provided for @aboutCta.
+  ///
+  /// In fr, this message translates to:
+  /// **'Services & collaborations'**
+  String get aboutCta;
+
+  /// No description provided for @driverEyebrow.
+  ///
+  /// In fr, this message translates to:
+  /// **'Votre chauffeur'**
+  String get driverEyebrow;
 }
 
 class _AppLocalizationsDelegate

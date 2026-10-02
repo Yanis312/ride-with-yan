@@ -10,12 +10,6 @@ class AppLocalizationsFr extends AppLocalizations {
   AppLocalizationsFr([String locale = 'fr']) : super(locale);
 
   @override
-  String get homeGreeting => 'Bonne route !';
-
-  @override
-  String get homeSubtitle => 'Installez-vous, choisissez une section.';
-
-  @override
   String get sectionAbout => 'À propos de Yan';
 
   @override
@@ -59,4 +53,28 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get backToWelcome => 'Retour à l\'accueil';
+
+  @override
+  String get loungeEyebrow => 'Lounge à bord';
+
+  @override
+  String get greetingLead => 'Bonne route.';
+
+  @override
+  String get greetingTail => 'Installez-vous.';
+
+  @override
+  String get featuredEyebrow => 'À la une';
+
+  @override
+  String get entertainmentCta => 'Regarder';
+
+  @override
+  String get pollQuestion => 'Quelle est votre ville préférée ?';
+
+  @override
+  String get aboutCta => 'Services & collaborations';
+
+  @override
+  String get driverEyebrow => 'Votre chauffeur';
 }

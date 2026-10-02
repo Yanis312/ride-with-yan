@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
+import '../theme/app_icons.dart';
+
 import '../session/session_controller.dart';
 import '../theme/app_theme.dart';
+import '../widgets/ambient_background.dart';
+import '../widgets/glass.dart';
 import '../widgets/road_logo.dart';
 
-/// Premier écran vu par le passager : le logo se dessine, puis un toucher
-/// n'importe où affiche le choix de langue.
+/// Premier écran vu par le passager : le Y se trace comme une route,
+/// puis un toucher n'importe où propose le choix de langue.
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});
 
@@ -18,22 +22,30 @@ class _WelcomeScreenState extends State<WelcomeScreen>
     with TickerProviderStateMixin {
   late final AnimationController _draw = AnimationController(
     vsync: this,
-    duration: const Duration(milliseconds: 1800),
-  )..forward();
+    duration: const Duration(milliseconds: 1600),
+  );
 
   late final AnimationController _glow = AnimationController(
     vsync: this,
-    duration: const Duration(milliseconds: 2400),
+    duration: const Duration(milliseconds: 3200),
   );
 
   bool _choosingLanguage = false;
+  bool _started = false;
 
   @override
-  void initState() {
-    super.initState();
-    _draw.addStatusListener((status) {
-      if (status == AnimationStatus.completed) _glow.repeat(reverse: true);
-    });
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_started) return;
+    _started = true;
+    if (MediaQuery.disableAnimationsOf(context)) {
+      _draw.value = 1;
+      _glow.value = 0.5;
+    } else {
+      _draw.forward().whenComplete(() {
+        if (mounted) _glow.repeat(reverse: true);
+      });
+    }
   }
 
   @override
@@ -47,24 +59,25 @@ class _WelcomeScreenState extends State<WelcomeScreen>
 
   @override
   Widget build(BuildContext context) {
-    final logoSize = (MediaQuery.sizeOf(context).shortestSide * 0.32).clamp(140.0, 280.0);
+    final size = MediaQuery.sizeOf(context);
+    final compact = size.width < 720;
+    final logoSize = (size.shortestSide * 0.2).clamp(96.0, 168.0);
+    final titleSize = compact ? 64.0 : 112.0;
 
     return Scaffold(
-      body: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: _choosingLanguage ? null : () => setState(() => _choosingLanguage = true),
-        child: Container(
-          decoration: const BoxDecoration(
-            gradient: RadialGradient(
-              center: Alignment(0, -0.3),
-              radius: 1.2,
-              colors: [AppColors.night, AppColors.nightDark],
-            ),
-          ),
+      body: AmbientBackground(
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: _choosingLanguage
+              ? null
+              : () => setState(() => _choosingLanguage = true),
           child: SafeArea(
             child: Center(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.all(32),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 40,
+                ),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -72,36 +85,74 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                       animation: Listenable.merge([_draw, _glow]),
                       builder: (context, _) => RoadLogo(
                         size: logoSize,
-                        progress: Curves.easeInOutCubic.transform(_draw.value),
-                        glow: 0.3 + 0.7 * Curves.easeInOut.transform(_glow.value),
+                        showTile: false,
+                        progress: AppMotion.emphasized.transform(_draw.value),
+                        glow:
+                            0.25 +
+                            0.75 * Curves.easeInOutSine.transform(_glow.value),
                       ),
                     ),
-                    const SizedBox(height: 40),
-                    Text(
-                      'Ride with Yan',
-                      style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                            color: AppColors.text,
-                            fontWeight: FontWeight.w300,
-                            letterSpacing: 1.5,
+                    const SizedBox(height: 36),
+                    const Eyebrow('Bienvenue  ·  Welcome')
+                        .animate(delay: 900.ms)
+                        .fadeIn(duration: 600.ms, curve: AppMotion.spring)
+                        .slideY(begin: 0.6, curve: AppMotion.spring),
+                    const SizedBox(height: 28),
+                    Text.rich(
+                          TextSpan(
+                            children: [
+                              const TextSpan(text: 'Ride with '),
+                              TextSpan(
+                                text: 'Yan',
+                                style: AppText.display(
+                                  titleSize,
+                                  style: FontStyle.italic,
+                                  color: AppColors.gold,
+                                ),
+                              ),
+                            ],
                           ),
-                    ).animate(delay: 1400.ms).fadeIn(duration: 700.ms).slideY(begin: 0.3),
-                    const SizedBox(height: 12),
+                          textAlign: TextAlign.center,
+                          style: AppText.display(titleSize),
+                        )
+                        .animate(delay: 1050.ms)
+                        .fadeIn(duration: 900.ms, curve: AppMotion.spring)
+                        .slideY(begin: 0.25, curve: AppMotion.spring)
+                        .blurXY(begin: 8, end: 0, duration: 900.ms),
+                    const SizedBox(height: 18),
                     Text(
-                      'Bienvenue  ·  Welcome',
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            color: AppColors.amber,
-                            letterSpacing: 2,
-                          ),
-                    ).animate(delay: 1700.ms).fadeIn(duration: 700.ms),
-                    const SizedBox(height: 56),
-                    ConstrainedBox(
-                      constraints: const BoxConstraints(minHeight: 96),
-                      child: AnimatedSwitcher(
-                        duration: const Duration(milliseconds: 400),
-                        child: _choosingLanguage
-                            ? _LanguageButtons(onSelected: _start)
-                            : const _TapHint(),
+                      'Votre lounge pendant le trajet  ·  Your lounge on the road',
+                      textAlign: TextAlign.center,
+                      style: AppText.body(
+                        compact ? 15 : 18,
+                        weight: FontWeight.w300,
                       ),
+                    ).animate(delay: 1300.ms).fadeIn(duration: 700.ms),
+                    const SizedBox(height: 56),
+                    AnimatedSwitcher(
+                      duration: AppMotion.medium,
+                      switchInCurve: AppMotion.spring,
+                      switchOutCurve: AppMotion.spring,
+                      transitionBuilder: (child, animation) => FadeTransition(
+                        opacity: animation,
+                        child: ScaleTransition(
+                          scale: Tween(
+                            begin: 0.94,
+                            end: 1.0,
+                          ).animate(animation),
+                          child: child,
+                        ),
+                      ),
+                      child: _choosingLanguage
+                          ? _LanguageChoice(
+                              key: const ValueKey('lang'),
+                              onSelected: _start,
+                            )
+                          : _TapToStart(
+                              key: const ValueKey('tap'),
+                              onTap: () =>
+                                  setState(() => _choosingLanguage = true),
+                            ),
                     ),
                   ],
                 ),
@@ -114,27 +165,30 @@ class _WelcomeScreenState extends State<WelcomeScreen>
   }
 }
 
-class _TapHint extends StatelessWidget {
-  const _TapHint();
+class _TapToStart extends StatelessWidget {
+  const _TapToStart({super.key, required this.onTap});
+
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Text(
-        'Touchez l\'écran pour commencer  ·  Tap to start',
-        textAlign: TextAlign.center,
-        style: Theme.of(context).textTheme.titleMedium?.copyWith(color: AppColors.textMuted),
-      )
-          .animate(delay: 2200.ms, onPlay: (c) => c.repeat(reverse: true))
-          .fadeIn(duration: 900.ms)
-          .then()
-          .fade(begin: 1, end: 0.35, duration: 1200.ms),
-    );
+    return PillButton(
+          label: 'Touchez pour commencer  ·  Tap to start',
+          filled: false,
+          large: true,
+          onTap: onTap,
+          trailing: const Icon(AppIcons.arrowRight),
+        )
+        .animate(delay: 1600.ms)
+        .fadeIn(duration: 700.ms)
+        .then()
+        .animate(onPlay: (c) => c.repeat(reverse: true))
+        .scaleXY(end: 1.03, duration: 1800.ms, curve: Curves.easeInOutSine);
   }
 }
 
-class _LanguageButtons extends StatelessWidget {
-  const _LanguageButtons({required this.onSelected});
+class _LanguageChoice extends StatelessWidget {
+  const _LanguageChoice({super.key, required this.onSelected});
 
   final ValueChanged<Locale> onSelected;
 
@@ -142,41 +196,27 @@ class _LanguageButtons extends StatelessWidget {
   Widget build(BuildContext context) {
     return Wrap(
       alignment: WrapAlignment.center,
-      spacing: 24,
+      spacing: 20,
       runSpacing: 16,
-      children: [
-        _LanguageButton(
-          label: 'Français',
-          onPressed: () => onSelected(const Locale('fr')),
-        ),
-        _LanguageButton(
-          label: 'English',
-          onPressed: () => onSelected(const Locale('en')),
-        ),
-      ]
-          .animate(interval: 120.ms)
-          .fadeIn(duration: 350.ms)
-          .scaleXY(begin: 0.85, curve: Curves.easeOutBack),
-    );
-  }
-}
-
-class _LanguageButton extends StatelessWidget {
-  const _LanguageButton({required this.label, required this.onPressed});
-
-  final String label;
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return FilledButton(
-      onPressed: onPressed,
-      style: FilledButton.styleFrom(
-        minimumSize: const Size(220, 72),
-        textStyle: const TextStyle(fontSize: 24, fontWeight: FontWeight.w600),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      ),
-      child: Text(label),
+      children:
+          [
+                PillButton(
+                  label: 'Français',
+                  large: true,
+                  onTap: () => onSelected(const Locale('fr')),
+                  trailing: const Text('FR'),
+                ),
+                PillButton(
+                  label: 'English',
+                  large: true,
+                  filled: false,
+                  onTap: () => onSelected(const Locale('en')),
+                  trailing: const Text('EN'),
+                ),
+              ]
+              .animate(interval: 90.ms)
+              .fadeIn(duration: 450.ms, curve: AppMotion.spring)
+              .slideY(begin: 0.4, curve: AppMotion.spring),
     );
   }
 }

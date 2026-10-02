@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/date_symbol_data_local.dart';
+import 'package:ride_with_yan/theme/app_icons.dart';
 import 'package:ride_with_yan/app.dart';
 import 'package:ride_with_yan/session/session_controller.dart';
 
 void main() {
+  setUpAll(initializeDateFormatting);
+
   Future<void> pumpApp(WidgetTester tester, SessionController session) async {
     tester.view.physicalSize = const Size(1280, 800);
     tester.view.devicePixelRatio = 1;
@@ -13,7 +17,7 @@ void main() {
   }
 
   Future<void> chooseLanguage(WidgetTester tester, String label) async {
-    await tester.tap(find.text('Ride with Yan'));
+    await tester.tapAt(const Offset(640, 120));
     await tester.pump(const Duration(seconds: 1));
     await tester.tap(find.text(label));
     await tester.pump(const Duration(seconds: 2));
@@ -22,23 +26,31 @@ void main() {
 
   // Arrête le minuteur d'inactivité et laisse finir les animations de
   // l'accueil, sinon le test échoue avec des timers en attente.
-  Future<void> endSession(WidgetTester tester, SessionController session) async {
+  Future<void> endSession(
+    WidgetTester tester,
+    SessionController session,
+  ) async {
     session.reset();
     await tester.pump();
     await tester.pump(const Duration(seconds: 3));
   }
 
-  testWidgets('choisir le français ouvre le menu en français', (tester) async {
+  testWidgets('choisir le français ouvre le lounge en français', (
+    tester,
+  ) async {
     final session = SessionController();
     addTearDown(session.dispose);
     await pumpApp(tester, session);
 
-    expect(find.text('Bienvenue  ·  Welcome'), findsOneWidget);
+    expect(find.text('BIENVENUE  ·  WELCOME'), findsOneWidget);
 
     await chooseLanguage(tester, 'Français');
 
-    expect(find.text('Bonne route !'), findsOneWidget);
-    expect(find.text('Question du jour'), findsOneWidget);
+    expect(
+      find.textContaining('Bonne route.', findRichText: true),
+      findsOneWidget,
+    );
+    expect(find.text('Divertissement'), findsOneWidget);
     await endSession(tester, session);
   });
 
@@ -48,24 +60,30 @@ void main() {
     await pumpApp(tester, session);
     await chooseLanguage(tester, 'Français');
 
-    await tester.tap(find.byIcon(Icons.translate_rounded));
+    await tester.tap(find.byIcon(AppIcons.translate));
     await tester.pump(const Duration(seconds: 1));
 
-    expect(find.text('Enjoy the ride!'), findsOneWidget);
+    expect(
+      find.textContaining('Enjoy the ride.', findRichText: true),
+      findsOneWidget,
+    );
     await endSession(tester, session);
   });
 
   testWidgets("retour à l'accueil après inactivité", (tester) async {
-    final session = SessionController(inactivityTimeout: const Duration(seconds: 5));
+    final session = SessionController(
+      inactivityTimeout: const Duration(seconds: 5),
+    );
     addTearDown(session.dispose);
     await pumpApp(tester, session);
     await chooseLanguage(tester, 'English');
-    expect(find.text('Enjoy the ride!'), findsOneWidget);
+    expect(find.text('Entertainment'), findsOneWidget);
 
     await tester.pump(const Duration(seconds: 6));
     await tester.pump(const Duration(seconds: 1));
 
     expect(session.isActive, isFalse);
-    expect(find.text('Bienvenue  ·  Welcome'), findsOneWidget);
+    expect(find.text('BIENVENUE  ·  WELCOME'), findsOneWidget);
+    await tester.pump(const Duration(seconds: 3));
   });
 }

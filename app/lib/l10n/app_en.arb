@@ -1,7 +1,5 @@
 {
   "@@locale": "en",
-  "homeGreeting": "Enjoy the ride!",
-  "homeSubtitle": "Make yourself comfortable and pick a section.",
   "sectionAbout": "About Yan",
   "sectionAboutHint": "Your driver, services and contact",
   "sectionEntertainment": "Entertainment",
@@ -16,5 +14,13 @@
   "sectionWeatherHint": "Weather at your destination",
   "comingSoon": "Coming soon",
   "switchLanguage": "Français",
-  "backToWelcome": "Back to welcome"
+  "backToWelcome": "Back to welcome",
+  "loungeEyebrow": "Onboard lounge",
+  "greetingLead": "Enjoy the ride.",
+  "greetingTail": "Make yourself at home.",
+  "featuredEyebrow": "Featured",
+  "entertainmentCta": "Watch",
+  "pollQuestion": "What's your favourite city?",
+  "aboutCta": "Services & collaborations",
+  "driverEyebrow": "Your driver"
 }

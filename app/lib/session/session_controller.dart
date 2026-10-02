@@ -24,7 +24,9 @@ class SessionController extends ChangeNotifier {
 
   void switchLanguage() {
     if (_locale == null) return;
-    start(_locale!.languageCode == 'fr' ? const Locale('en') : const Locale('fr'));
+    start(
+      _locale!.languageCode == 'fr' ? const Locale('en') : const Locale('fr'),
+    );
   }
 
   /// À appeler à chaque toucher de l'écran.

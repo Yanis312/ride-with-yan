@@ -5,7 +5,13 @@ import '../theme/app_theme.dart';
 /// Logo "Y en forme de route" (branding/icon.svg), dessiné en code pour
 /// pouvoir l'animer : [progress] va de 0 (vide) à 1 (logo complet).
 class RoadLogo extends StatelessWidget {
-  const RoadLogo({super.key, this.size = 160, this.progress = 1, this.glow = 0});
+  const RoadLogo({
+    super.key,
+    this.size = 160,
+    this.progress = 1,
+    this.glow = 0,
+    this.showTile = true,
+  });
 
   final double size;
   final double progress;
@@ -13,20 +19,27 @@ class RoadLogo extends StatelessWidget {
   /// Intensité du halo ambre autour du Y, de 0 à 1.
   final double glow;
 
+  /// `false` : seul le Y est dessiné, sans le carré bleu nuit.
+  final bool showTile;
+
   @override
   Widget build(BuildContext context) {
     return SizedBox.square(
       dimension: size,
-      child: CustomPaint(painter: _RoadLogoPainter(progress, glow)),
+      child: CustomPaint(painter: _RoadLogoPainter(progress, glow, showTile)),
     );
   }
 }
 
 class _RoadLogoPainter extends CustomPainter {
-  _RoadLogoPainter(this.progress, this.glow);
+  _RoadLogoPainter(this.progress, this.glow, this.showTile);
 
   final double progress;
   final double glow;
+  final bool showTile;
+
+  static const _tileTop = Color(0xFF16263D);
+  static const _tileBottom = Color(0xFF0B1422);
 
   // Coordonnées du SVG d'origine (viewBox 1024 x 1024).
   static const _left = Offset(292, 250);
@@ -42,15 +55,17 @@ class _RoadLogoPainter extends CustomPainter {
       const Rect.fromLTWH(0, 0, 1024, 1024),
       const Radius.circular(224),
     );
-    canvas.drawRRect(
-      background,
-      Paint()
-        ..shader = const LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [AppColors.nightLight, AppColors.nightDark],
-        ).createShader(const Rect.fromLTWH(0, 0, 1024, 1024)),
-    );
+    if (showTile) {
+      canvas.drawRRect(
+        background,
+        Paint()
+          ..shader = const LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [_tileTop, _tileBottom],
+          ).createShader(const Rect.fromLTWH(0, 0, 1024, 1024)),
+      );
+    }
 
     // Les deux bras se tracent d'abord, puis la tige descend.
     final arms = _interval(progress, 0, 0.55);
@@ -58,7 +73,7 @@ class _RoadLogoPainter extends CustomPainter {
     final dashes = _interval(progress, 0.85, 1);
 
     final road = Paint()
-      ..color = AppColors.amber
+      ..color = AppColors.gold
       ..style = PaintingStyle.stroke
       ..strokeWidth = 150
       ..strokeCap = StrokeCap.round
@@ -66,7 +81,7 @@ class _RoadLogoPainter extends CustomPainter {
 
     if (glow > 0) {
       final halo = Paint()
-        ..color = AppColors.amber.withValues(alpha: 0.35 * glow)
+        ..color = AppColors.gold.withValues(alpha: 0.35 * glow)
         ..style = PaintingStyle.stroke
         ..strokeWidth = 150
         ..strokeCap = StrokeCap.round
@@ -77,11 +92,17 @@ class _RoadLogoPainter extends CustomPainter {
 
     if (dashes > 0) {
       final marking = Paint()
-        ..color = AppColors.nightLight.withValues(alpha: dashes)
+        ..color = (showTile ? _tileTop : AppColors.ink).withValues(
+          alpha: dashes,
+        )
         ..strokeWidth = 22
         ..strokeCap = StrokeCap.round;
       for (var y = 560.0; y < 790; y += 92) {
-        canvas.drawLine(Offset(512, y), Offset(512, (y + 48).clamp(0, 790)), marking);
+        canvas.drawLine(
+          Offset(512, y),
+          Offset(512, (y + 48).clamp(0, 790)),
+          marking,
+        );
       }
     }
   }
@@ -102,5 +123,5 @@ class _RoadLogoPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_RoadLogoPainter old) =>
-      old.progress != progress || old.glow != glow;
+      old.progress != progress || old.glow != glow || old.showTile != showTile;
 }

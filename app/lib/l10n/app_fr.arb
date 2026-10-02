@@ -1,7 +1,5 @@
 {
   "@@locale": "fr",
-  "homeGreeting": "Bonne route !",
-  "homeSubtitle": "Installez-vous, choisissez une section.",
   "sectionAbout": "À propos de Yan",
   "sectionAboutHint": "Qui conduit, services et contact",
   "sectionEntertainment": "Divertissement",
@@ -16,5 +14,13 @@
   "sectionWeatherHint": "Le temps à destination",
   "comingSoon": "Bientôt disponible",
   "switchLanguage": "English",
-  "backToWelcome": "Retour à l'accueil"
+  "backToWelcome": "Retour à l'accueil",
+  "loungeEyebrow": "Lounge à bord",
+  "greetingLead": "Bonne route.",
+  "greetingTail": "Installez-vous.",
+  "featuredEyebrow": "À la une",
+  "entertainmentCta": "Regarder",
+  "pollQuestion": "Quelle est votre ville préférée ?",
+  "aboutCta": "Services & collaborations",
+  "driverEyebrow": "Votre chauffeur"
 }

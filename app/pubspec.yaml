@@ -14,7 +14,6 @@ dependencies:
     sdk: flutter
   flutter_animate: ^4.5.2
   intl: ^0.20.3
-
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -23,3 +22,27 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   generate: true
+
+  fonts:
+    - family: Cormorant
+      fonts:
+        - asset: assets/fonts/cormorant-garamond-500-normal.ttf
+          weight: 500
+        - asset: assets/fonts/cormorant-garamond-600-normal.ttf
+          weight: 600
+        - asset: assets/fonts/cormorant-garamond-500-italic.ttf
+          weight: 500
+          style: italic
+    - family: Jakarta
+      fonts:
+        - asset: assets/fonts/plus-jakarta-sans-300-normal.ttf
+          weight: 300
+        - asset: assets/fonts/plus-jakarta-sans-400-normal.ttf
+          weight: 400
+        - asset: assets/fonts/plus-jakarta-sans-500-normal.ttf
+          weight: 500
+        - asset: assets/fonts/plus-jakarta-sans-600-normal.ttf
+          weight: 600
+    - family: PhosphorLight
+      fonts:
+        - asset: assets/fonts/phosphor-light.ttf
