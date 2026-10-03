@@ -12,7 +12,7 @@ import '../theme/app_theme.dart';
 enum Section { music, linkedin, collaboration, store, ads }
 
 /// Ouvre une section. Depuis l'écran de veille, la session démarre d'abord
-/// (en français par défaut, le passager peut changer ensuite).
+/// dans la langue affichée (anglais par défaut, modifiable ensuite).
 void openSection(BuildContext context, Section section) {
   final session = SessionScope.of(context);
   final navigator = Navigator.of(context, rootNavigator: true);

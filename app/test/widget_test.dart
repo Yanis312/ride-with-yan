@@ -21,7 +21,7 @@ void main() {
   Future<void> chooseLanguage(WidgetTester tester, String label) async {
     await tester.tapAt(const Offset(640, 300));
     await tester.pump(const Duration(seconds: 1));
-    await tester.tap(find.text(label));
+    await tester.tap(find.text(label).last); // le bouton du panneau, pas celui du haut
     await tester.pump(const Duration(seconds: 2));
     await tester.pump(); // retire l'accueil une fois la transition finie
   }
@@ -62,7 +62,7 @@ void main() {
     await pumpApp(tester, session);
     await chooseLanguage(tester, 'Français');
 
-    await tester.tap(find.byIcon(AppIcons.translate));
+    await tester.tap(find.byIcon(AppIcons.translate).last);
     await tester.pump(const Duration(seconds: 1));
 
     expect(
@@ -72,21 +72,22 @@ void main() {
     await endSession(tester, session);
   });
 
-  testWidgets("le dock ouvre la boutique depuis l'écran de veille", (
-    tester,
-  ) async {
-    final session = SessionController(random: _FirstChoice());
-    addTearDown(session.dispose);
-    await pumpApp(tester, session);
+  testWidgets(
+    "le dock ouvre la boutique depuis l'écran de veille (anglais par défaut)",
+    (tester) async {
+      final session = SessionController(random: _FirstChoice());
+      addTearDown(session.dispose);
+      await pumpApp(tester, session);
 
-    await tester.tap(find.text('Boutique'));
-    await tester.pump(const Duration(seconds: 2));
-    await tester.pump();
+      await tester.tap(find.text('Store'));
+      await tester.pump(const Duration(seconds: 2));
+      await tester.pump();
 
-    expect(session.isActive, isTrue);
-    expect(find.text('Boutique à bord'), findsOneWidget);
-    await endSession(tester, session);
-  });
+      expect(session.isActive, isTrue);
+      expect(find.text('Onboard store'), findsOneWidget);
+      await endSession(tester, session);
+    },
+  );
 
   testWidgets("retour à l'accueil après inactivité", (tester) async {
     final session = SessionController(

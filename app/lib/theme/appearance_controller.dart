@@ -5,7 +5,7 @@ import 'package:flutter/widgets.dart';
 enum AppearanceMode { auto, light, dark }
 
 /// Mode clair / sombre. En automatique, l'app passe en sombre la nuit
-/// (de 19 h à 7 h) pour ne pas éblouir le passager.
+/// (de 18 h à 7 h) pour ne pas éblouir le passager.
 class AppearanceController extends ChangeNotifier {
   AppearanceController({DateTime Function()? clock})
     : _clock = clock ?? DateTime.now {
@@ -28,7 +28,7 @@ class AppearanceController extends ChangeNotifier {
       _isNight(_clock()) ? Brightness.dark : Brightness.light,
   };
 
-  static bool _isNight(DateTime now) => now.hour >= 19 || now.hour < 7;
+  static bool _isNight(DateTime now) => now.hour >= 18 || now.hour < 7;
 
   /// Bascule manuelle vers le mode opposé à celui affiché.
   void toggle() {

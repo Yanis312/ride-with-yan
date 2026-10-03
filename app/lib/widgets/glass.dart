@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+
+import '../perf_flags.dart';
+
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 
@@ -336,16 +339,14 @@ class GlowButton extends StatelessWidget {
       ),
     );
 
-    if (!reduce) {
+    if (!reduce && !PerfFlags.off('glow')) {
       pill = pill
           .animate(onPlay: (c) => c.repeat())
           .shimmer(
-            delay: 1800.ms,
+            delay: 2600.ms,
             duration: 1400.ms,
             color: Colors.white.withValues(alpha: 0.3),
-          )
-          .animate(onPlay: (c) => c.repeat(reverse: true))
-          .scaleXY(end: 1.035, duration: 2200.ms, curve: Curves.easeInOutSine);
+          );
     }
 
     // Animation continue isolée : seul le bouton est redessiné, pas l'écran.

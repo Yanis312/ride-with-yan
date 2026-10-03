@@ -1,4 +1,7 @@
 import 'dart:math' as math;
+
+import '../perf_flags.dart';
+
 import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart';
@@ -339,6 +342,7 @@ class _MeshBackgroundState extends State<MeshBackground>
   double _lastFrame = -1;
 
   void _onTick(Duration elapsed) {
+    if (PerfFlags.off('mesh')) return;
     _now = elapsed.inMicroseconds / 1e6;
     if (_now - _lastFrame < _frameInterval) return;
     _lastFrame = _now;
@@ -386,6 +390,7 @@ class _MeshBackgroundState extends State<MeshBackground>
           fit: StackFit.expand,
           children: [
             GlassBackgroundSource(
+              enabled: !PerfFlags.off('glass'),
               child: RepaintBoundary(
                 child: CustomPaint(
                   painter: _MeshPainter(

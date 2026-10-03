@@ -1,5 +1,7 @@
 import 'dart:math' as math;
 
+import '../perf_flags.dart';
+
 import 'package:flutter/material.dart';
 
 import '../l10n/app_localizations.dart';
@@ -8,9 +10,10 @@ import '../theme/app_icons.dart';
 import '../theme/app_theme.dart';
 import 'glass.dart';
 import 'heartbeat.dart';
+import 'throttled.dart';
 
 /// Dock en verre liquide présent sur tous les écrans. Les sections qui
-/// rapportent (Collaborations, Boutique, Pub) sont mises en avant par une
+/// rapportent (LinkedIn, Collaborations, Boutique, Pub) sont mises en avant par une
 /// bordure de lumière qui tourne. [current] signale la section ouverte.
 class QuickDock extends StatefulWidget {
   const QuickDock({super.key, this.current, this.compact = false});
@@ -21,7 +24,12 @@ class QuickDock extends StatefulWidget {
   final bool compact;
 
   /// Sections mises en avant.
-  static const featured = {Section.collaboration, Section.store, Section.ads};
+  static const featured = {
+    Section.linkedin,
+    Section.collaboration,
+    Section.store,
+    Section.ads,
+  };
 
   @override
   State<QuickDock> createState() => _QuickDockState();
@@ -34,13 +42,15 @@ class _QuickDockState extends State<QuickDock>
     vsync: this,
     duration: const Duration(milliseconds: 3600),
   );
+  // Bordures redessinées à 30 images/s au plus (voir Throttled).
+  late final Throttled _slowSpin = Throttled(_spin);
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     if (MediaQuery.disableAnimationsOf(context)) {
       _spin.stop();
-    } else if (!_spin.isAnimating) {
+    } else if (!_spin.isAnimating && !PerfFlags.off('dock')) {
       _spin.repeat();
     }
   }
@@ -85,7 +95,7 @@ class _QuickDockState extends State<QuickDock>
                       label: widget.compact ? null : label,
                       selected: section == widget.current,
                       featured: QuickDock.featured.contains(section),
-                      spin: _spin,
+                      spin: _slowSpin,
                       // Les bordures ne tournent pas en même temps : effet de vague.
                       phase: i * 0.27,
                       onTap: () => openSection(context, section),
@@ -180,46 +190,22 @@ class _DockItem extends StatelessWidget {
         child: content,
       );
     } else if (featured) {
-      // Bordure de lumière dorée qui tourne autour du bouton.
-      item = AnimatedBuilder(
-        animation: spin,
+      // Bordure de lumière dorée qui tourne autour du bouton : simplement
+      // repeinte (CustomPaint), le contenu n'est jamais reconstruit.
+      item = CustomPaint(
+        painter: _SpinBorderPainter(spin, phase),
         child: Container(
+          margin: const EdgeInsets.all(1.6),
           padding: padding,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(999),
-            gradient: RadialGradient(
-              radius: 2.2,
-              colors: [
-                Brand.gold.withValues(alpha: 0.28),
-                const Color(0xF0120E06),
-              ],
+            gradient: const LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [Color(0xFF3A2A06), Color(0xFF1A1205)],
             ),
           ),
           child: content,
-        ),
-        builder: (context, child) => Container(
-          padding: const EdgeInsets.all(1.6),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(999),
-            gradient: SweepGradient(
-              transform: GradientRotation((spin.value + phase) * 2 * math.pi),
-              colors: [
-                Brand.gold.withValues(alpha: 0.15),
-                const Color(0xFFFFF4C2),
-                Brand.gold,
-                Brand.gold.withValues(alpha: 0.15),
-                Brand.gold.withValues(alpha: 0.15),
-              ],
-              stops: const [0, 0.12, 0.25, 0.4, 1],
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Brand.gold.withValues(alpha: 0.35),
-                blurRadius: 14,
-              ),
-            ],
-          ),
-          child: child,
         ),
       );
     } else {
@@ -228,4 +214,47 @@ class _DockItem extends StatelessWidget {
 
     return Pressable(onTap: onTap, child: item);
   }
+}
+
+class _SpinBorderPainter extends CustomPainter {
+  _SpinBorderPainter(this.spin, this.phase) : super(repaint: spin);
+
+  final Animation<double> spin;
+  final double phase;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final rect = Offset.zero & size;
+    final rrect = RRect.fromRectAndRadius(
+      rect,
+      Radius.circular(size.height / 2),
+    );
+    // Halo fixe, puis anneau de lumière qui tourne.
+    canvas.drawRRect(
+      rrect,
+      Paint()
+        ..color = Brand.gold.withValues(alpha: 0.3)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10),
+    );
+    canvas.drawRRect(
+      rrect.deflate(0.8),
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.6
+        ..shader = SweepGradient(
+          transform: GradientRotation((spin.value + phase) * 2 * math.pi),
+          colors: [
+            Brand.gold.withValues(alpha: 0.2),
+            const Color(0xFFFFF4C2),
+            Brand.gold,
+            Brand.gold.withValues(alpha: 0.2),
+            Brand.gold.withValues(alpha: 0.2),
+          ],
+          stops: const [0, 0.12, 0.25, 0.4, 1],
+        ).createShader(rect),
+    );
+  }
+
+  @override
+  bool shouldRepaint(_SpinBorderPainter old) => old.phase != phase;
 }

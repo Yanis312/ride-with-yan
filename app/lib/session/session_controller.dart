@@ -35,6 +35,22 @@ class SessionController extends ChangeNotifier {
 
   /// Langue du passager, ou `null` tant qu'il est sur l'écran d'accueil.
   Locale? get locale => _locale;
+
+  // Langue affichée avant le choix du passager : anglais par défaut
+  // (beaucoup d'anglophones à Montréal), modifiable par le bouton de l'accueil.
+  Locale _preferred = const Locale('en');
+
+  /// Langue de l'interface : celle du passager, sinon la langue préférée.
+  Locale get displayLocale => _locale ?? _preferred;
+
+  /// Bascule la langue de l'écran d'accueil (avant le début de la session).
+  void togglePreferred() {
+    _preferred = _preferred.languageCode == 'en'
+        ? const Locale('fr')
+        : const Locale('en');
+    notifyListeners();
+  }
+
   bool get isActive => _locale != null;
 
   void start(Locale locale) {

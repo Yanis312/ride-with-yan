@@ -1,5 +1,7 @@
 import 'dart:math' as math;
 
+import '../perf_flags.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
@@ -13,6 +15,7 @@ import '../widgets/mesh_background.dart';
 import '../widgets/quick_dock.dart';
 import '../widgets/road_logo.dart';
 import '../widgets/scene_vignettes.dart';
+import '../widgets/throttled.dart';
 
 /// Une phase de l'écran de veille : une ambiance de couleurs, une
 /// illustration animée et plusieurs phrases bilingues possibles.
@@ -117,6 +120,9 @@ class _WelcomeScreenState extends State<WelcomeScreen>
   );
 
   final _random = math.Random();
+  // Illustrations et barre de progression redessinées à 30 images/s au plus.
+  late final Throttled _slowLoop = Throttled(_loop);
+  late final Throttled _slowClock = Throttled(_phaseClock);
   late List<int> _order = _shuffledCycle(_random);
   int _step = 0;
   int _cycle = 0;
@@ -140,7 +146,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
     super.didChangeDependencies();
     if (MediaQuery.disableAnimationsOf(context)) {
       _loop.stop();
-    } else if (!_loop.isAnimating) {
+    } else if (!_loop.isAnimating && !PerfFlags.off('vignette')) {
       _loop.repeat();
     }
   }
@@ -204,19 +210,19 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                                 line: line,
                                 index: _step,
                                 textKey: ValueKey('$_cycle-$_step'),
-                                loop: _loop,
+                                loop: _slowLoop,
                               )
                             : _WideStage(
                                 phase: phase,
                                 line: line,
                                 index: _step,
                                 textKey: ValueKey('$_cycle-$_step'),
-                                loop: _loop,
+                                loop: _slowLoop,
                               ),
                       ),
                       _Footer(
                         index: _step,
-                        clock: _phaseClock,
+                        clock: _slowClock,
                         onStart: _openLanguages,
                         compact: compact,
                       ),
@@ -258,6 +264,16 @@ class _Header extends StatelessWidget {
           ),
         ),
         QuickDock(compact: MediaQuery.sizeOf(context).width < 760),
+        const SizedBox(width: 12),
+        // Langue de l'accueil (anglais par défaut) avant le choix du passager.
+        PillButton(
+          label: SessionScope.of(context).displayLocale.languageCode == 'en'
+              ? 'Français'
+              : 'English',
+          filled: false,
+          onTap: SessionScope.of(context).togglePreferred,
+          trailing: const Icon(AppIcons.translate),
+        ),
         const SizedBox(width: 12),
         LiquidIconButton(
           icon: context.isDark ? AppIcons.sun : AppIcons.moon,

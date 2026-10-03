@@ -65,7 +65,7 @@ class _RideWithYanAppState extends State<RideWithYanApp> {
                 : ThemeMode.light,
             themeAnimationDuration: const Duration(milliseconds: 700),
             themeAnimationCurve: AppMotion.spring,
-            locale: _session.locale ?? const Locale('fr'),
+            locale: _session.displayLocale,
             supportedLocales: AppLocalizations.supportedLocales,
             localizationsDelegates: const [
               AppLocalizations.delegate,
