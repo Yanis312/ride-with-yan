@@ -30,6 +30,8 @@ jobs:
       - run: flutter analyze
       - run: flutter test
       - run: flutter build web --release --base-href /ride-with-yan/
+      # Sites de démonstration publiés à côté de l'app
+      - run: cp -r ../showcase build/web/showcase
       - uses: actions/upload-pages-artifact@v3
         with:
           path: app/build/web

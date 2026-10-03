@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VLT Active · Vêtements de sport</title>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root { --bg:#070807; --panel:#111311; --line:rgba(255,255,255,.08); --text:#f2f5ef; --muted:#8d948a; --volt:#d4ff3a; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { background:var(--bg); color:var(--text); font-family:Inter, sans-serif; }
+  .wrap { max-width:1300px; margin:0 auto; padding:0 44px; }
+  nav { display:flex; align-items:center; gap:30px; padding:24px 0; font-size:14px; color:var(--muted); }
+  nav b { font-family:Unbounded; color:var(--text); font-size:22px; margin-right:auto; } nav b span { color:var(--volt); }
+  nav .cart { background:var(--volt); color:#070807; padding:11px 18px; border-radius:999px; font-weight:600; }
+  .hero { position:relative; display:grid; grid-template-columns:1fr 1.15fr; gap:26px; align-items:center; padding:30px 0 60px; }
+  .tag { color:var(--volt); font-size:13px; letter-spacing:.2em; font-weight:600; }
+  h1 { font-family:Unbounded; font-size:clamp(52px,6vw,96px); line-height:.95; letter-spacing:-.03em; margin:18px 0 22px; }
+  h1 span { color:var(--volt); }
+  .hero p { color:var(--muted); font-size:18px; line-height:1.6; max-width:430px; margin-bottom:30px; }
+  .row { display:flex; gap:12px; align-items:center; } .btn { background:var(--volt); color:#070807; padding:16px 26px; border-radius:999px; font-weight:600; } .ghost { border:1px solid var(--line); padding:16px 26px; border-radius:999px; }
+  .stars { margin-top:30px; color:var(--muted); font-size:14px; } .stars b { color:var(--volt); }
+  .stage { position:relative; height:600px; }
+  .ring { position:absolute; inset:40px 30px 40px 30px; border-radius:50%; border:2px solid rgba(212,255,58,.45); box-shadow:0 0 80px rgba(212,255,58,.25), inset 0 0 80px rgba(212,255,58,.12); }
+  .photo { position:absolute; left:70px; right:70px; top:70px; bottom:70px; border-radius:50%; background:url(img/SSO1M7IJTN.jpg) 45% center/cover; filter:saturate(1.05) contrast(1.05); }
+  .thumbs { position:absolute; right:-6px; top:90px; display:flex; flex-direction:column; gap:12px; }
+  .thumbs div { width:86px; height:86px; border-radius:20px; background-size:cover; background-position:center; border:1px solid var(--line); }
+  .thumbs div.on { border:2px solid var(--volt); }
+  .feat { display:grid; grid-template-columns:repeat(3,1fr); gap:18px; padding-bottom:80px; }
+  .card { background:var(--panel); border:1px solid var(--line); border-radius:28px; padding:28px; min-height:180px; }
+  .card b { display:block; font-family:Unbounded; font-size:20px; margin:16px 0 8px; } .card p { color:var(--muted); line-height:1.5; }
+  .dot { width:44px; height:44px; border-radius:14px; background:rgba(212,255,58,.12); border:1px solid rgba(212,255,58,.4); }
+  .banner { height:420px; border-radius:36px; background:linear-gradient(90deg, rgba(7,8,7,.92) 30%, transparent), url(img/645GI8G1W4.jpg) center/cover; display:flex; align-items:center; padding:60px; margin-bottom:80px; }
+  .banner h2 { font-family:Unbounded; font-size:54px; line-height:1; max-width:520px; } .banner h2 span { color:var(--volt); }
+  @media (max-width:860px) { .hero, .feat { grid-template-columns:1fr; } nav span { display:none; } .wrap { padding:0 18px; } .stage { height:420px; } .banner { padding:28px; } .banner h2 { font-size:36px; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav><b>VLT<span>.</span></b><span>Femme</span><span>Homme</span><span>Running</span><span>Studio</span><span class="cart">Panier · 2</span></nav>
+  <div class="hero">
+    <div>
+      <span class="tag">NOUVELLE COLLECTION</span>
+      <h1>Bouge plus.<br><span>Brille plus.</span></h1>
+      <p>Tissus respirants, séchage en 20 minutes et bandes réfléchissantes pour les sorties du soir. Conçu pour l'effort, dessiné pour la rue.</p>
+      <div class="row"><span class="btn">Acheter · 89 $</span><span class="ghost">Voir en 360°</span></div>
+      <div class="stars"><b>★★★★★</b> 4,8 sur 1 240 avis</div>
+    </div>
+    <div class="stage"><div class="ring"></div><div class="photo"></div>
+      <div class="thumbs"><div class="on" style="background-image:url(img/SSO1M7IJTN.jpg)"></div><div style="background-image:url(img/645GI8G1W4.jpg)"></div><div style="background-image:url(img/C6J16TFD75.jpg)"></div></div></div>
+  </div>
+  <div class="feat">
+    <div class="card"><div class="dot"></div><b>Respirant</b><p>Mailles aérées sur le dos et les côtés.</p></div>
+    <div class="card"><div class="dot"></div><b>Réfléchissant</b><p>Visible jusqu'à 150 mètres la nuit.</p></div>
+    <div class="card"><div class="dot"></div><b>Durable</b><p>Testé sur 500 lavages, garanti 2 ans.</p></div>
+  </div>
+  <div class="banner"><h2>Rejoins le <span>club de course</span> du jeudi soir.</h2></div>
+</div>
+</body>
+</html>

@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Atelier Nord · Mode</title>
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,500;1,6..96,500&family=Manrope:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root { --bg:#f7f2ee; --ink:#151312; --rust:#d2552b; --muted:#7d746d; --card:#fff; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { background:var(--bg); color:var(--ink); font-family:Manrope, sans-serif; }
+  .wrap { max-width:1280px; margin:0 auto; padding:0 48px; }
+  nav { display:flex; align-items:center; gap:32px; padding:28px 0; font-size:15px; }
+  nav b { font-family:"Bodoni Moda"; font-size:28px; margin-right:auto; }
+  nav span.on { color:var(--rust); border-bottom:2px solid var(--rust); padding-bottom:4px; }
+  .pill { background:var(--ink); color:#fff; padding:13px 22px; border-radius:999px; font-weight:600; }
+  .hero { display:grid; grid-template-columns:1.05fr 1fr; gap:30px; align-items:center; padding:30px 0 50px; }
+  .tag { color:var(--rust); font-size:13px; font-weight:600; letter-spacing:.2em; }
+  h1 { font-family:"Bodoni Moda"; font-weight:500; font-size:clamp(64px,7.5vw,118px); line-height:.92; margin:20px 0 26px; letter-spacing:-.02em; }
+  h1 i { color:var(--rust); }
+  .hero p { color:var(--muted); font-size:18px; line-height:1.65; max-width:440px; margin-bottom:34px; }
+  .row { display:flex; gap:14px; }
+  .ghost { border:1.5px solid var(--ink); padding:13px 22px; border-radius:999px; font-weight:600; }
+  .visual { position:relative; height:620px; }
+  .sun { position:absolute; right:30px; top:30px; width:470px; height:470px; border-radius:50%; background:var(--rust); }
+  .model { position:absolute; right:60px; top:60px; width:410px; height:540px; border-radius:205px 205px 24px 24px; background:url(img/WSWGDBT8X9.jpg) 55% center/cover; box-shadow:0 40px 80px rgba(21,19,18,.25); }
+  .chip { position:absolute; background:#fff; border-radius:18px; padding:12px 16px; font-size:13px; box-shadow:0 18px 36px rgba(21,19,18,.1); }
+  .chip b { display:block; font-size:20px; }
+  .perks { display:grid; grid-template-columns:repeat(4,1fr); background:#fff; border-radius:28px; padding:28px; gap:20px; margin-bottom:90px; box-shadow:0 20px 50px rgba(21,19,18,.05); }
+  .perks div { font-size:15px; } .perks b { display:block; font-size:16px; margin-bottom:4px; } .perks span { color:var(--muted); font-size:14px; }
+  h2 { font-family:"Bodoni Moda"; font-weight:500; font-size:58px; }
+  h2 i { color:var(--rust); }
+  .cats { display:grid; grid-template-columns:repeat(3,1fr); gap:22px; margin:40px 0 100px; }
+  .cat { height:470px; border-radius:30px; background-size:cover; background-position:center; position:relative; overflow:hidden; }
+  .cat::after { content:""; position:absolute; inset:0; background:linear-gradient(transparent 55%, rgba(0,0,0,.55)); }
+  .cat div { position:absolute; left:26px; bottom:24px; color:#fff; z-index:1; }
+  .cat b { font-family:"Bodoni Moda"; font-size:34px; font-weight:500; display:block; }
+  .sale { display:grid; grid-template-columns:1.2fr 1fr; background:#efe6df; border-radius:36px; overflow:hidden; margin-bottom:90px; }
+  .sale .txt { padding:60px; } .sale .txt p { color:var(--muted); margin:16px 0 28px; font-size:17px; }
+  .sale .img { background:url(img/VZCWAEF5YN.jpg) center/cover; min-height:380px; }
+  @media (max-width:860px) { .hero, .sale { grid-template-columns:1fr; } .cats, .perks { grid-template-columns:1fr; } nav span { display:none; } .wrap { padding:0 20px; } .sun { width:300px; height:300px; } .model { width:260px; height:360px; } .visual { height:420px; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav><b>Atelier Nord</b><span class="on">Accueil</span><span>Collections</span><span>Lookbook</span><span>À propos</span><span class="pill">Boutique</span></nav>
+  <div class="hero">
+    <div>
+      <div class="tag">COLLECTION AUTOMNE 2026</div>
+      <h1>Simple. <i>Signé.</i> Durable.</h1>
+      <p>Des pièces coupées à Montréal dans des tissus naturels, pensées pour durer dix saisons, pas une seule.</p>
+      <div class="row"><span class="pill">Découvrir la collection →</span><span class="ghost">▶ Le défilé</span></div>
+    </div>
+    <div class="visual"><div class="sun"></div><div class="model"></div>
+      <div class="chip" style="left:30px;top:120px">Clientes conquises<b>12 000+</b></div>
+      <div class="chip" style="left:60px;bottom:90px">Note moyenne<b>4,9 / 5</b></div></div>
+  </div>
+  <div class="perks"><div><b>Livraison offerte</b><span>Dès 100 $ d'achat</span></div><div><b>Retours faciles</b><span>30 jours pour changer d'avis</span></div><div><b>Paiement sécurisé</b><span>Carte, Apple Pay, Interac</span></div><div><b>Conseil styliste</b><span>Par message, 7 jours sur 7</span></div></div>
+  <h2>Acheter par <i>univers</i></h2>
+  <div class="cats">
+    <div class="cat" style="background-image:url(img/CZ4LDC7W8R.jpg)"><div><b>Essentiels</b>24 pièces</div></div>
+    <div class="cat" style="background-image:url(img/CGR7I2PUXK.jpg)"><div><b>Soirée</b>18 pièces</div></div>
+    <div class="cat" style="background-image:url(img/WSWGDBT8X9.jpg)"><div><b>Mi-saison</b>20 pièces</div></div>
+  </div>
+  <div class="sale"><div class="txt"><div class="tag">VENTE PRIVÉE</div><h2>Jusqu'à 40 % sur la mi-saison</h2><p>Trois jours seulement, pour les membres du club Atelier.</p><span class="pill">Accéder à la vente →</span></div><div class="img"></div></div>
+</div>
+</body>
+</html>

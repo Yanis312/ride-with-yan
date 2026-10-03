@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Maison Mokka · Café et boulangerie</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,500&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root { --cream:#f3ebe1; --paper:#faf6f0; --bean:#2b1a12; --roast:#5a3825; --caramel:#c98a4b; --muted:#8a7464; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { background:var(--cream); color:var(--bean); font-family:Outfit, sans-serif; }
+  .wrap { max-width:1280px; margin:0 auto; padding:0 48px; }
+  nav { display:flex; align-items:center; gap:34px; padding:26px 0; font-size:15px; }
+  nav b { font-family:"Playfair Display"; font-size:26px; margin-right:auto; letter-spacing:.02em; }
+  nav b span { color:var(--caramel); }
+  nav a { color:var(--bean); text-decoration:none; opacity:.75; }
+  .btn { display:inline-flex; align-items:center; gap:10px; background:var(--bean); color:var(--paper); padding:14px 24px; border-radius:999px; font-weight:500; text-decoration:none; }
+  .btn i { width:28px; height:28px; border-radius:50%; background:var(--caramel); display:grid; place-items:center; font-style:normal; }
+  .hero { display:grid; grid-template-columns:1fr 1.05fr; gap:48px; align-items:center; padding:30px 0 70px; }
+  .eyebrow { font-size:13px; letter-spacing:.18em; text-transform:uppercase; color:var(--caramel); font-weight:600; }
+  h1 { font-family:"Playfair Display"; font-weight:500; font-size:clamp(54px,6vw,92px); line-height:.98; margin:18px 0 22px; letter-spacing:-.02em; }
+  h1 em { color:var(--roast); }
+  .hero p { color:var(--muted); font-size:19px; line-height:1.6; max-width:470px; margin-bottom:34px; }
+  .stats { display:flex; gap:40px; margin-top:44px; }
+  .stats b { font-family:"Playfair Display"; font-size:38px; display:block; }
+  .stats span { color:var(--muted); font-size:14px; }
+  .pic { position:relative; height:600px; }
+  .pic .main { position:absolute; inset:0 0 0 70px; border-radius:200px 200px 32px 32px; background:url(img/RP0EJV51J6.jpg) center/cover; box-shadow:0 40px 80px rgba(43,26,18,.25); }
+  .pic .small { position:absolute; left:0; bottom:40px; width:220px; height:220px; border-radius:50%; background:url(img/UXO5P8KFS5.jpg) center/cover; border:10px solid var(--cream); }
+  .pic .badge { position:absolute; right:-14px; top:60px; background:var(--paper); border-radius:20px; padding:14px 18px; box-shadow:0 20px 40px rgba(43,26,18,.15); font-size:14px; }
+  .pic .badge b { display:block; font-family:"Playfair Display"; font-size:22px; }
+  section { padding:100px 0; }
+  .light { background:var(--paper); }
+  h2 { font-family:"Playfair Display"; font-weight:500; font-size:58px; letter-spacing:-.02em; }
+  .head { display:flex; justify-content:space-between; align-items:end; margin-bottom:44px; }
+  .menu { display:grid; grid-template-columns:repeat(4,1fr); gap:22px; }
+  .card { background:var(--cream); border-radius:26px; padding:12px; }
+  .card .img { height:230px; border-radius:18px; background-size:cover; background-position:center; }
+  .card div.t { padding:16px 8px 8px; display:flex; justify-content:space-between; align-items:end; }
+  .card h3 { font-family:"Playfair Display"; font-weight:500; font-size:24px; }
+  .card small { color:var(--muted); }
+  .card strong { font-size:20px; color:var(--roast); }
+  .story { display:grid; grid-template-columns:1fr 1fr; gap:70px; align-items:center; }
+  .story .img { height:520px; border-radius:32px; background:url(img/CYWVWT28TI.jpg) center/cover; }
+  .story p { color:var(--muted); font-size:19px; line-height:1.7; margin:22px 0 30px; }
+  .quote { font-family:"Playfair Display"; font-style:italic; font-size:30px; line-height:1.35; border-left:3px solid var(--caramel); padding-left:24px; }
+  footer { background:var(--bean); color:var(--cream); padding:70px 0; }
+  footer .wrap { display:flex; justify-content:space-between; align-items:end; }
+  footer h2 { color:var(--paper); }
+  @media (max-width:860px) { .hero, .story { grid-template-columns:1fr; } .menu { grid-template-columns:1fr 1fr; } nav a { display:none; } .wrap { padding:0 20px; } .pic { height:420px; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav><b>Maison <span>Mokka</span></b><a href="#">Café</a><a href="#">Boulangerie</a><a href="#">Notre histoire</a><a class="btn" href="#">Commander <i>→</i></a></nav>
+  <div class="hero">
+    <div>
+      <div class="eyebrow">Torréfié chaque matin</div>
+      <h1>Le café qui donne <em>envie</em> de se lever.</h1>
+      <p>Grains d'origine unique, lait mousseux comme un nuage et viennoiseries sorties du four à 6 h. Sur place, à emporter ou livré chez vous.</p>
+      <a class="btn" href="#">Voir la carte <i>→</i></a>
+      <div class="stats"><div><b>12</b><span>origines de grains</span></div><div><b>4,9</b><span>sur 2 300 avis</span></div><div><b>6 h</b><span>pain sorti du four</span></div></div>
+    </div>
+    <div class="pic"><div class="main"></div><div class="small"></div><div class="badge">Spécialité du jour<b>Latte érable</b></div></div>
+  </div>
+</div>
+<section class="light">
+  <div class="wrap">
+    <div class="head"><h2>Nos incontournables</h2><a class="btn" href="#">Toute la carte <i>→</i></a></div>
+    <div class="menu">
+      <div class="card"><div class="img" style="background-image:url(img/LIB0TB3A8K.jpg)"></div><div class="t"><div><h3>Latte velours</h3><small>Double espresso, lait d'avoine</small></div><strong>5,25 $</strong></div></div>
+      <div class="card"><div class="img" style="background-image:url(img/MK3VLNK8NA.jpg)"></div><div class="t"><div><h3>Flat white</h3><small>Microfoam, notes de noisette</small></div><strong>4,75 $</strong></div></div>
+      <div class="card"><div class="img" style="background-image:url(img/9QUVG8OY1I.jpg)"></div><div class="t"><div><h3>Duo du matin</h3><small>Café filtre et beigne maison</small></div><strong>6,50 $</strong></div></div>
+      <div class="card"><div class="img" style="background-image:url(img/8179612CB8.jpg)"></div><div class="t"><div><h3>Croissant pur beurre</h3><small>Feuilletage 72 h</small></div><strong>3,95 $</strong></div></div>
+    </div>
+  </div>
+</section>
+<section>
+  <div class="wrap story">
+    <div class="img"></div>
+    <div>
+      <div class="eyebrow">Depuis 2014</div>
+      <h2>Un coin de quartier, une grande famille.</h2>
+      <p>On torréfie nous-mêmes, en petites quantités, pour que chaque tasse ait le goût qu'elle mérite. Ici, on connaît votre prénom et votre commande.</p>
+      <div class="quote">« Le meilleur latte de la ville, et le sourire en prime. »</div>
+    </div>
+  </div>
+</section>
+<footer><div class="wrap"><h2>Passez nous voir.</h2><span>Ouvert tous les jours · 6 h à 19 h</span></div></footer>
+</body>
+</html>

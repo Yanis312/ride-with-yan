@@ -342,60 +342,69 @@ class _DeviceFrame extends StatelessWidget {
     }
 
     final host = '${showcase.title.toLowerCase().replaceAll(' ', '')}.demo';
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(22),
-        boxShadow: glow,
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(22),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Barre de navigateur stylisée.
-            Container(
-              height: 40,
-              color: const Color(0xFF1B1D23),
-              padding: const EdgeInsets.symmetric(horizontal: 14),
-              child: Row(
-                children: [
-                  for (final c in const [
-                    Color(0xFFFF5F57),
-                    Color(0xFFFEBC2E),
-                    Color(0xFF28C840),
-                  ])
-                    Container(
-                      width: 11,
-                      height: 11,
-                      margin: const EdgeInsets.only(right: 7),
-                      decoration: BoxDecoration(
-                        color: c,
-                        shape: BoxShape.circle,
+    // Ratio de la vidéo (16:9) plus la barre du navigateur : pas de bande noire.
+    return Center(
+      child: AspectRatio(
+        aspectRatio: 1.6,
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(22),
+            boxShadow: glow,
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(22),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Barre de navigateur stylisée.
+                Container(
+                  height: 40,
+                  color: const Color(0xFF1B1D23),
+                  padding: const EdgeInsets.symmetric(horizontal: 14),
+                  child: Row(
+                    children: [
+                      for (final c in const [
+                        Color(0xFFFF5F57),
+                        Color(0xFFFEBC2E),
+                        Color(0xFF28C840),
+                      ])
+                        Container(
+                          width: 11,
+                          height: 11,
+                          margin: const EdgeInsets.only(right: 7),
+                          decoration: BoxDecoration(
+                            color: c,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Container(
+                          height: 24,
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF2A2D35),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            host,
+                            style: AppText.body(
+                              12,
+                              color: const Color(0xFFB4B8C2),
+                            ),
+                          ),
+                        ),
                       ),
-                    ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Container(
-                      height: 24,
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF2A2D35),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        host,
-                        style: AppText.body(12, color: const Color(0xFFB4B8C2)),
-                      ),
-                    ),
+                      const SizedBox(width: 60),
+                    ],
                   ),
-                  const SizedBox(width: 60),
-                ],
-              ),
+                ),
+                Expanded(
+                  child: ColoredBox(color: Colors.black, child: screen),
+                ),
+              ],
             ),
-            Expanded(
-              child: ColoredBox(color: Colors.black, child: screen),
-            ),
-          ],
+          ),
         ),
       ),
     );

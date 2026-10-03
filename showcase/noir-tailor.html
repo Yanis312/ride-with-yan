@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Noir Tailor · Prêt-à-porter homme</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;1,500&family=Inter+Tight:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root { --bg:#0c0b0a; --panel:#161412; --line:rgba(255,255,255,.08); --text:#f1ebe2; --muted:#9a9187; --gold:#c9a36a; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { background:var(--bg); color:var(--text); font-family:"Inter Tight", sans-serif; padding:28px; }
+  .app { display:grid; grid-template-columns:240px 1fr; gap:22px; max-width:1360px; margin:0 auto; }
+  aside { background:var(--panel); border:1px solid var(--line); border-radius:30px; padding:28px 20px; display:flex; flex-direction:column; gap:10px; }
+  aside b { font-family:"Cormorant Garamond"; font-size:28px; font-weight:500; margin-bottom:22px; }
+  aside span { padding:12px 14px; border-radius:16px; color:var(--muted); font-size:15px; }
+  aside span.on { background:rgba(201,163,106,.12); color:var(--text); border:1px solid rgba(201,163,106,.4); }
+  aside .promo { margin-top:auto; height:220px; border-radius:22px; background:linear-gradient(transparent 40%, rgba(0,0,0,.8)), url(img/FB82X2VFWT.jpg) center/cover; padding:18px; display:flex; flex-direction:column; justify-content:end; }
+  aside .promo i { font-family:"Cormorant Garamond"; font-size:26px; }
+  main { display:flex; flex-direction:column; gap:22px; }
+  .top { display:flex; gap:16px; align-items:center; }
+  .search { flex:1; background:var(--panel); border:1px solid var(--line); border-radius:999px; padding:15px 22px; color:var(--muted); }
+  .round { width:50px; height:50px; border-radius:50%; background:var(--panel); border:1px solid var(--line); display:grid; place-items:center; }
+  .hero { display:grid; grid-template-columns:1fr 1.1fr; background:radial-gradient(600px 400px at 70% 40%, rgba(201,163,106,.18), transparent 70%), var(--panel); border:1px solid var(--line); border-radius:34px; overflow:hidden; min-height:480px; }
+  .hero .txt { padding:46px; display:flex; flex-direction:column; justify-content:center; }
+  .new { color:var(--gold); font-size:14px; letter-spacing:.18em; }
+  h1 { font-family:"Cormorant Garamond"; font-weight:500; font-size:76px; line-height:.95; margin:14px 0 18px; }
+  .txt p { color:var(--muted); line-height:1.6; max-width:360px; }
+  .price { font-family:"Cormorant Garamond"; font-size:44px; color:var(--gold); margin:24px 0 18px; }
+  .sizes { display:flex; gap:10px; margin-bottom:26px; } .sizes span { width:46px; height:46px; border-radius:14px; border:1px solid var(--line); display:grid; place-items:center; } .sizes .on { background:var(--gold); color:#0c0b0a; font-weight:600; }
+  .cta { display:flex; gap:12px; } .cta span { padding:16px 28px; border-radius:16px; font-weight:600; } .gold { background:linear-gradient(135deg,#e2c08a,#b8894b); color:#0c0b0a; } .dark { border:1px solid var(--line); }
+  .hero .img { background:url(img/G53WADMPZJ.jpg) 8% center/cover; }
+  h2 { font-family:"Cormorant Garamond"; font-weight:500; font-size:38px; }
+  .grid { display:grid; grid-template-columns:repeat(3,1fr); gap:18px; }
+  .item { background:var(--panel); border:1px solid var(--line); border-radius:26px; padding:10px; }
+  .item .img { height:220px; border-radius:18px; background-size:cover; background-position:center; }
+  .item div.t { display:flex; justify-content:space-between; padding:14px 8px 6px; } .item b { font-weight:500; } .item span { color:var(--gold); }
+  .perks { display:grid; grid-template-columns:repeat(3,1fr); gap:18px; background:var(--panel); border:1px solid var(--line); border-radius:24px; padding:20px 26px; color:var(--muted); font-size:14px; } .perks b { color:var(--text); display:block; font-size:15px; }
+  @media (max-width:860px) { .app, .hero, .grid, .perks { grid-template-columns:1fr; } aside { display:none; } body { padding:12px; } h1 { font-size:54px; } }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside><b>Noir Tailor</b><span class="on">Nouveautés</span><span>Manteaux</span><span>Vestes</span><span>Costumes</span><span>Chaussures</span><span>Accessoires</span>
+    <div class="promo"><small>Collection</small><i>Hiver 2026</i></div></aside>
+  <main>
+    <div class="top"><div class="search">Rechercher une pièce...</div><div class="round">♡</div><div class="round">◎</div></div>
+    <div class="hero">
+      <div class="txt"><span class="new">NOUVEAUTÉ</span><h1>La veste croisée Montmartre</h1><p>Laine vierge italienne, doublure en soie, coupe ajustée. Faite pour durer, pensée pour être remarquée.</p>
+        <div class="price">489 $</div>
+        <div class="sizes"><span>46</span><span class="on">48</span><span>50</span><span>52</span></div>
+        <div class="cta"><span class="gold">Ajouter au panier</span><span class="dark">Essayer en boutique</span></div></div>
+      <div class="img"></div>
+    </div>
+    <h2>Vous aimerez aussi</h2>
+    <div class="grid">
+      <div class="item"><div class="img" style="background-image:url(img/7PKCWA2QP3.jpg)"></div><div class="t"><b>L'atelier, Mile End</b><span>Sur rendez-vous</span></div></div>
+      <div class="item"><div class="img" style="background-image:url(img/FB82X2VFWT.jpg)"></div><div class="t"><b>Blouson cuir et écharpe</b><span>629 $</span></div></div>
+      <div class="item"><div class="img" style="background-image:url(img/72V88M4FAC.jpg)"></div><div class="t"><b>Le vestiaire</b><span>Plus de 300 pièces</span></div></div>
+    </div>
+    <div class="perks"><div><b>Livraison offerte</b>Dès 250 $</div><div><b>Retouches incluses</b>Par notre tailleur</div><div><b>Paiement sécurisé</b>Visa, Amex, Interac</div></div>
+  </main>
+</div>
+</body>
+</html>
