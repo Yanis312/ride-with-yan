@@ -32,6 +32,7 @@ flutter:
   assets:
     - assets/images/
     - assets/showcase/
+    - assets/photos/
 
   shaders:
     - shaders/mesh.frag

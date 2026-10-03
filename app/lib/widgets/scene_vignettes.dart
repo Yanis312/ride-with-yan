@@ -101,91 +101,162 @@ class _Intro extends StatelessWidget {
   }
 }
 
-/// Écran de cinéma : bandes noires qui s'ouvrent, lent zoom, bouton lecture.
+/// Aperçu d'une app de streaming : grande affiche "Ce soir au salon",
+/// puis une rangée de vignettes qui défile doucement.
 class _Cinema extends StatelessWidget {
   const _Cinema({required this.t});
 
   final double t;
 
+  static const _tiles = [
+    ('assets/photos/popcorn.jpg', 'Soirée popcorn'),
+    ('assets/photos/vintage-tv.jpg', 'Classiques'),
+    ('assets/photos/projector.jpg', 'Cinéma d’auteur'),
+    ('assets/photos/cinema-sign.jpg', 'À l’affiche'),
+  ];
+
   @override
   Widget build(BuildContext context) {
-    final bars = 0.12 + 0.05 * _wave(t);
-    return Center(
-      child: AspectRatio(
-        aspectRatio: 16 / 11,
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(28),
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              Transform.scale(
-                scale: 1.08 + 0.06 * _wave(t, 0.1),
-                child: const DecoratedBox(
-                  decoration: BoxDecoration(
-                    gradient: RadialGradient(
-                      center: Alignment(-0.3, -0.4),
-                      radius: 1.2,
-                      colors: [
-                        Color(0xFFFFB347),
-                        Color(0xFFB3122A),
-                        Color(0xFF2A0610),
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(28),
+      child: ColoredBox(
+        color: const Color(0xFF0B0709),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Expanded(
+              flex: 62,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  Transform.scale(
+                    scale: 1.08 + 0.05 * _wave(t, 0.1),
+                    child: Image.asset(
+                      'assets/photos/theatre.jpg',
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                  const DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [Colors.transparent, Color(0xEE0B0709)],
+                        stops: [0.35, 1],
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    left: 20,
+                    right: 20,
+                    bottom: 16,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'CE SOIR AU SALON',
+                          style: AppText.eyebrow(const Color(0xFFFFB347)),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          'Grand écran, sièges arrière',
+                          style: AppText.display(28, color: Colors.white),
+                        ),
+                        const SizedBox(height: 10),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(999),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                AppIcons.play,
+                                size: 16,
+                                color: Colors.black,
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                'Regarder',
+                                style: AppText.body(
+                                  13,
+                                  weight: FontWeight.w700,
+                                  color: Colors.black,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       ],
-                      stops: [0, 0.5, 1],
                     ),
                   ),
-                ),
+                ],
               ),
-              // Faisceau du projecteur qui balaie l'écran.
-              Transform.rotate(
-                angle: -0.5 + 0.25 * _wave(t, 0.3),
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        Colors.white.withValues(alpha: 0),
-                        Colors.white.withValues(alpha: 0.18),
-                        Colors.white.withValues(alpha: 0),
-                      ],
+            ),
+            Expanded(
+              flex: 38,
+              child: LayoutBuilder(
+                builder: (context, c) {
+                  final tileW = c.maxWidth * 0.42;
+                  final loopW = (tileW + 10) * _tiles.length;
+                  // La rangée glisse en continu, comme le carrousel d'une app de streaming.
+                  final shift = (t * loopW) % loopW;
+                  return ClipRect(
+                    child: OverflowBox(
+                      alignment: Alignment.centerLeft,
+                      maxWidth: double.infinity,
+                      child: Transform.translate(
+                        offset: Offset(12 - shift, 0),
+                        child: Row(
+                          children: [
+                            for (final (img, label) in [..._tiles, ..._tiles])
+                              Container(
+                                width: tileW,
+                                margin: const EdgeInsets.only(
+                                  right: 10,
+                                  top: 12,
+                                  bottom: 12,
+                                ),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(14),
+                                  image: DecorationImage(
+                                    image: AssetImage(img),
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                                alignment: Alignment.bottomLeft,
+                                padding: const EdgeInsets.all(8),
+                                child: Text(
+                                  label,
+                                  style:
+                                      AppText.body(
+                                        12,
+                                        weight: FontWeight.w700,
+                                        color: Colors.white,
+                                      ).copyWith(
+                                        shadows: const [
+                                          Shadow(
+                                            color: Colors.black,
+                                            blurRadius: 8,
+                                          ),
+                                        ],
+                                      ),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
                     ),
-                  ),
-                ),
+                  );
+                },
               ),
-              Align(
-                alignment: Alignment.topCenter,
-                child: FractionallySizedBox(
-                  heightFactor: bars,
-                  widthFactor: 1,
-                  child: const ColoredBox(color: Color(0xFF050304)),
-                ),
-              ),
-              Align(
-                alignment: Alignment.bottomCenter,
-                child: FractionallySizedBox(
-                  heightFactor: bars,
-                  widthFactor: 1,
-                  child: const ColoredBox(color: Color(0xFF050304)),
-                ),
-              ),
-              Center(
-                child: Container(
-                  width: 92,
-                  height: 92,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.white.withValues(alpha: 0.16),
-                    border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.5),
-                    ),
-                  ),
-                  child: const Icon(
-                    AppIcons.play,
-                    color: Colors.white,
-                    size: 38,
-                  ),
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -305,128 +376,266 @@ class _TrianglePainter extends CustomPainter {
   bool shouldRepaint(_TrianglePainter old) => old.color != color;
 }
 
-/// Barres de résultats qui montent et descendent comme un vote en direct.
+/// Vote en direct sur des cartes-photos de villes : les pourcentages bougent
+/// et la ville en tête porte une couronne.
 class _Poll extends StatelessWidget {
   const _Poll({required this.t, required this.size});
 
   final double t;
   final double size;
 
-  static const _cities = ['Lille', 'Bruxelles', 'Amsterdam', 'Montréal'];
+  static const _cities = [
+    ('assets/photos/city-montreal.jpg', 'Montréal'),
+    ('assets/photos/city-paris.jpg', 'Paris'),
+    ('assets/photos/city-tokyo.jpg', 'Tokyo'),
+    ('assets/photos/city-barcelona.jpg', 'Barcelone'),
+  ];
 
   @override
   Widget build(BuildContext context) {
-    final p = context.palette;
-    return Padding(
-      padding: const EdgeInsets.all(24),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          for (var i = 0; i < 4; i++)
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    Builder(
-                      builder: (context) {
-                        final h =
-                            (0.45 +
-                                    0.35 * _wave(t, i * 0.21).abs() +
-                                    (i == 0 ? 0.15 : 0))
-                                .clamp(0.1, 1.0);
-                        return Container(
-                          width: double.infinity,
-                          height: size * 0.62 * h,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(18),
-                            gradient: LinearGradient(
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                              colors: i == 0
-                                  ? const [Color(0xFFFFE08A), Brand.gold]
-                                  : [
-                                      const Color(0xFFFF8A65)
-                                          .withValues(alpha: 0.85),
-                                      const Color(0xFFE5533D)
-                                          .withValues(alpha: 0.55),
-                                    ],
+    final raw = [
+      for (var i = 0; i < 4; i++)
+        30 + 18 * _wave(t, i * 0.23).abs() + (i == 0 ? 12 : 0),
+    ];
+    final total = raw.reduce((a, b) => a + b);
+    final pct = [for (final v in raw) (v / total * 100).round()];
+    final leader = pct.indexOf(pct.reduce(math.max));
+
+    return GridView.count(
+      crossAxisCount: 2,
+      mainAxisSpacing: 10,
+      crossAxisSpacing: 10,
+      physics: const NeverScrollableScrollPhysics(),
+      children: [
+        for (var i = 0; i < 4; i++)
+          ClipRRect(
+            borderRadius: BorderRadius.circular(20),
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                Image.asset(_cities[i].$1, fit: BoxFit.cover),
+                const DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [Colors.transparent, Color(0xDD000000)],
+                      stops: [0.4, 1],
+                    ),
+                  ),
+                ),
+                if (i == leader)
+                  const Positioned(
+                    right: 10,
+                    top: 10,
+                    child: CircleAvatar(
+                      radius: 16,
+                      backgroundColor: Brand.gold,
+                      child: Icon(AppIcons.crown, size: 18, color: Brand.ink),
+                    ),
+                  ),
+                Positioned(
+                  left: 12,
+                  right: 12,
+                  bottom: 10,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              _cities[i].$2,
+                              style: AppText.body(
+                                15,
+                                weight: FontWeight.w700,
+                                color: Colors.white,
+                              ),
                             ),
                           ),
-                        );
-                      },
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      _cities[i],
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: AppText.body(13, color: p.textMuted),
-                    ),
-                  ],
+                          Text(
+                            '${pct[i]} %',
+                            style: AppText.body(
+                              15,
+                              weight: FontWeight.w700,
+                              color: i == leader ? Brand.gold : Colors.white,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(99),
+                        child: LinearProgressIndicator(
+                          value: pct[i] / 100,
+                          minHeight: 6,
+                          backgroundColor: Colors.white24,
+                          valueColor: AlwaysStoppedAnimation(
+                            i == leader ? Brand.gold : Colors.white70,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
+              ],
             ),
-        ],
-      ),
+          ),
+      ],
     );
   }
 }
 
-/// Lignes de titres qui défilent comme un bandeau d'actualité.
+/// Aperçu d'une app d'actualités : une grande nouvelle avec photo et deux
+/// brèves, catégories en haut.
 class _News extends StatelessWidget {
   const _News({required this.t});
 
   final double t;
 
-  static const _widths = [0.9, 0.62, 0.78, 0.5, 0.7];
-
   @override
   Widget build(BuildContext context) {
     final p = context.palette;
+    Widget line(double w, double alpha) => FractionallySizedBox(
+      alignment: Alignment.centerLeft,
+      widthFactor: w,
+      child: Container(
+        height: 9,
+        decoration: BoxDecoration(
+          color: p.text.withValues(alpha: alpha),
+          borderRadius: BorderRadius.circular(99),
+        ),
+      ),
+    );
+    Widget brief(String img, String cat, double w) => Padding(
+      padding: const EdgeInsets.only(top: 10),
+      child: Row(
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: Image.asset(img, width: 74, height: 56, fit: BoxFit.cover),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(cat, style: AppText.eyebrow(const Color(0xFF3AA6FF))),
+                const SizedBox(height: 6),
+                line(w, 0.3),
+                const SizedBox(height: 6),
+                line(w * 0.7, 0.15),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+
     return ClipRRect(
       borderRadius: BorderRadius.circular(28),
       child: DecoratedBox(
         decoration: BoxDecoration(
-          color: p.glass,
+          color: p.coreTop,
           border: Border.all(color: p.hairline),
           borderRadius: BorderRadius.circular(28),
         ),
         child: Padding(
-          padding: const EdgeInsets.all(28),
+          padding: const EdgeInsets.all(16),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Icon(
-                AppIcons.newspaper,
-                size: 40,
-                color: Color(0xFF3AA6FF),
-              ),
-              const SizedBox(height: 24),
-              for (var i = 0; i < _widths.length; i++)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 14),
-                  child: FractionalTranslation(
-                    translation: Offset(
-                      ((t * (i.isEven ? 1 : -1) + i * 0.17) % 1) * 0.3 - 0.15,
-                      0,
-                    ),
-                    child: FractionallySizedBox(
-                      widthFactor: _widths[i],
-                      child: Container(
-                        height: i == 0 ? 18 : 10,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(99),
-                          color: i == 0
-                              ? const Color(0xFF3AA6FF)
-                              : p.text.withValues(alpha: 0.18),
+              Row(
+                children: [
+                  for (final (i, c) in const [
+                    'Monde',
+                    'Sport',
+                    'Finance',
+                    'Tech',
+                  ].indexed)
+                    Container(
+                      margin: const EdgeInsets.only(right: 6),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 5,
+                      ),
+                      decoration: BoxDecoration(
+                        color: i == 0 ? const Color(0xFF3AA6FF) : p.hairline,
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                      child: Text(
+                        c,
+                        style: AppText.body(
+                          11,
+                          weight: FontWeight.w700,
+                          color: i == 0 ? Colors.white : p.text,
                         ),
                       ),
                     ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Expanded(
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(18),
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      Transform.scale(
+                        scale: 1.06 + 0.04 * _wave(t),
+                        child: Image.asset(
+                          'assets/photos/city-montreal.jpg',
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                      const DecoratedBox(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [Colors.transparent, Color(0xDD000000)],
+                            stops: [0.35, 1],
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        left: 14,
+                        right: 14,
+                        bottom: 12,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Container(
+                                  width: 8,
+                                  height: 8,
+                                  decoration: const BoxDecoration(
+                                    color: Color(0xFFFF4D4D),
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  'EN DIRECT',
+                                  style: AppText.eyebrow(Colors.white),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              'Votre fil d’actualité, en temps réel',
+                              style: AppText.display(22, color: Colors.white),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                 ),
+              ),
+              brief('assets/photos/city-tokyo.jpg', 'MONDE', 0.9),
+              brief('assets/photos/news-business.jpg', 'FINANCE', 0.75),
             ],
           ),
         ),
@@ -552,48 +761,89 @@ class _AdFront extends StatelessWidget {
     return Container(
       width: size * 0.78,
       height: size * 0.95,
-      padding: const EdgeInsets.all(22),
+      clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(30),
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFFFCAF45), Color(0xFFE1306C), Color(0xFF833AB4)],
-        ),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFFE1306C).withValues(alpha: 0.5),
+            color: const Color(0xFFE1306C).withValues(alpha: 0.45),
             blurRadius: 60,
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Stack(
+        fit: StackFit.expand,
         children: [
-          const Icon(AppIcons.storefront, color: Colors.white, size: 44),
-          const Spacer(),
-          Text(
-            'Votre commerce',
-            style: AppText.display(34, color: Colors.white),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            'Your business',
-            style: AppText.display(
-              22,
-              style: FontStyle.italic,
-              color: Colors.white70,
+          Image.asset('assets/photos/ad-sushi.jpg', fit: BoxFit.cover),
+          const DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [Color(0x33000000), Color(0xE6000000)],
+                stops: [0.3, 1],
+              ),
             ),
           ),
-          const SizedBox(height: 16),
-          const Row(
-            children: [
-              Icon(AppIcons.instagram, color: Colors.white, size: 26),
-              SizedBox(width: 12),
-              Icon(AppIcons.tiktok, color: Colors.white, size: 26),
-              SizedBox(width: 12),
-              Icon(AppIcons.facebook, color: Colors.white, size: 26),
-            ],
+          Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 5,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.black45,
+                    borderRadius: BorderRadius.circular(99),
+                  ),
+                  child: Text('EXEMPLE', style: AppText.eyebrow(Colors.white)),
+                ),
+                const Spacer(),
+                Text(
+                  'Sushi Kumo',
+                  style: AppText.display(34, color: Colors.white),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Restaurant japonais',
+                  style: AppText.body(14, color: Colors.white70),
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    const Icon(
+                      AppIcons.mapPin,
+                      size: 16,
+                      color: Color(0xFFFF8FB1),
+                    ),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        '123, rue Exemple, Montréal',
+                        style: AppText.body(
+                          13,
+                          weight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                const Row(
+                  children: [
+                    Icon(AppIcons.instagram, color: Colors.white, size: 22),
+                    SizedBox(width: 12),
+                    Icon(AppIcons.tiktok, color: Colors.white, size: 22),
+                    SizedBox(width: 12),
+                    Icon(AppIcons.facebook, color: Colors.white, size: 22),
+                  ],
+                ),
+              ],
+            ),
           ),
         ],
       ),

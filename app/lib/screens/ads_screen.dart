@@ -305,7 +305,24 @@ class _AdFront extends StatelessWidget {
                 color: Colors.white70,
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 14),
+            Row(
+              children: [
+                const Icon(AppIcons.mapPin, size: 18, color: Colors.white),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    a.address,
+                    style: AppText.body(
+                      15,
+                      weight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
             Row(
               children: [
                 for (final icon in [
