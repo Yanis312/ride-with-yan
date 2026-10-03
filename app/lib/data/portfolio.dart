@@ -118,7 +118,22 @@ const serviceTabs = [
       Bi('Notifications et paiements', 'Notifications and payments'),
       Bi('Publication sur les stores', 'Store publishing'),
     ],
-    showcases: [],
+    showcases: [
+      Showcase(
+        title: 'Lumière',
+        kind: Bi('App de boutique de mode', 'Fashion store app'),
+        image: 'assets/showcase/app-boutique.jpg',
+        frame: ShowcaseFrame.phone,
+        accent: Color(0xFFC9A36A),
+      ),
+      Showcase(
+        title: 'VLT Run',
+        kind: Bi('App de course à pied', 'Running app'),
+        image: 'assets/showcase/app-sport.jpg',
+        frame: ShowcaseFrame.phone,
+        accent: Color(0xFFD4FF3A),
+      ),
+    ],
   ),
   ServiceTab(
     label: Bi('Automatisation et IA', 'Automation and AI'),
@@ -138,6 +153,21 @@ const serviceTabs = [
       Bi('Rapports automatiques chaque matin', 'Automatic morning reports'),
       Bi('Solutions ERP sur mesure', 'Custom ERP solutions'),
     ],
-    showcases: [],
+    showcases: [
+      Showcase(
+        title: 'Flux',
+        kind: Bi('Commandes automatisées', 'Automated orders'),
+        image: 'assets/showcase/dashboard-commandes.jpg',
+        frame: ShowcaseFrame.dashboard,
+        accent: Color(0xFF7EE3A8),
+      ),
+      Showcase(
+        title: 'Pulse',
+        kind: Bi('Tableau de bord des ventes', 'Sales dashboard'),
+        image: 'assets/showcase/dashboard-ventes.jpg',
+        frame: ShowcaseFrame.dashboard,
+        accent: Color(0xFF1F4DFF),
+      ),
+    ],
   ),
 ];

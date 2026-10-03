@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pulse · Tableau de bord</title>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0} body{font-family:Geist;background:#f4f5f8;color:#0b0f19;padding:28px;min-height:100vh}
+.app{display:grid;grid-template-columns:220px 1fr;gap:20px} aside{background:#0b0f19;color:#c7cbd6;border-radius:26px;padding:26px 18px;display:flex;flex-direction:column;gap:6px;min-height:840px}
+aside b{color:#fff;font-size:22px;margin-bottom:20px} aside span{padding:11px 12px;border-radius:12px;font-size:15px} aside .on{background:#1f4dff;color:#fff}
+main{display:flex;flex-direction:column;gap:20px} .head{display:flex;justify-content:space-between;align-items:center} h1{font-size:36px;font-weight:600;letter-spacing:-.03em}
+.btn{background:#1f4dff;color:#fff;padding:12px 18px;border-radius:12px;font-weight:600}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:16px} .k{background:#fff;border-radius:22px;padding:20px} .k small{color:#5b6476} .k b{display:block;font-size:34px;margin:6px 0 4px} .up{color:#16a34a;font:13px "Geist Mono"}
+.row{display:grid;grid-template-columns:2fr 1fr;gap:16px} .panel{background:#fff;border-radius:22px;padding:22px}
+.bars{display:flex;align-items:end;gap:10px;height:250px;margin-top:20px} .bars i{flex:1;border-radius:8px 8px 3px 3px;background:#dfe5ff} .bars i.on{background:#1f4dff}
+.list div{display:flex;justify-content:space-between;padding:13px 0;border-bottom:1px solid #eef0f4;font-size:15px} .list span{color:#5b6476}
+</style></head><body>
+<div class="app"><aside><b>Pulse</b><span class="on">Vue d'ensemble</span><span>Ventes</span><span>Clients</span><span>Automatisations</span><span>Rapports IA</span><span>Réglages</span></aside>
+<main><div class="head"><h1>Bonjour, voici votre semaine</h1><span class="btn">Rapport IA du matin</span></div>
+<div class="kpis"><div class="k"><small>Revenu</small><b>84 920 $</b><span class="up">+12,4 %</span></div><div class="k"><small>Commandes</small><b>1 284</b><span class="up">+8,1 %</span></div><div class="k"><small>Panier moyen</small><b>66 $</b><span class="up">+3,2 %</span></div><div class="k"><small>Conversion</small><b>4,8 %</b><span class="up">+0,6 pt</span></div></div>
+<div class="row"><div class="panel"><b>Ventes des 12 dernières semaines</b><div class="bars"><i style="height:38%"></i><i style="height:45%"></i><i style="height:40%"></i><i style="height:58%"></i><i style="height:52%"></i><i style="height:61%"></i><i style="height:55%"></i><i style="height:70%"></i><i style="height:66%"></i><i style="height:74%"></i><i style="height:80%"></i><i class="on" style="height:92%"></i></div></div>
+<div class="panel list"><b>Meilleures ventes</b><div>Latte velours<span>412</span></div><div>Croissant pur beurre<span>388</span></div><div>Veste croisée<span>96</span></div><div>Blouson cuir<span>71</span></div><div>Coffret cadeau<span>54</span></div></div></div>
+</main></div></body></html>

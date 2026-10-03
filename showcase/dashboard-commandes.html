@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Flux · Automatisation des commandes</title>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0} body{font-family:Geist;background:#0b0d12;color:#e9ecf2;padding:36px 48px;min-height:100vh;background-image:radial-gradient(rgba(233,236,242,.06) 1px,transparent 1px);background-size:22px 22px}
+header{display:flex;justify-content:space-between;align-items:center;margin-bottom:34px} header b{font-size:22px} header span{font:13px "Geist Mono";color:#7ee3a8;border:1px solid rgba(126,227,168,.35);border-radius:999px;padding:7px 14px}
+h1{font-size:56px;font-weight:500;letter-spacing:-.04em;line-height:1;max-width:760px;margin-bottom:44px} h1 em{font-style:normal;color:#7ee3a8}
+.flow{position:relative;height:380px} svg{position:absolute;inset:0;width:100%;height:100%} path{fill:none;stroke:#7ee3a8;stroke-width:2;stroke-dasharray:6 8;opacity:.7}
+.node{position:absolute;width:250px;background:#141821;border:1px solid rgba(233,236,242,.1);border-radius:20px;padding:18px;box-shadow:0 30px 60px rgba(0,0,0,.35)}
+.node small{font:12px "Geist Mono";color:#8a93a6} .node b{display:block;font-size:18px;margin-top:6px} .node p{color:#8a93a6;font-size:14px;margin-top:6px} .node i{display:block;width:34px;height:34px;border-radius:10px;margin-bottom:10px}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:26px} .k{background:#141821;border:1px solid rgba(233,236,242,.08);border-radius:20px;padding:20px} .k small{color:#8a93a6} .k b{display:block;font-size:40px;font-weight:500;margin-top:6px}
+</style></head><body>
+<header><b>Flux</b><span>● 1 284 tâches automatisées ce mois-ci</span></header>
+<h1>Vos commandes se traitent <em>toutes seules.</em></h1>
+<div class="flow">
+<svg viewBox="0 0 1200 330" preserveAspectRatio="none"><path d="M250 60 C 330 60, 330 170, 410 170"/><path d="M660 170 C 740 170, 740 60, 820 60"/><path d="M660 170 C 740 170, 740 280, 820 280"/></svg>
+<div class="node" style="left:0;top:10px"><i style="background:linear-gradient(135deg,#5b8cff,#8fb0ff)"></i><small>DÉCLENCHEUR</small><b>Nouvelle commande</b><p>Boutique en ligne</p></div>
+<div class="node" style="left:410px;top:110px"><i style="background:linear-gradient(135deg,#7ee3a8,#2f9e6e)"></i><small>IA</small><b>Tri automatique</b><p>Priorité, langue, client fidèle</p></div>
+<div class="node" style="left:820px;top:0"><i style="background:linear-gradient(135deg,#ffb547,#ff6b3d)"></i><small>ACTION</small><b>Facture + courriel</b><p>Envoyés en 3 secondes</p></div>
+<div class="node" style="left:820px;top:210px"><i style="background:linear-gradient(135deg,#c084fc,#7c3aed)"></i><small>ACTION</small><b>Alerte WhatsApp</b><p>Si commande > 500 $</p></div>
+</div>
+<div class="kpis"><div class="k"><small>Temps gagné / semaine</small><b>14 h</b></div><div class="k"><small>Factures envoyées</small><b>862</b></div><div class="k"><small>Erreurs de saisie</small><b>0</b></div></div>
+</body></html>
