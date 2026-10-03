@@ -21,6 +21,7 @@ enum Scene {
   store,
   profile,
   ads,
+  music,
 }
 
 @immutable
@@ -147,6 +148,13 @@ class MeshPalette {
       Color(0xFF833AB4),
       Color(0xFFFCAF45),
     ),
+    Scene.music: MeshPalette(
+      Color(0xFF05060A),
+      Color(0xFF2B3A67),
+      Color(0xFF8A9BB8),
+      Color(0xFF4C1D95),
+      Color(0xFFB98500),
+    ),
   };
 
   /// Palettes claires dédiées : pastels lumineux sur blanc froid (éclaircir
@@ -230,6 +238,13 @@ class MeshPalette {
       Color(0xFFFFCFA8),
       Color(0xFFD9B8F2),
       Color(0xFFFFE2A0),
+    ),
+    Scene.music: MeshPalette(
+      Color(0xFFF2F4F9),
+      Color(0xFFC3CEE6),
+      Color(0xFFDDE3EE),
+      Color(0xFFD8CBF5),
+      Color(0xFFFFE29A),
     ),
   };
 }

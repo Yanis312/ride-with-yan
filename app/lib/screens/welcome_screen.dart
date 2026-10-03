@@ -17,10 +17,13 @@ import '../widgets/scene_vignettes.dart';
 /// Une phase de l'écran de veille : une ambiance de couleurs, une
 /// illustration animée et plusieurs phrases bilingues possibles.
 class _Phase {
-  const _Phase(this.scene, this.icon, this.lines);
+  const _Phase(this.scene, this.icon, this.lines, {this.note});
 
   final Scene scene;
   final IconData icon;
+
+  /// Petite ligne sous la phrase (français, anglais), ex. la réponse de Yanis.
+  final (String, String)? note;
 
   /// Variantes (français, anglais) : l'une est tirée au hasard, et la langue
   /// affichée en grand aussi.
@@ -58,6 +61,22 @@ const _phases = [
     ('Faites-vous connaître à bord.', 'Get noticed on board.'),
     ('Gratuit à vie pour les premiers.', 'Free for life for early partners.'),
   ]),
+  // Question pour lancer la conversation, avec la réponse de Yanis.
+  _Phase(
+    Scene.music,
+    AppIcons.headphones,
+    [
+      (
+        'Une seule chanson pour toute votre vie ?',
+        'One song for the rest of your life?',
+      ),
+      ('Votre chanson pour l’éternité ?', 'Your song for eternity?'),
+    ],
+    note: (
+      'Pour moi : Nothing Else Matters, de Metallica. Et vous ?',
+      'Mine: Nothing Else Matters by Metallica. What’s yours?',
+    ),
+  ),
   _Phase(Scene.finale, AppIcons.handTap, [
     ('Explorez librement, tout est à vous.', 'Feel free to discover!'),
     ('Touchez l’écran, la suite est à vous.', 'Feel free to discover!'),
@@ -447,6 +466,36 @@ class _PhaseText extends StatelessWidget {
                     curve: AppMotion.spring,
                   )
                   .slideY(begin: 0.4, delay: 320.ms, curve: AppMotion.spring),
+              if (phase.note case final note?) ...[
+                const SizedBox(height: 22),
+                Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          AppIcons.headphones,
+                          size: 22,
+                          color: p.accentText,
+                        ),
+                        const SizedBox(width: 10),
+                        Flexible(
+                          child: Text(
+                            // Même langue que la grande phrase.
+                            phase.lines.any((l) => l.$2 == line.$1)
+                                ? note.$2
+                                : note.$1,
+                            style: AppText.body(
+                              size * 0.24,
+                              weight: FontWeight.w500,
+                              color: p.text,
+                            ),
+                          ),
+                        ),
+                      ],
+                    )
+                    .animate()
+                    .fadeIn(delay: 600.ms, duration: 700.ms)
+                    .slideY(begin: 0.4, delay: 600.ms, curve: AppMotion.spring),
+              ],
             ],
           ),
         ),

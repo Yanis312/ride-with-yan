@@ -41,6 +41,7 @@ class SceneVignette extends StatelessWidget {
             Scene.collab => _Collab(t: t, size: size),
             Scene.finale => _Finale(t: t, size: size),
             Scene.ads => _Ads(t: t, size: size),
+            Scene.music => _Vinyl(t: t, size: size),
           };
         },
       ),
@@ -660,6 +661,99 @@ class _AdBack extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Vinyle qui tourne, étiquette dorée : la chanson préférée de Yanis.
+class _Vinyl extends StatelessWidget {
+  const _Vinyl({required this.t, required this.size});
+
+  final double t;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    final d = size * 0.82;
+    return Center(
+      child: Transform.rotate(
+        angle: t * 2 * math.pi * 2,
+        child: Container(
+          width: d,
+          height: d,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: const SweepGradient(
+              colors: [
+                Color(0xFF0B0B0F),
+                Color(0xFF2A2D36),
+                Color(0xFF0B0B0F),
+                Color(0xFF23262E),
+                Color(0xFF0B0B0F),
+              ],
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF8A9BB8).withValues(alpha: 0.35),
+                blurRadius: 60,
+              ),
+            ],
+          ),
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              // Sillons du disque.
+              for (var i = 1; i <= 6; i++)
+                Container(
+                  width: d * (0.42 + i * 0.09),
+                  height: d * (0.42 + i * 0.09),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.05),
+                    ),
+                  ),
+                ),
+              Container(
+                width: d * 0.38,
+                height: d * 0.38,
+                alignment: Alignment.center,
+                padding: EdgeInsets.all(d * 0.04),
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: LinearGradient(
+                    colors: [Brand.goldSoft, Brand.gold],
+                  ),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'Nothing Else Matters',
+                      textAlign: TextAlign.center,
+                      style: AppText.display(d * 0.045, color: Brand.ink),
+                    ),
+                    SizedBox(height: d * 0.01),
+                    Text(
+                      'METALLICA',
+                      style: AppText.eyebrow(Brand.ink)
+                          .copyWith(fontSize: d * 0.026),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                width: d * 0.035,
+                height: d * 0.035,
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Color(0xFF0B0B0F),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
