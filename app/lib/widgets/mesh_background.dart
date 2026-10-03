@@ -312,8 +312,29 @@ class _MeshBackgroundState extends State<MeshBackground>
   /// Point de départ aléatoire : chaque passager voit d'autres vagues.
   final double _seed = math.Random().nextDouble() * 400;
 
-  void _onTick(Duration elapsed) =>
-      _time.value = _seed + elapsed.inMicroseconds / 1e6;
+  // Toucher : ondes de lumière (position, instant de naissance) et doigt posé.
+  static const _maxRipples = 4;
+  static const _rippleLife = 2.4;
+  final _touch = _TouchState();
+  double _now = 0;
+
+  void _onTick(Duration elapsed) {
+    _now = elapsed.inMicroseconds / 1e6;
+    _touch.update(_now, _rippleLife);
+    _time.value = _seed + _now;
+  }
+
+  void _onDown(PointerDownEvent e) {
+    if (MediaQuery.disableAnimationsOf(context)) return;
+    _touch.ripples.add((e.localPosition, _now));
+    if (_touch.ripples.length > _maxRipples) _touch.ripples.removeAt(0);
+    _touch.finger = e.localPosition;
+    _touch.pressed = true;
+  }
+
+  void _onMove(PointerMoveEvent e) => _touch.finger = e.localPosition;
+
+  void _onUp(PointerEvent e) => _touch.pressed = false;
 
   @override
   void dispose() {
@@ -327,24 +348,39 @@ class _MeshBackgroundState extends State<MeshBackground>
   @override
   Widget build(BuildContext context) {
     // Le fond sert de source de réfraction aux éléments Liquid Glass.
-    return LiquidGlassScope(
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          GlassBackgroundSource(
-            child: RepaintBoundary(
-              child: CustomPaint(
-                painter: _MeshPainter(
-                  shader: _shader,
-                  time: _time,
-                  blend: _blend,
-                  palette: () => _current,
+    // Listener ne participe pas à l'arène des gestes : les boutons restent
+    // pleinement utilisables pendant que le fond réagit au doigt.
+    final glow = Theme.of(context).brightness == Brightness.dark
+        ? const Color(0xFFFFD66B)
+        : const Color(0xFFFFB000);
+    return Listener(
+      behavior: HitTestBehavior.translucent,
+      onPointerDown: _onDown,
+      onPointerMove: _onMove,
+      onPointerUp: _onUp,
+      onPointerCancel: _onUp,
+      child: LiquidGlassScope(
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            GlassBackgroundSource(
+              child: RepaintBoundary(
+                child: CustomPaint(
+                  painter: _MeshPainter(
+                    shader: _shader,
+                    time: _time,
+                    blend: _blend,
+                    palette: () => _current,
+                    touch: _touch,
+                    now: () => _now,
+                    glow: glow,
+                  ),
                 ),
               ),
             ),
-          ),
-          widget.child,
-        ],
+            widget.child,
+          ],
+        ),
       ),
     );
   }
@@ -356,12 +392,18 @@ class _MeshPainter extends CustomPainter {
     required this.time,
     required this.blend,
     required this.palette,
+    required this.touch,
+    required this.now,
+    required this.glow,
   }) : super(repaint: Listenable.merge([time, blend]));
 
   final ui.FragmentShader? shader;
   final ValueListenable<double> time;
   final Animation<double> blend;
   final MeshPalette Function() palette;
+  final _TouchState touch;
+  final double Function() now;
+  final Color glow;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -391,11 +433,40 @@ class _MeshPainter extends CustomPainter {
     s
       ..setFloat(i++, p.intensity)
       ..setFloat(i++, 0.025);
+    final t = now();
+    for (var r = 0; r < 4; r++) {
+      final ripple = r < touch.ripples.length ? touch.ripples[r] : null;
+      s
+        ..setFloat(i++, ripple?.$1.dx ?? 0)
+        ..setFloat(i++, ripple?.$1.dy ?? 0)
+        ..setFloat(i++, ripple == null ? 0 : t - ripple.$2)
+        ..setFloat(i++, ripple == null ? 0 : 1);
+    }
+    s
+      ..setFloat(i++, touch.finger.dx)
+      ..setFloat(i++, touch.finger.dy)
+      ..setFloat(i++, touch.level);
+    setColor(glow);
     canvas.drawRect(Offset.zero & size, Paint()..shader = s);
   }
 
   void _fallback(Canvas canvas, Size size, MeshPalette p) {
     canvas.drawRect(Offset.zero & size, Paint()..color = p.base);
+    final t0 = now();
+    for (final (pos, born) in touch.ripples) {
+      final age = t0 - born;
+      canvas.drawCircle(
+        pos,
+        age * 560,
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 30
+          ..color = glow.withValues(
+            alpha: (0.5 * math.exp(-age * 1.5)).clamp(0, 1),
+          )
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 20),
+      );
+    }
     final t = time.value * 0.3;
     final r = size.longestSide * 0.6;
     final spots = [
@@ -427,4 +498,19 @@ class _MeshPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_MeshPainter old) => old.shader != shader;
+}
+
+/// État du toucher partagé entre le widget et le peintre.
+class _TouchState {
+  final ripples = <(Offset, double)>[];
+  Offset finger = Offset.zero;
+  bool pressed = false;
+
+  /// Intensité du halo sous le doigt, lissée pour apparaître et s'éteindre en douceur.
+  double level = 0;
+
+  void update(double now, double life) {
+    ripples.removeWhere((r) => now - r.$2 > life);
+    level += ((pressed ? 1.0 : 0.0) - level) * 0.12;
+  }
 }
