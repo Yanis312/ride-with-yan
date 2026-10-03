@@ -23,27 +23,29 @@ class SceneVignette extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox.square(
-      dimension: size,
-      child: AnimatedBuilder(
-        animation: loop,
-        builder: (context, _) {
-          final t = loop.value;
-          return switch (scene) {
-            Scene.intro ||
-            Scene.lounge ||
-            Scene.store ||
-            Scene.profile => _Intro(t: t, size: size),
-            Scene.cinema => _Cinema(t: t),
-            Scene.games => _Games(t: t, size: size),
-            Scene.poll => _Poll(t: t, size: size),
-            Scene.news => _News(t: t),
-            Scene.collab => _Collab(t: t, size: size),
-            Scene.finale => _Finale(t: t, size: size),
-            Scene.ads => _Ads(t: t, size: size),
-            Scene.music => _Vinyl(t: t, size: size),
-          };
-        },
+    return RepaintBoundary(
+      child: SizedBox.square(
+        dimension: size,
+        child: AnimatedBuilder(
+          animation: loop,
+          builder: (context, _) {
+            final t = loop.value;
+            return switch (scene) {
+              Scene.intro ||
+              Scene.lounge ||
+              Scene.store ||
+              Scene.profile => _Intro(t: t, size: size),
+              Scene.cinema => _Cinema(t: t),
+              Scene.games => _Games(t: t, size: size),
+              Scene.poll => _Poll(t: t, size: size),
+              Scene.news => _News(t: t),
+              Scene.collab => _Collab(t: t, size: size),
+              Scene.finale => _Finale(t: t, size: size),
+              Scene.ads => _Ads(t: t, size: size),
+              Scene.music => _Vinyl(t: t, size: size),
+            };
+          },
+        ),
       ),
     );
   }

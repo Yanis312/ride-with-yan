@@ -372,10 +372,13 @@ class _AnimatedVignette extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // L'ancienne illustration disparaît vite (180 ms) et la nouvelle n'entre
+    // qu'ensuite : plus de chevauchement entre deux phases.
     return AnimatedSwitcher(
-      duration: const Duration(milliseconds: 900),
-      switchInCurve: AppMotion.spring,
-      switchOutCurve: AppMotion.spring,
+      duration: const Duration(milliseconds: 700),
+      reverseDuration: const Duration(milliseconds: 180),
+      switchInCurve: const Interval(0.3, 1, curve: AppMotion.spring),
+      switchOutCurve: Curves.easeOut,
       transitionBuilder: (child, animation) => FadeTransition(
         opacity: animation,
         child: ScaleTransition(
@@ -448,8 +451,7 @@ class _PhaseText extends StatelessWidget {
                     duration: 800.ms,
                     curve: AppMotion.spring,
                   )
-                  .slideY(begin: 0.25, delay: 120.ms, curve: AppMotion.spring)
-                  .blurXY(begin: 10, end: 0, delay: 120.ms, duration: 800.ms),
+                  .slideY(begin: 0.25, delay: 120.ms, curve: AppMotion.spring),
               const SizedBox(height: 16),
               Text(
                     line.$2,

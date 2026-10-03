@@ -333,8 +333,15 @@ class _MeshBackgroundState extends State<MeshBackground>
   final _touch = _TouchState();
   double _now = 0;
 
+  // Fond redessiné à 30 images/s au lieu de 60 : invisible pour des vagues
+  // lentes, mais deux fois moins de travail pour la carte graphique.
+  static const _frameInterval = 1 / 30;
+  double _lastFrame = -1;
+
   void _onTick(Duration elapsed) {
     _now = elapsed.inMicroseconds / 1e6;
+    if (_now - _lastFrame < _frameInterval) return;
+    _lastFrame = _now;
     _touch.update(_now, _rippleLife);
     _time.value = _seed + _now;
   }

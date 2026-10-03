@@ -66,6 +66,8 @@ class _LiquidMetalLogoState extends State<LiquidMetalLogo>
   }
 
   void _onTick(Duration elapsed) {
+    // 30 images/s suffisent pour le métal liquide (voir MeshBackground).
+    if ((elapsed - _last).inMilliseconds < 33) return;
     // Même cadence que la démo de Paper : temps en millisecondes x vitesse.
     _time.value += (elapsed - _last).inMilliseconds * 0.3;
     _last = elapsed;

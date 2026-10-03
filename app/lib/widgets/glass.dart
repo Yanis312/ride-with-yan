@@ -348,6 +348,9 @@ class GlowButton extends StatelessWidget {
           .scaleXY(end: 1.035, duration: 2200.ms, curve: Curves.easeInOutSine);
     }
 
-    return Pressable(onTap: onTap, child: pill);
+    // Animation continue isolée : seul le bouton est redessiné, pas l'écran.
+    return RepaintBoundary(
+      child: Pressable(onTap: onTap, child: pill),
+    );
   }
 }

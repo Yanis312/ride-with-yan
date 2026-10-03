@@ -54,28 +54,31 @@ class _HeartbeatState extends State<Heartbeat>
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _beat,
-      child: widget.child,
-      builder: (context, child) {
-        final k = _pulse(_beat.value);
-        return Transform.scale(
-          scale: 1 + 0.03 * k,
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(widget.radius),
-              boxShadow: [
-                BoxShadow(
-                  color: widget.color.withValues(alpha: 0.18 + 0.42 * k),
-                  blurRadius: 16 + 26 * k,
-                  spreadRadius: 1 + 3 * k,
-                ),
-              ],
+    // Isolé : le battement ne force pas le reste de l'écran à se redessiner.
+    return RepaintBoundary(
+      child: AnimatedBuilder(
+        animation: _beat,
+        child: widget.child,
+        builder: (context, child) {
+          final k = _pulse(_beat.value);
+          return Transform.scale(
+            scale: 1 + 0.03 * k,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(widget.radius),
+                boxShadow: [
+                  BoxShadow(
+                    color: widget.color.withValues(alpha: 0.18 + 0.42 * k),
+                    blurRadius: 16 + 26 * k,
+                    spreadRadius: 1 + 3 * k,
+                  ),
+                ],
+              ),
+              child: child,
             ),
-            child: child,
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 }
