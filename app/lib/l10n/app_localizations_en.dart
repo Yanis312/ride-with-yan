@@ -121,7 +121,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get storeTitle => 'Onboard store';
 
   @override
-  String get storeSubtitle => 'Small essentials for the ride, paid by Interac.';
+  String get storeSubtitle =>
+      'Sneakers, jerseys and ride essentials, paid by Interac.';
 
   @override
   String get addToCart => 'Add';

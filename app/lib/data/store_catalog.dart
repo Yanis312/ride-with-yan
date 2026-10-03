@@ -3,8 +3,54 @@ import 'package:flutter/widgets.dart';
 import '../theme/app_icons.dart';
 import 'bilingual.dart';
 
-/// Article de la boutique à bord. Catalogue de démonstration : il sera
-/// remplacé par les données de l'API .NET (Supabase) gérées depuis l'admin.
+enum ProductCategory {
+  sneakers(Bi('Sneakers', 'Sneakers'), AppIcons.sneaker),
+  jerseys(Bi('Maillots', 'Jerseys'), AppIcons.tShirt),
+  essentials(Bi('Essentiels', 'Essentials'), AppIcons.batteryCharging);
+
+  const ProductCategory(this.label, this.icon);
+
+  final Bi label;
+  final IconData icon;
+}
+
+enum ArtKind { sneaker, jersey }
+
+/// Illustration dessinée (sans logo) affichée tant qu'il n'y a pas de photo.
+@immutable
+class ProductArt {
+  const ProductArt.sneaker({
+    required this.base,
+    required this.accent,
+    this.sole = const Color(0xFFF4F2EC),
+  }) : kind = ArtKind.sneaker,
+       trim = accent,
+       number = null,
+       stripes = false;
+
+  const ProductArt.jersey({
+    required this.base,
+    required this.accent,
+    required this.trim,
+    this.number,
+    this.stripes = false,
+  }) : kind = ArtKind.jersey,
+       sole = const Color(0x00000000);
+
+  final ArtKind kind;
+  final Color base;
+  final Color accent;
+  final Color trim;
+  final Color sole;
+  final String? number;
+  final bool stripes;
+}
+
+/// Article de la boutique à bord.
+///
+/// Pour ajouter les vraies photos d'un article : les déposer dans
+/// `D:/Yan/boutique/<id>/`, lancer `python tools/process_products.py`,
+/// puis indiquer leur nombre dans [photoCount].
 @immutable
 class Product {
   const Product({
@@ -12,21 +58,153 @@ class Product {
     required this.name,
     required this.blurb,
     required this.price,
+    required this.category,
     required this.icon,
     required this.colors,
+    this.brand,
+    this.art,
+    this.sizes = const {},
     this.stock = 5,
+    this.photoCount = 0,
+    this.details = const [],
   });
 
   final String id;
   final Bi name;
   final Bi blurb;
   final double price;
+  final ProductCategory category;
   final IconData icon;
+
+  /// Fond de la vitrine (dégradé), choisi pour faire ressortir l'article.
   final List<Color> colors;
+  final String? brand;
+  final ProductArt? art;
+
+  /// Taille → quantité en stock. Vide pour un article sans taille.
+  final Map<String, int> sizes;
+
+  /// Stock d'un article sans taille.
   final int stock;
+  final int photoCount;
+  final List<Bi> details;
+
+  bool get hasSizes => sizes.isNotEmpty;
+
+  /// Article revendu (neuf, authentique), par opposition aux essentiels.
+  bool get isResale => category != ProductCategory.essentials;
+
+  List<String> get photos => [
+    for (var i = 1; i <= photoCount; i++) 'assets/products/$id-$i.png',
+  ];
+
+  int stockOf([String? size]) {
+    if (!hasSizes) return stock;
+    if (size == null) return sizes.values.fold(0, (a, b) => a + b);
+    return sizes[size] ?? 0;
+  }
+
+  List<String> get availableSizes => [
+    for (final e in sizes.entries)
+      if (e.value > 0) e.key,
+  ];
 }
 
+/// Mention légale affichée dans la boutique.
+const resellerNotice = Bi(
+  'Revendeur indépendant · articles neufs et authentiques. '
+      'Non affilié aux marques citées.',
+  'Independent reseller · new, authentic items. '
+      'Not affiliated with the brands mentioned.',
+);
+
+const _sneakerDetails = [
+  Bi('Neuve, jamais portée, dans sa boîte', 'New, never worn, in the box'),
+  Bi('Authentique, facture d’achat conservée', 'Authentic, receipt on file'),
+  Bi('Remise en main propre, ici même', 'Handed to you right here'),
+];
+
+const _jerseyDetails = [
+  Bi('Neuf, étiquettes attachées', 'New, tags attached'),
+  Bi('Authentique, facture d’achat conservée', 'Authentic, receipt on file'),
+  Bi('Remise en main propre, ici même', 'Handed to you right here'),
+];
+
+/// Catalogue de départ. Les sneakers et maillots sont des exemples à ajuster
+/// (tailles, quantités, prix) dès que les articles sont achetés.
 const catalog = [
+  Product(
+    id: 'af1-blanc',
+    brand: 'Nike',
+    name: Bi('Air Force 1 ’07', 'Air Force 1 ’07'),
+    blurb: Bi('Blanc intégral · cuir', 'Triple white · leather'),
+    price: 100,
+    category: ProductCategory.sneakers,
+    icon: AppIcons.sneaker,
+    colors: [Color(0xFF3A3F4B), Color(0xFF0E1015)],
+    art: ProductArt.sneaker(base: Color(0xFFF6F4EF), accent: Color(0xFFEDEAE3)),
+    sizes: {
+      'US 7': 1,
+      'US 8': 2,
+      'US 9': 2,
+      'US 10': 2,
+      'US 11': 1,
+      'US 12': 0,
+    },
+    details: _sneakerDetails,
+  ),
+  Product(
+    id: 'af1-noir',
+    brand: 'Nike',
+    name: Bi('Air Force 1 ’07', 'Air Force 1 ’07'),
+    blurb: Bi('Noir intégral · cuir', 'Triple black · leather'),
+    price: 100,
+    category: ProductCategory.sneakers,
+    icon: AppIcons.sneaker,
+    colors: [Color(0xFFE8E1D3), Color(0xFF9A8B70)],
+    art: ProductArt.sneaker(
+      base: Color(0xFF1E1E21),
+      accent: Color(0xFF2B2B2F),
+      sole: Color(0xFF1A1A1C),
+    ),
+    sizes: {'US 8': 1, 'US 9': 2, 'US 10': 1, 'US 11': 1},
+    details: _sneakerDetails,
+  ),
+  Product(
+    id: 'maillot-domicile',
+    name: Bi('Maillot domicile', 'Home jersey'),
+    blurb: Bi('Saison en cours · coupe stade', 'Current season · stadium fit'),
+    price: 90,
+    category: ProductCategory.jerseys,
+    icon: AppIcons.tShirt,
+    colors: [Color(0xFF2A1A3E), Color(0xFF0B0712)],
+    art: ProductArt.jersey(
+      base: Color(0xFFC8102E),
+      accent: Color(0xFF9E0B23),
+      trim: Color(0xFFF5F2EA),
+      number: '10',
+    ),
+    sizes: {'S': 1, 'M': 2, 'L': 2, 'XL': 1},
+    details: _jerseyDetails,
+  ),
+  Product(
+    id: 'maillot-exterieur',
+    name: Bi('Maillot extérieur', 'Away jersey'),
+    blurb: Bi('Saison en cours · coupe stade', 'Current season · stadium fit'),
+    price: 90,
+    category: ProductCategory.jerseys,
+    icon: AppIcons.tShirt,
+    colors: [Color(0xFFF3E7C9), Color(0xFFC79A3B)],
+    art: ProductArt.jersey(
+      base: Color(0xFF0B2A5B),
+      accent: Color(0xFF1C4A8F),
+      trim: Color(0xFFF5B700),
+      number: '7',
+      stripes: true,
+    ),
+    sizes: {'S': 0, 'M': 1, 'L': 2, 'XL': 1},
+    details: _jerseyDetails,
+  ),
   Product(
     id: 'charger',
     name: Bi('Câble de recharge 3 en 1', '3-in-1 charging cable'),
@@ -35,6 +213,7 @@ const catalog = [
       'USB-C, Lightning and micro-USB',
     ),
     price: 12,
+    category: ProductCategory.essentials,
     icon: AppIcons.batteryCharging,
     colors: [Color(0xFF5B8CFF), Color(0xFF1B2A6B)],
   ),
@@ -46,6 +225,7 @@ const catalog = [
       'Charging case, 20 h battery',
     ),
     price: 29,
+    category: ProductCategory.essentials,
     icon: AppIcons.headphones,
     colors: [Color(0xFFB57BFF), Color(0xFF3B1A6B)],
     stock: 3,
@@ -55,66 +235,70 @@ const catalog = [
     name: Bi('Eau de source', 'Spring water'),
     blurb: Bi('Bouteille fraîche 500 ml', 'Cold 500 ml bottle'),
     price: 2,
+    category: ProductCategory.essentials,
     icon: AppIcons.drop,
     colors: [Color(0xFF3AA6FF), Color(0xFF0B3A6E)],
     stock: 12,
-  ),
-  Product(
-    id: 'snack',
-    name: Bi('Biscuits artisanaux', 'Artisan cookies'),
-    blurb: Bi('Chocolat et sel de mer', 'Chocolate and sea salt'),
-    price: 4,
-    icon: AppIcons.cookie,
-    colors: [Color(0xFFE8A23A), Color(0xFF6B3A0B)],
-    stock: 8,
-  ),
-  Product(
-    id: 'coffee',
-    name: Bi('Café froid', 'Cold brew'),
-    blurb: Bi('Canette 250 ml', '250 ml can'),
-    price: 4.5,
-    icon: AppIcons.coffee,
-    colors: [Color(0xFFC08457), Color(0xFF3A2010)],
   ),
   Product(
     id: 'umbrella',
     name: Bi('Parapluie compact', 'Compact umbrella'),
     blurb: Bi('Pour les jours de pluie à Montréal', 'For rainy Montréal days'),
     price: 15,
+    category: ProductCategory.essentials,
     icon: AppIcons.umbrella,
     colors: [Color(0xFF18C2C9), Color(0xFF0E4E52)],
     stock: 2,
   ),
 ];
 
+/// Articles mis en avant dans la vitrine de l'écran de veille.
+List<Product> get featuredProducts => [
+  for (final p in catalog)
+    if (p.isResale && p.stockOf() > 0) p,
+];
+
+/// Une ligne du panier : un article, et sa taille s'il en a une.
+@immutable
+class CartLine {
+  const CartLine(this.product, this.size, this.quantity);
+
+  final Product product;
+  final String? size;
+  final int quantity;
+
+  double get subtotal => product.price * quantity;
+}
+
 /// Panier du passager en cours. Vidé à chaque fin de session.
 class Cart extends ChangeNotifier {
-  final Map<String, int> _lines = {};
+  final Map<(String, String?), int> _lines = {};
 
-  Map<String, int> get lines => Map.unmodifiable(_lines);
+  List<CartLine> get lines => [
+    for (final e in _lines.entries)
+      CartLine(catalog.firstWhere((p) => p.id == e.key.$1), e.key.$2, e.value),
+  ];
+
   bool get isEmpty => _lines.isEmpty;
   int get count => _lines.values.fold(0, (a, b) => a + b);
+  double get total => lines.fold(0, (sum, l) => sum + l.subtotal);
 
-  double get total => _lines.entries.fold(
-    0,
-    (sum, e) => sum + catalog.firstWhere((p) => p.id == e.key).price * e.value,
-  );
+  int quantityOf(Product p, [String? size]) => _lines[(p.id, size)] ?? 0;
 
-  int quantityOf(Product p) => _lines[p.id] ?? 0;
-
-  void add(Product p) {
-    final q = quantityOf(p);
-    if (q >= p.stock) return;
-    _lines[p.id] = q + 1;
+  void add(Product p, [String? size]) {
+    final q = quantityOf(p, size);
+    if (q >= p.stockOf(size)) return;
+    _lines[(p.id, size)] = q + 1;
     notifyListeners();
   }
 
-  void remove(Product p) {
-    final q = quantityOf(p);
-    if (q <= 1) {
-      _lines.remove(p.id);
+  void remove(Product p, [String? size]) {
+    final q = quantityOf(p, size);
+    if (q == 0) return;
+    if (q == 1) {
+      _lines.remove((p.id, size));
     } else {
-      _lines[p.id] = q - 1;
+      _lines[(p.id, size)] = q - 1;
     }
     notifyListeners();
   }

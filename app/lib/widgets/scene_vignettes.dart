@@ -6,6 +6,7 @@ import '../theme/app_icons.dart';
 import '../theme/app_theme.dart';
 import 'liquid_metal_logo.dart';
 import 'mesh_background.dart';
+import 'store_showcase.dart';
 
 /// Illustration animée propre à chaque phase de l'écran de veille.
 /// [loop] tourne en boucle de 0 à 1 ; chaque scène en tire son propre mouvement.
@@ -33,8 +34,8 @@ class SceneVignette extends StatelessWidget {
             return switch (scene) {
               Scene.intro ||
               Scene.lounge ||
-              Scene.store ||
               Scene.profile => _Intro(t: t, size: size),
+              Scene.store => StoreShowcase(t: t, size: size),
               Scene.cinema => _Cinema(t: t),
               Scene.games => _Games(t: t, size: size),
               Scene.poll => _Poll(t: t, size: size),

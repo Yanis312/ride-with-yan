@@ -323,7 +323,7 @@ abstract class AppLocalizations {
   /// No description provided for @storeSubtitle.
   ///
   /// In fr, this message translates to:
-  /// **'Petits essentiels pour le trajet, payés par Interac.'**
+  /// **'Sneakers, maillots et petits essentiels, payés par Interac.'**
   String get storeSubtitle;
 
   /// No description provided for @addToCart.

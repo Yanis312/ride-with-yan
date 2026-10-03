@@ -21,7 +21,9 @@ void main() {
   Future<void> chooseLanguage(WidgetTester tester, String label) async {
     await tester.tapAt(const Offset(640, 300));
     await tester.pump(const Duration(seconds: 1));
-    await tester.tap(find.text(label).last); // le bouton du panneau, pas celui du haut
+    await tester.tap(
+      find.text(label).last,
+    ); // le bouton du panneau, pas celui du haut
     await tester.pump(const Duration(seconds: 2));
     await tester.pump(); // retire l'accueil une fois la transition finie
   }

@@ -28,4 +28,33 @@ void main() {
     cart.remove(water);
     expect(cart.isEmpty, isTrue);
   });
+
+  final af1 = catalog.firstWhere((p) => p.id == 'af1-blanc');
+
+  test('une ligne par taille, stock propre à chaque taille', () {
+    final cart = Cart()
+      ..add(af1, 'US 9')
+      ..add(af1, 'US 10');
+    expect(cart.lines, hasLength(2));
+    expect(cart.total, af1.price * 2);
+
+    for (var i = 0; i < 5; i++) {
+      cart.add(af1, 'US 9');
+    }
+    expect(cart.quantityOf(af1, 'US 9'), af1.stockOf('US 9'));
+  });
+
+  test("une taille épuisée ne s'ajoute pas", () {
+    final cart = Cart()..add(af1, 'US 12');
+    expect(af1.stockOf('US 12'), 0);
+    expect(cart.isEmpty, isTrue);
+  });
+
+  test('la vitrine ne montre que les articles revendus en stock', () {
+    expect(featuredProducts, isNotEmpty);
+    expect(
+      featuredProducts.every((p) => p.isResale && p.stockOf() > 0),
+      isTrue,
+    );
+  });
 }

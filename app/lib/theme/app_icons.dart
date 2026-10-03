@@ -65,4 +65,10 @@ abstract final class AppIcons {
   static const previous = IconData(0xe5a4, fontFamily: _family);
   static const heart = IconData(0xe2a8, fontFamily: _family);
   static const vinyl = IconData(0xecac, fontFamily: _family);
+  static const sneaker = IconData(0xe80c, fontFamily: _family);
+  static const tShirt = IconData(0xe670, fontFamily: _family);
+  static const sealCheck = IconData(0xe606, fontFamily: _family);
+  static const ruler = IconData(0xe6b8, fontFamily: _family);
+  static const package = IconData(0xe390, fontFamily: _family);
+  static const tag = IconData(0xe478, fontFamily: _family);
 }

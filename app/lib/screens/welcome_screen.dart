@@ -5,6 +5,7 @@ import '../perf_flags.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
+import '../navigation/sections.dart';
 import '../session/session_controller.dart';
 import '../theme/app_icons.dart';
 import '../theme/app_theme.dart';
@@ -20,10 +21,19 @@ import '../widgets/throttled.dart';
 /// Une phase de l'écran de veille : une ambiance de couleurs, une
 /// illustration animée et plusieurs phrases bilingues possibles.
 class _Phase {
-  const _Phase(this.scene, this.icon, this.lines, {this.note});
+  const _Phase(
+    this.scene,
+    this.icon,
+    this.lines, {
+    this.note,
+    this.duration = WelcomeScreen.phaseDuration,
+  });
 
   final Scene scene;
   final IconData icon;
+
+  /// Temps d'affichage ; la vitrine de la boutique reste plus longtemps.
+  final Duration duration;
 
   /// Petite ligne sous la phrase (français, anglais), ex. la réponse de Yanis.
   final (String, String)? note;
@@ -38,6 +48,20 @@ const _phases = [
     ('Bienvenue à bord.', 'Welcome aboard.'),
     ('Ravi de vous accueillir.', 'Glad to have you on board.'),
   ]),
+  // La diapo vedette : ce que Yanis vend, juste après l'accueil.
+  _Phase(
+    Scene.store,
+    AppIcons.shoppingBag,
+    [
+      ('Voici ce que je vends.', "Here's what I sell."),
+      ('Jetez un œil à ma boutique.', 'Take a look at my shop.'),
+    ],
+    note: (
+      'Air Force 1 et maillots de foot, neufs et authentiques. Payez par Interac.',
+      'Air Force 1s and football jerseys, new and authentic. Pay with Interac.',
+    ),
+    duration: WelcomeScreen.storeDuration,
+  ),
   _Phase(Scene.cinema, AppIcons.filmSlate, [
     ('Regardez un film.', 'Watch a movie.'),
     ('Le cinéma, en route.', 'Cinema on the go.'),
@@ -86,14 +110,15 @@ const _phases = [
   ]),
 ];
 
-/// Ordre d'un cycle : l'accueil d'abord, "Feel free to discover" à la fin,
-/// et les autres phases mélangées au hasard (sans répéter la dernière vue).
+/// Ordre d'un cycle : l'accueil, puis la vitrine de la boutique,
+/// "Feel free to discover" à la fin, et les autres phases mélangées au hasard
+/// (sans répéter la dernière vue).
 List<int> _shuffledCycle(math.Random random, {int? avoidFirst}) {
-  final middle = [for (var i = 1; i < _phases.length - 1; i++) i];
+  final middle = [for (var i = 2; i < _phases.length - 1; i++) i];
   do {
     middle.shuffle(random);
   } while (middle.length > 1 && middle.first == avoidFirst);
-  return [0, ...middle, _phases.length - 1];
+  return [0, 1, ...middle, _phases.length - 1];
 }
 
 /// Écran de veille haut de gamme : les phases défilent toutes seules,
@@ -102,6 +127,7 @@ class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});
 
   static const phaseDuration = Duration(milliseconds: 5200);
+  static const storeDuration = Duration(milliseconds: 13000);
 
   @override
   State<WelcomeScreen> createState() => _WelcomeScreenState();
@@ -163,7 +189,9 @@ class _WelcomeScreenState extends State<WelcomeScreen>
       _variant = _random.nextInt(_phase.lines.length);
       _englishFirst = _random.nextBool();
     });
-    _phaseClock.forward(from: 0);
+    _phaseClock
+      ..duration = _phase.duration
+      ..forward(from: 0);
   }
 
   @override
@@ -221,6 +249,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                               ),
                       ),
                       _Footer(
+                        phase: phase,
                         index: _step,
                         clock: _slowClock,
                         onStart: _openLanguages,
@@ -304,7 +333,10 @@ class _WideStage extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, c) {
-        final vignette = (c.maxHeight * 0.86).clamp(200.0, 440.0);
+        final shop = phase.scene == Scene.store;
+        final vignette = (c.maxHeight * (shop ? 0.98 : 0.86))
+            .clamp(200.0, shop ? 540.0 : 440.0)
+            .clamp(0.0, (c.maxWidth - 32) * 9 / 20);
         return Row(
           children: [
             Expanded(
@@ -489,11 +521,7 @@ class _PhaseText extends StatelessWidget {
                 Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(
-                          AppIcons.headphones,
-                          size: 22,
-                          color: p.accentText,
-                        ),
+                        Icon(phase.icon, size: 22, color: p.accentText),
                         const SizedBox(width: 10),
                         Flexible(
                           child: Text(
@@ -524,12 +552,14 @@ class _PhaseText extends StatelessWidget {
 
 class _Footer extends StatelessWidget {
   const _Footer({
+    required this.phase,
     required this.index,
     required this.clock,
     required this.onStart,
     required this.compact,
   });
 
+  final _Phase phase;
   final int index;
   final Animation<double> clock;
   final VoidCallback onStart;
@@ -538,10 +568,18 @@ class _Footer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final progress = _Progress(index: index, clock: clock);
-    final cta = GlowButton(
-      label: 'Touchez pour commencer  ·  Tap to start',
-      icon: AppIcons.arrowRight,
-      onTap: onStart,
+    final shop = phase.scene == Scene.store;
+    final cta = AnimatedSwitcher(
+      duration: AppMotion.medium,
+      switchInCurve: AppMotion.spring,
+      child: GlowButton(
+        key: ValueKey(shop),
+        label: shop
+            ? 'Boutique  ·  Shop now'
+            : 'Touchez pour commencer  ·  Tap to start',
+        icon: shop ? AppIcons.shoppingBag : AppIcons.arrowRight,
+        onTap: shop ? () => openSection(context, Section.store) : onStart,
+      ),
     );
 
     if (compact) {

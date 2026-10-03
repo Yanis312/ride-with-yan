@@ -122,7 +122,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get storeSubtitle =>
-      'Petits essentiels pour le trajet, payés par Interac.';
+      'Sneakers, maillots et petits essentiels, payés par Interac.';
 
   @override
   String get addToCart => 'Ajouter';
