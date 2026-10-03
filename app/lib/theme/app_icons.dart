@@ -57,4 +57,12 @@ abstract final class AppIcons {
   static const flip = IconData(0xe094, fontFamily: _family);
   static const gift = IconData(0xe276, fontFamily: _family);
   static const crown = IconData(0xe614, fontFamily: _family);
+  static const music = IconData(0xe340, fontFamily: _family);
+  static const volumeUp = IconData(0xe44a, fontFamily: _family);
+  static const volumeDown = IconData(0xe44c, fontFamily: _family);
+  static const pause = IconData(0xe39e, fontFamily: _family);
+  static const next = IconData(0xe5a6, fontFamily: _family);
+  static const previous = IconData(0xe5a4, fontFamily: _family);
+  static const heart = IconData(0xe2a8, fontFamily: _family);
+  static const vinyl = IconData(0xecac, fontFamily: _family);
 }

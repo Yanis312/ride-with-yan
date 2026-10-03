@@ -11,6 +11,9 @@ abstract final class AppConfig {
   /// Courriel qui reçoit les virements Interac de la boutique.
   static const interacEmail = 'yanisgaroui1@gmail.com';
 
+  /// Volume maximal du coin musique (0 à 100) : jamais trop fort en conduisant.
+  static const maxMusicVolume = 70;
+
   static String? get whatsAppLink =>
       whatsAppNumber.isEmpty ? null : 'https://wa.me/$whatsAppNumber';
 }

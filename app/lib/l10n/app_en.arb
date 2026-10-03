@@ -74,5 +74,14 @@
   "adsExample": "Example",
   "adsScanSocial": "Scan to open {network}",
   "adsYourSpot": "This spot is free",
-  "adsYourSpotHint": "Be one of the first: it’s free, for life."
+  "adsYourSpotHint": "Be one of the first: it’s free, for life.",
+  "dockMusic": "Music",
+  "musicTitle": "Music corner",
+  "musicYanPick": "Yan’s pick",
+  "musicYanPickHint": "His song for a lifetime",
+  "musicPlayIt": "Play it for me",
+  "musicNowPlaying": "Now playing",
+  "musicVolume": "Volume",
+  "musicMaxHint": "Volume capped for the driver’s safety",
+  "musicPlaylistTitle": "Pick the mood for the ride"
 }

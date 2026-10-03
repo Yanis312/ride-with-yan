@@ -95,5 +95,14 @@
     }
   },
   "adsYourSpot": "Cette place est libre",
-  "adsYourSpotHint": "Soyez parmi les premiers : c’est gratuit, à vie."
+  "adsYourSpotHint": "Soyez parmi les premiers : c’est gratuit, à vie.",
+  "dockMusic": "Musique",
+  "musicTitle": "Coin musique",
+  "musicYanPick": "Le choix de Yan",
+  "musicYanPickHint": "Sa chanson pour toute une vie",
+  "musicPlayIt": "Fais-moi écouter",
+  "musicNowPlaying": "En cours",
+  "musicVolume": "Volume",
+  "musicMaxHint": "Volume limité pour la sécurité du conducteur",
+  "musicPlaylistTitle": "Choisissez l’ambiance du trajet"
 }

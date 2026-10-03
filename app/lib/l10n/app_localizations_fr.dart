@@ -243,4 +243,31 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get adsYourSpotHint =>
       'Soyez parmi les premiers : c’est gratuit, à vie.';
+
+  @override
+  String get dockMusic => 'Musique';
+
+  @override
+  String get musicTitle => 'Coin musique';
+
+  @override
+  String get musicYanPick => 'Le choix de Yan';
+
+  @override
+  String get musicYanPickHint => 'Sa chanson pour toute une vie';
+
+  @override
+  String get musicPlayIt => 'Fais-moi écouter';
+
+  @override
+  String get musicNowPlaying => 'En cours';
+
+  @override
+  String get musicVolume => 'Volume';
+
+  @override
+  String get musicMaxHint => 'Volume limité pour la sécurité du conducteur';
+
+  @override
+  String get musicPlaylistTitle => 'Choisissez l’ambiance du trajet';
 }

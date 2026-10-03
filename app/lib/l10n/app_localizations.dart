@@ -547,6 +547,60 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Soyez parmi les premiers : c’est gratuit, à vie.'**
   String get adsYourSpotHint;
+
+  /// No description provided for @dockMusic.
+  ///
+  /// In fr, this message translates to:
+  /// **'Musique'**
+  String get dockMusic;
+
+  /// No description provided for @musicTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Coin musique'**
+  String get musicTitle;
+
+  /// No description provided for @musicYanPick.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le choix de Yan'**
+  String get musicYanPick;
+
+  /// No description provided for @musicYanPickHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Sa chanson pour toute une vie'**
+  String get musicYanPickHint;
+
+  /// No description provided for @musicPlayIt.
+  ///
+  /// In fr, this message translates to:
+  /// **'Fais-moi écouter'**
+  String get musicPlayIt;
+
+  /// No description provided for @musicNowPlaying.
+  ///
+  /// In fr, this message translates to:
+  /// **'En cours'**
+  String get musicNowPlaying;
+
+  /// No description provided for @musicVolume.
+  ///
+  /// In fr, this message translates to:
+  /// **'Volume'**
+  String get musicVolume;
+
+  /// No description provided for @musicMaxHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Volume limité pour la sécurité du conducteur'**
+  String get musicMaxHint;
+
+  /// No description provided for @musicPlaylistTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Choisissez l’ambiance du trajet'**
+  String get musicPlaylistTitle;
 }
 
 class _AppLocalizationsDelegate

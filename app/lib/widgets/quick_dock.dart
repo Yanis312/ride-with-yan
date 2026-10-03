@@ -21,26 +21,38 @@ class QuickDock extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final items = [
+      (Section.music, AppIcons.music, l10n.dockMusic),
       (Section.linkedin, AppIcons.linkedin, l10n.dockLinkedIn),
       (Section.collaboration, AppIcons.handshake, l10n.dockCollab),
       (Section.store, AppIcons.storefront, l10n.dockStore),
       (Section.ads, AppIcons.megaphone, l10n.dockAds),
     ];
 
-    return Heartbeat(
-      child: LiquidPill(
-        padding: const EdgeInsets.all(5),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            for (final (section, icon, label) in items)
-              _DockItem(
-                icon: icon,
-                label: compact ? null : label,
-                selected: section == current,
-                onTap: () => openSection(context, section),
-              ),
-          ],
+    // Taille naturelle, mais jamais plus de 60 % de l'écran : si la place
+    // manque, le dock rétrécit un peu plutôt que de faire déborder la barre.
+    return ConstrainedBox(
+      constraints: BoxConstraints(
+        maxWidth: MediaQuery.sizeOf(context).width * 0.6,
+      ),
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        alignment: Alignment.centerRight,
+        child: Heartbeat(
+          child: LiquidPill(
+            padding: const EdgeInsets.all(5),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                for (final (section, icon, label) in items)
+                  _DockItem(
+                    icon: icon,
+                    label: compact ? null : label,
+                    selected: section == current,
+                    onTap: () => openSection(context, section),
+                  ),
+              ],
+            ),
+          ),
         ),
       ),
     );
