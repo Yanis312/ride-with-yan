@@ -16,6 +16,7 @@ import '../widgets/glass.dart';
 import '../widgets/mesh_background.dart';
 import '../widgets/qr_card.dart';
 import '../widgets/section_scaffold.dart';
+import '../widgets/touch_tilt.dart';
 
 /// Section Collaborations : un onglet par service, une vitrine animée de
 /// démos (photos et vidéos) et un appel à l'action vers Yanis.
@@ -166,6 +167,10 @@ class _ShowroomState extends State<_Showroom> {
   late int _index = widget.tab.showcases.isEmpty
       ? 0
       : math.Random().nextInt(widget.tab.showcases.length);
+  late final PageController _pages = PageController(
+    initialPage: _index,
+    viewportFraction: 0.9,
+  );
   Timer? _timer;
 
   @override
@@ -178,18 +183,26 @@ class _ShowroomState extends State<_Showroom> {
     _timer?.cancel();
     if (widget.tab.showcases.length < 2) return;
     _timer = Timer.periodic(_autoAdvance, (_) {
-      setState(() => _index = (_index + 1) % widget.tab.showcases.length);
+      if (!_pages.hasClients) return;
+      _go((_index + 1) % widget.tab.showcases.length);
     });
   }
 
+  void _go(int i) => _pages.animateToPage(
+    i,
+    duration: const Duration(milliseconds: 900),
+    curve: AppMotion.emphasized,
+  );
+
   void _select(int i) {
-    setState(() => _index = i);
+    _go(i);
     _schedule(); // un choix manuel relance le minuteur
   }
 
   @override
   void dispose() {
     _timer?.cancel();
+    _pages.dispose();
     super.dispose();
   }
 
@@ -205,20 +218,58 @@ class _ShowroomState extends State<_Showroom> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Expanded(
-          child: AnimatedSwitcher(
-            duration: const Duration(milliseconds: 700),
-            switchInCurve: AppMotion.spring,
-            switchOutCurve: AppMotion.spring,
-            transitionBuilder: (child, a) => FadeTransition(
-              opacity: a,
-              child: ScaleTransition(
-                scale: Tween(begin: 0.97, end: 1.0).animate(a),
-                child: child,
+          // Carrousel 3D : la démo qui part tourne et rétrécit, la suivante
+          // arrive en biais, et l'image intérieure glisse plus lentement
+          // que le cadre (parallaxe).
+          child: NotificationListener<ScrollStartNotification>(
+            onNotification: (n) {
+              // Le passager reprend la main : on relance le minuteur.
+              if (n.dragDetails != null) _schedule();
+              return false;
+            },
+            child: PageView.builder(
+              controller: _pages,
+              itemCount: showcases.length,
+              onPageChanged: (i) => setState(() => _index = i),
+              itemBuilder: (context, i) => AnimatedBuilder(
+                animation: _pages,
+                builder: (context, child) {
+                  final page =
+                      _pages.hasClients && _pages.position.haveDimensions
+                      ? _pages.page!
+                      : _index.toDouble();
+                  final d = (page - i).clamp(-1.0, 1.0);
+                  return Opacity(
+                    opacity: 1 - d.abs() * 0.55,
+                    child: Transform(
+                      alignment: d > 0
+                          ? Alignment.centerRight
+                          : Alignment.centerLeft,
+                      transform: Matrix4.identity()
+                        ..setEntry(3, 2, 0.0011)
+                        ..rotateY(d * 0.45)
+                        ..scaleByDouble(
+                          1 - d.abs() * 0.12,
+                          1 - d.abs() * 0.12,
+                          1,
+                          1,
+                        ),
+                      // Marge : l'inclinaison au toucher ne se fait pas rogner.
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 18,
+                          horizontal: 8,
+                        ),
+                        child: _DeviceFrame(
+                          showcase: showcases[i],
+                          active: i == _index,
+                          parallax: d,
+                        ),
+                      ),
+                    ),
+                  );
+                },
               ),
-            ),
-            child: _DeviceFrame(
-              key: ValueKey(current.title),
-              showcase: current,
             ),
           ),
         ),
@@ -226,19 +277,33 @@ class _ShowroomState extends State<_Showroom> {
         Row(
           children: [
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    current.title,
-                    style: AppText.display(32, color: p.text),
+              child: AnimatedSwitcher(
+                duration: AppMotion.medium,
+                transitionBuilder: (child, a) => FadeTransition(
+                  opacity: a,
+                  child: SlideTransition(
+                    position: Tween(
+                      begin: const Offset(0, 0.3),
+                      end: Offset.zero,
+                    ).animate(a),
+                    child: child,
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '${current.kind.of(context)}  ·  ${l10n.collabDemoBadge}',
-                    style: AppText.body(14, color: p.textMuted),
-                  ),
-                ],
+                ),
+                child: Column(
+                  key: ValueKey(current.title),
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      current.title,
+                      style: AppText.display(32, color: p.text),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '${current.kind.of(context)}  ·  ${l10n.collabDemoBadge}',
+                      style: AppText.body(14, color: p.textMuted),
+                    ),
+                  ],
+                ),
               ),
             ),
             if (showcases.length > 1)
@@ -299,19 +364,38 @@ class _Thumb extends StatelessWidget {
 /// Cadre de présentation selon le type de démo : navigateur, téléphone ou
 /// tableau de bord. Les sites avec vidéo défilent tout seuls (vidéo muette).
 class _DeviceFrame extends StatelessWidget {
-  const _DeviceFrame({super.key, required this.showcase});
+  const _DeviceFrame({
+    required this.showcase,
+    this.active = true,
+    this.parallax = 0,
+  });
 
   final Showcase showcase;
 
+  /// Seule la démo au centre lit sa vidéo (les voisines restent en image).
+  final bool active;
+
+  /// Décalage de -1 à 1 pendant le glissement : l'écran intérieur bouge
+  /// moins vite que le cadre.
+  final double parallax;
+
   @override
   Widget build(BuildContext context) {
-    final screen = showcase.video != null
+    final Widget content = showcase.video != null && active
         ? _LoopingVideo(asset: showcase.video!, poster: showcase.image)
-        : Image.asset(
-            showcase.image,
-            fit: BoxFit.cover,
-            alignment: Alignment.topCenter,
+        : _KenBurns(
+            image: showcase.image,
+            phone: showcase.frame == ShowcaseFrame.phone,
           );
+    final screen = ClipRect(
+      child: Transform.translate(
+        offset: Offset(parallax * 90, 0),
+        child: Transform.scale(
+          scale: 1 + parallax.abs() * 0.08,
+          child: content,
+        ),
+      ),
+    );
 
     final glow = [
       BoxShadow(
@@ -325,16 +409,19 @@ class _DeviceFrame extends StatelessWidget {
       return Center(
         child: AspectRatio(
           aspectRatio: 390 / 844,
-          child: Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: const Color(0xFF0B0C10),
-              borderRadius: BorderRadius.circular(48),
-              boxShadow: glow,
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(38),
-              child: screen,
+          child: TouchTilt(
+            radius: 48,
+            child: Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: const Color(0xFF0B0C10),
+                borderRadius: BorderRadius.circular(48),
+                boxShadow: glow,
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(38),
+                child: screen,
+              ),
             ),
           ),
         ),
@@ -346,63 +433,65 @@ class _DeviceFrame extends StatelessWidget {
     return Center(
       child: AspectRatio(
         aspectRatio: 1.6,
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(22),
-            boxShadow: glow,
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(22),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                // Barre de navigateur stylisée.
-                Container(
-                  height: 40,
-                  color: const Color(0xFF1B1D23),
-                  padding: const EdgeInsets.symmetric(horizontal: 14),
-                  child: Row(
-                    children: [
-                      for (final c in const [
-                        Color(0xFFFF5F57),
-                        Color(0xFFFEBC2E),
-                        Color(0xFF28C840),
-                      ])
-                        Container(
-                          width: 11,
-                          height: 11,
-                          margin: const EdgeInsets.only(right: 7),
-                          decoration: BoxDecoration(
-                            color: c,
-                            shape: BoxShape.circle,
+        child: TouchTilt(
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(22),
+              boxShadow: glow,
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(22),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // Barre de navigateur stylisée.
+                  Container(
+                    height: 40,
+                    color: const Color(0xFF1B1D23),
+                    padding: const EdgeInsets.symmetric(horizontal: 14),
+                    child: Row(
+                      children: [
+                        for (final c in const [
+                          Color(0xFFFF5F57),
+                          Color(0xFFFEBC2E),
+                          Color(0xFF28C840),
+                        ])
+                          Container(
+                            width: 11,
+                            height: 11,
+                            margin: const EdgeInsets.only(right: 7),
+                            decoration: BoxDecoration(
+                              color: c,
+                              shape: BoxShape.circle,
+                            ),
                           ),
-                        ),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: Container(
-                          height: 24,
-                          alignment: Alignment.center,
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF2A2D35),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Text(
-                            host,
-                            style: AppText.body(
-                              12,
-                              color: const Color(0xFFB4B8C2),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Container(
+                            height: 24,
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF2A2D35),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              host,
+                              style: AppText.body(
+                                12,
+                                color: const Color(0xFFB4B8C2),
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                      const SizedBox(width: 60),
-                    ],
+                        const SizedBox(width: 60),
+                      ],
+                    ),
                   ),
-                ),
-                Expanded(
-                  child: ColoredBox(color: Colors.black, child: screen),
-                ),
-              ],
+                  Expanded(
+                    child: ColoredBox(color: Colors.black, child: screen),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -625,4 +714,37 @@ Future<void> showContactSheet(BuildContext context) {
       ),
     ),
   );
+}
+
+/// Image fixe qui vit : zoom et déplacement très lents, en boucle
+/// (effet « Ken Burns »), pour que les démos sans vidéo ne soient jamais figées.
+class _KenBurns extends StatelessWidget {
+  const _KenBurns({required this.image, required this.phone});
+
+  final String image;
+  final bool phone;
+
+  @override
+  Widget build(BuildContext context) {
+    final img = Image.asset(
+      image,
+      fit: BoxFit.cover,
+      alignment: Alignment.topCenter,
+    );
+    if (MediaQuery.disableAnimationsOf(context)) return img;
+    return img
+        .animate(onPlay: (c) => c.repeat(reverse: true))
+        .scaleXY(
+          begin: 1,
+          end: phone ? 1.06 : 1.1,
+          duration: 12.seconds,
+          curve: Curves.easeInOutSine,
+        )
+        .moveY(
+          begin: 0,
+          end: phone ? -20 : -40,
+          duration: 12.seconds,
+          curve: Curves.easeInOutSine,
+        );
+  }
 }
