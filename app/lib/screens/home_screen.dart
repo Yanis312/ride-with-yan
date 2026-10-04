@@ -94,6 +94,25 @@ class _TopBar extends StatelessWidget {
     final p = context.palette;
     final compact = MediaQuery.sizeOf(context).width < 760;
 
+    final controls = <Widget>[
+      QuickDock(compact: compact),
+      const SizedBox(width: 12),
+      LiquidIconButton(
+        icon: context.isDark ? AppIcons.sun : AppIcons.moon,
+        onTap: appearance.toggle,
+        size: 48,
+      ),
+      const SizedBox(width: 12),
+      PillButton(
+        label: compact
+            ? (session.displayLocale.languageCode == 'fr' ? 'EN' : 'FR')
+            : l10n.switchLanguage,
+        filled: false,
+        onTap: session.switchLanguage,
+        trailing: const Icon(AppIcons.translate),
+      ),
+    ];
+
     return Row(
       children: [
         // Appui long sur le logo : geste discret du conducteur pour revenir
@@ -107,31 +126,30 @@ class _TopBar extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 14),
-        // Zone élastique : le titre cède la place en premier.
-        Expanded(
-          child: compact
-              ? const SizedBox.shrink()
-              : Text(
-                  'Ride with Yan',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppText.display(26, color: p.text),
-                ),
-        ),
-        QuickDock(compact: compact),
-        const SizedBox(width: 12),
-        LiquidIconButton(
-          icon: context.isDark ? AppIcons.sun : AppIcons.moon,
-          onTap: appearance.toggle,
-          size: 48,
-        ),
-        const SizedBox(width: 12),
-        PillButton(
-          label: l10n.switchLanguage,
-          filled: false,
-          onTap: session.switchLanguage,
-          trailing: const Icon(AppIcons.translate),
-        ),
+        // Sur téléphone, les commandes rétrécissent ensemble pour tenir
+        // dans la barre au lieu d'être coupées.
+        if (compact)
+          Expanded(
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerRight,
+              child: Row(mainAxisSize: MainAxisSize.min, children: controls),
+            ),
+          )
+        else ...[
+          // Zone élastique : le titre cède la place en premier.
+          Expanded(
+            child: compact
+                ? const SizedBox.shrink()
+                : Text(
+                    'Ride with Yan',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppText.display(26, color: p.text),
+                  ),
+          ),
+          ...controls,
+        ],
       ],
     ).animate().fadeIn(duration: AppMotion.medium, curve: AppMotion.spring);
   }

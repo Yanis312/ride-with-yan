@@ -1,7 +1,7 @@
 import 'dart:async';
-import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:intl/intl.dart';
 
 import '../data/bilingual.dart';
@@ -12,18 +12,20 @@ import '../theme/app_theme.dart';
 import 'product_art.dart';
 
 /// Vitrine de l'écran de veille, façon page d'accueil d'un site e-commerce :
-/// l'article "en vol" sur son grand nom en filigrane, prix, tailles, badge
-/// d'authenticité, et une colonne de miniatures qui défile toute seule.
-/// Un toucher ouvre la boutique.
+/// quatre articles à la fois, avec leur nom et leur prix, puis les quatre
+/// suivants. Tout le catalogue passe pendant la diapo. Un toucher ouvre la
+/// boutique.
 class StoreShowcase extends StatefulWidget {
   const StoreShowcase({super.key, required this.t, required this.size});
 
-  /// Boucle 0 → 1 de l'écran de veille (lévitation de l'article).
+  /// Boucle 0 → 1 de l'écran de veille (gardée pour la même signature que
+  /// les autres illustrations).
   final double t;
   final double size;
 
-  /// Temps passé sur chaque article.
-  static const perProduct = Duration(milliseconds: 3200);
+  /// Durée totale de la diapo : chaque page en reçoit une part égale.
+  static const total = Duration(milliseconds: 15000);
+  static const perPage = 4;
 
   @override
   State<StoreShowcase> createState() => _StoreShowcaseState();
@@ -31,15 +33,17 @@ class StoreShowcase extends StatefulWidget {
 
 class _StoreShowcaseState extends State<StoreShowcase> {
   final _products = featuredProducts;
-  int _index = 0;
+  int _page = 0;
   Timer? _timer;
+
+  int get _pages => (_products.length / StoreShowcase.perPage).ceil();
 
   @override
   void initState() {
     super.initState();
-    if (_products.length > 1) {
-      _timer = Timer.periodic(StoreShowcase.perProduct, (_) {
-        if (mounted) setState(() => _index = (_index + 1) % _products.length);
+    if (_pages > 1) {
+      _timer = Timer.periodic(StoreShowcase.total ~/ _pages, (_) {
+        if (mounted) setState(() => _page = (_page + 1) % _pages);
       });
     }
   }
@@ -53,243 +57,134 @@ class _StoreShowcaseState extends State<StoreShowcase> {
   @override
   Widget build(BuildContext context) {
     if (_products.isEmpty) return const SizedBox.shrink();
-    final product = _products[_index];
     final s = widget.size;
-    final bob = math.sin(widget.t * 4 * math.pi);
-    // Sur téléphone, la vitrine garde l'essentiel : article, prix, tailles.
     final small = s < 360;
+    final shown = _products
+        .skip(_page * StoreShowcase.perPage)
+        .take(StoreShowcase.perPage)
+        .toList();
+    final gap = small ? 8.0 : 12.0;
 
     return GestureDetector(
       onTap: () => openSection(context, Section.store),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 900),
-        curve: AppMotion.spring,
-        clipBehavior: Clip.antiAlias,
+      child: Container(
+        padding: EdgeInsets.all(small ? 10 : 14),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(32),
-          gradient: RadialGradient(
-            center: const Alignment(-0.2, -0.35),
-            radius: 1.2,
-            colors: product.colors,
+          gradient: const LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Color(0xFF23201A), Color(0xFF0A0A0C)],
           ),
+          border: Border.all(color: Brand.gold.withValues(alpha: 0.45)),
           boxShadow: [
-            BoxShadow(
-              color: product.colors.first.withValues(alpha: 0.35),
-              blurRadius: 60,
-            ),
+            BoxShadow(color: Brand.gold.withValues(alpha: 0.3), blurRadius: 60),
           ],
         ),
-        child: Stack(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Grand mot en filigrane derrière l'article.
-            Positioned(
-              left: 0,
-              right: 0,
-              top: s * 0.12,
-              height: s * 0.42,
-              child: _swap(
-                product,
-                FittedBox(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    child: Text(
-                      _bigWord(product),
-                      maxLines: 1,
-                      style: AppText.display(
-                        200,
-                        color: _onStage(product).withValues(alpha: 0.13),
-                      ).copyWith(fontWeight: FontWeight.w600, height: 1),
+            Row(
+              children: [
+                _Pill(
+                  label: const Bi('Nouveautés', 'New in').of(context),
+                  icon: AppIcons.sparkle,
+                ),
+                const Spacer(),
+                // Points de pagination : où on en est dans le catalogue.
+                for (var i = 0; i < _pages; i++)
+                  AnimatedContainer(
+                    duration: AppMotion.medium,
+                    curve: AppMotion.spring,
+                    width: i == _page ? 20 : 7,
+                    height: 7,
+                    margin: const EdgeInsets.only(left: 5),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(99),
+                      color: i == _page ? Brand.gold : Colors.white30,
                     ),
                   ),
-                ),
-              ),
+              ],
             ),
-            // Photo de studio : elle remplit la vitrine, au-dessus de la carte
-            // d'infos. Sinon l'article flotte au-dessus de son ombre.
-            if (product.framed)
-              Positioned(
-                left: 0,
-                right: 0,
-                top: 0,
-                bottom: s * 0.16,
-                child: _swap(product, ProductFigure(product: product)),
-              )
-            else ...[
-              // Ombre au sol : se resserre quand l'article monte.
-              Positioned(
-                left: s * (0.2 + 0.03 * bob),
-                right: s * (0.34 + 0.03 * bob),
-                top: s * 0.58,
-                height: s * 0.05,
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.all(
-                      Radius.elliptical(s, s * 0.05),
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.45 - 0.1 * bob),
-                        blurRadius: s * 0.04,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              // L'article, qui entre par la droite et flotte.
-              Positioned(
-                left: s * 0.07,
-                right: s * (small ? 0.07 : 0.2),
-                top: s * 0.12,
-                height: s * 0.46,
-                child: Transform.translate(
-                  offset: Offset(0, -s * 0.02 * (bob + 1)),
-                  child: _swap(
-                    product,
-                    Transform.rotate(
-                      angle: product.art?.kind == ArtKind.sneaker
-                          ? productTilt
-                          : 0,
-                      child: ProductVisual(product: product, shadow: false),
-                    ),
-                    slide: true,
-                  ),
-                ),
-              ),
-            ],
-            Positioned(
-              left: 16,
-              top: 16,
-              right: 16,
-              child: Row(
-                children: [
-                  if (!small)
-                    _Pill(
-                      label: const Bi('Nouveautés', 'New in').of(context),
-                      icon: AppIcons.sparkle,
-                      gold: true,
-                    ),
-                  const Spacer(),
-                  _Pill(
-                    label: const Bi(
-                      'Payez par Interac',
-                      'Pay with Interac',
-                    ).of(context),
-                    icon: AppIcons.check,
-                  ),
-                ],
-              ),
-            ),
-            // Miniatures à droite, l'article affiché est cerclé d'or.
-            if (!small)
-              Positioned(
-                right: 12,
-                top: s * 0.15,
-                child: Column(
-                  children: [
-                    for (final (i, p) in productWindow(_products, _index, 5))
-                      AnimatedContainer(
-                        duration: AppMotion.medium,
-                        curve: AppMotion.spring,
-                        width: s * 0.1,
-                        height: s * 0.1,
-                        margin: const EdgeInsets.only(bottom: 8),
-                        padding: const EdgeInsets.all(4),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
-                          gradient: LinearGradient(colors: p.colors),
-                          border: Border.all(
-                            color: i == _index ? Brand.gold : Colors.white24,
-                            width: i == _index ? 2 : 1,
-                          ),
+            SizedBox(height: gap),
+            Expanded(
+              child: LayoutBuilder(
+                builder: (context, c) {
+                  final w = (c.maxWidth - gap) / 2;
+                  final h = (c.maxHeight - gap) / 2;
+                  return Stack(
+                    children: [
+                      for (final (i, product) in shown.indexed)
+                        Positioned(
+                          left: (i % 2) * (w + gap),
+                          top: (i ~/ 2) * (h + gap),
+                          width: w,
+                          height: h,
+                          // La clé change à chaque page : chaque carte
+                          // rejoue son entrée, l'une après l'autre.
+                          child:
+                              _Tile(
+                                    key: ValueKey('$_page-${product.id}'),
+                                    product: product,
+                                    small: small,
+                                  )
+                                  .animate()
+                                  .fadeIn(
+                                    delay: (90 * i).ms,
+                                    duration: 450.ms,
+                                    curve: AppMotion.spring,
+                                  )
+                                  .slideX(
+                                    begin: 0.25,
+                                    delay: (90 * i).ms,
+                                    duration: 600.ms,
+                                    curve: AppMotion.emphasized,
+                                  ),
                         ),
-                        child: ProductVisual(product: p, shadow: false),
-                      ),
-                  ],
-                ),
+                    ],
+                  );
+                },
               ),
-            Positioned(
-              left: 14,
-              right: 14,
-              bottom: 14,
-              child: _swap(product, _InfoCard(product: product, size: s)),
             ),
           ],
         ),
       ),
     );
   }
-
-  /// Remplace un élément quand l'article change ; l'article lui-même glisse.
-  Widget _swap(Product product, Widget child, {bool slide = false}) {
-    return AnimatedSwitcher(
-      duration: const Duration(milliseconds: 750),
-      reverseDuration: const Duration(milliseconds: 350),
-      switchInCurve: AppMotion.emphasized,
-      switchOutCurve: Curves.easeIn,
-      transitionBuilder: (child, a) {
-        Widget out = FadeTransition(opacity: a, child: child);
-        if (slide) {
-          out = SlideTransition(
-            position: Tween(
-              begin: const Offset(0.35, 0),
-              end: Offset.zero,
-            ).animate(a),
-            child: ScaleTransition(
-              scale: Tween(begin: 0.8, end: 1.0).animate(a),
-              child: out,
-            ),
-          );
-        }
-        return out;
-      },
-      child: KeyedSubtree(key: ValueKey(product.id), child: child),
-    );
-  }
-
-  static String _bigWord(Product p) => switch (p.art?.kind) {
-    ArtKind.jersey => 'KIT',
-    _ => p.category.label.en.toUpperCase(),
-  };
 }
 
-/// Couleur lisible posée sur le fond de la vitrine.
-Color _onStage(Product p) =>
-    p.colors.first.computeLuminance() > 0.45 ? Brand.ink : Colors.white;
-
 class _Pill extends StatelessWidget {
-  const _Pill({required this.label, required this.icon, this.gold = false});
+  const _Pill({required this.label, required this.icon});
 
   final String label;
   final IconData icon;
-  final bool gold;
 
   @override
   Widget build(BuildContext context) {
-    final fg = gold ? Brand.ink : Colors.white;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
       decoration: BoxDecoration(
-        color: gold ? Brand.gold : Colors.black.withValues(alpha: 0.45),
+        color: Brand.gold,
         borderRadius: BorderRadius.circular(99),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 14, color: fg),
+          Icon(icon, size: 14, color: Brand.ink),
           const SizedBox(width: 6),
-          Text(label, style: AppText.eyebrow(fg).copyWith(fontSize: 11)),
+          Text(label, style: AppText.eyebrow(Brand.ink).copyWith(fontSize: 11)),
         ],
       ),
     );
   }
 }
 
-/// Carte d'infos en bas : marque, nom, prix et tailles disponibles.
-class _InfoCard extends StatelessWidget {
-  const _InfoCard({required this.product, required this.size});
+/// Une carte article : la photo, le nom et le prix en pastille dorée.
+class _Tile extends StatelessWidget {
+  const _Tile({super.key, required this.product, required this.small});
 
   final Product product;
-  final double size;
+  final bool small;
 
   @override
   Widget build(BuildContext context) {
@@ -300,121 +195,80 @@ class _InfoCard extends StatelessWidget {
       decimalDigits: 0,
     ).format(product.price);
 
-    return Container(
-      padding: const EdgeInsets.fromLTRB(16, 12, 12, 12),
-      decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.55),
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      (product.brand ?? product.category.label.of(context))
-                          .toUpperCase(),
-                      style: AppText.eyebrow(Brand.goldSoft),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      product.name.of(context),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: AppText.display(
-                        (size * 0.065).clamp(18.0, 32.0),
-                        color: Colors.white,
-                      ),
-                    ),
-                    Text(
-                      product.blurb.of(context),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: AppText.body(12, color: Colors.white70),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 10),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 10,
-                ),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(99),
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFFFFE08A), Brand.gold],
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Brand.gold.withValues(alpha: 0.5),
-                      blurRadius: 18,
-                    ),
-                  ],
-                ),
-                child: Text(
-                  price,
-                  style: AppText.body(
-                    (size * 0.045).clamp(15.0, 22.0),
-                    weight: FontWeight.w800,
-                    color: Brand.ink,
-                  ),
-                ),
-              ),
-            ],
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(small ? 16 : 20),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          gradient: RadialGradient(
+            center: const Alignment(-0.2, -0.4),
+            radius: 1.2,
+            colors: product.colors,
           ),
-          if (product.hasSizes) ...[
-            const SizedBox(height: 10),
-            FittedBox(
-              fit: BoxFit.scaleDown,
-              alignment: Alignment.centerLeft,
+        ),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            ProductFigure(
+              product: product,
+              padding: EdgeInsets.fromLTRB(10, 10, 10, small ? 30 : 44),
+              shadow: false,
+            ),
+            // Dégradé sombre en bas : le nom reste lisible sur la photo.
+            const DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Colors.transparent, Color(0xD9000000)],
+                  stops: [0.55, 1],
+                ),
+              ),
+            ),
+            Positioned(
+              left: small ? 8 : 12,
+              right: small ? 6 : 10,
+              bottom: small ? 6 : 10,
               child: Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  for (final e in product.sizes.entries.take(6))
-                    Padding(
-                      padding: const EdgeInsets.only(right: 6),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(
-                            color: e.value > 0
-                                ? Colors.white54
-                                : Colors.white12,
-                          ),
-                        ),
-                        child: Text(
-                          e.key,
-                          style:
-                              AppText.body(
-                                11,
-                                weight: FontWeight.w600,
-                                color: e.value > 0
-                                    ? Colors.white
-                                    : Colors.white30,
-                              ).copyWith(
-                                decoration: e.value > 0
-                                    ? null
-                                    : TextDecoration.lineThrough,
-                                decorationColor: Colors.white30,
-                              ),
-                        ),
+                  Expanded(
+                    child: Text(
+                      product.name.of(context),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppText.body(
+                        small ? 11 : 14,
+                        weight: FontWeight.w700,
+                        color: Colors.white,
+                      ).copyWith(height: 1.15),
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  Container(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: small ? 8 : 11,
+                      vertical: small ? 3 : 5,
+                    ),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(99),
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFFFFE08A), Brand.gold],
                       ),
                     ),
+                    child: Text(
+                      price,
+                      style: AppText.body(
+                        small ? 11 : 14,
+                        weight: FontWeight.w800,
+                        color: Brand.ink,
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
           ],
-        ],
+        ),
       ),
     );
   }

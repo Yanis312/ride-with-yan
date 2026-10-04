@@ -11,11 +11,13 @@ import '../theme/app_icons.dart';
 import '../theme/app_theme.dart';
 import '../theme/appearance_controller.dart';
 import '../widgets/glass.dart';
+import '../widgets/heartbeat.dart';
 import '../widgets/liquid_metal_logo.dart';
 import '../widgets/mesh_background.dart';
 import '../widgets/quick_dock.dart';
 import '../widgets/road_logo.dart';
 import '../widgets/scene_vignettes.dart';
+import '../widgets/store_showcase.dart';
 import '../widgets/throttled.dart';
 
 /// Une phase de l'écran de veille : une ambiance de couleurs, une
@@ -126,8 +128,9 @@ List<int> _shuffledCycle(math.Random random, {int? avoidFirst}) {
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});
 
-  static const phaseDuration = Duration(milliseconds: 5200);
-  static const storeDuration = Duration(milliseconds: 13000);
+  /// Assez long pour lire la phrase tranquillement.
+  static const phaseDuration = Duration(milliseconds: 8000);
+  static const storeDuration = StoreShowcase.total;
 
   @override
   State<WelcomeScreen> createState() => _WelcomeScreenState();
@@ -231,6 +234,13 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       const _Header(),
+                      const SizedBox(height: 14),
+                      Align(
+                        alignment: compact
+                            ? Alignment.center
+                            : Alignment.centerLeft,
+                        child: _DiscoverPill(onTap: _openLanguages),
+                      ),
                       Expanded(
                         child: compact
                             ? _CompactStage(
@@ -280,35 +290,114 @@ class _Header extends StatelessWidget {
   Widget build(BuildContext context) {
     final p = context.palette;
     final appearance = AppearanceScope.of(context);
+    final compact = MediaQuery.sizeOf(context).width < 760;
+
+    final controls = <Widget>[
+      QuickDock(compact: MediaQuery.sizeOf(context).width < 760),
+      const SizedBox(width: 12),
+      // Langue de l'accueil (anglais par défaut) avant le choix du passager.
+      PillButton(
+        // Sur téléphone, un libellé court pour que tout tienne dans la barre.
+        label: SessionScope.of(context).displayLocale.languageCode == 'en'
+            ? (MediaQuery.sizeOf(context).width < 760 ? 'FR' : 'Français')
+            : (MediaQuery.sizeOf(context).width < 760 ? 'EN' : 'English'),
+        filled: false,
+        onTap: SessionScope.of(context).togglePreferred,
+        trailing: const Icon(AppIcons.translate),
+      ),
+      const SizedBox(width: 12),
+      LiquidIconButton(
+        icon: context.isDark ? AppIcons.sun : AppIcons.moon,
+        onTap: appearance.toggle,
+      ),
+    ];
+
     return Row(
       children: [
         const RoadLogo(size: 40),
         const SizedBox(width: 12),
-        Expanded(
-          child: Text(
-            'Ride with Yan',
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: AppText.display(26, color: p.text),
+        // Sur téléphone, les commandes rétrécissent ensemble pour tenir
+        // dans la barre au lieu d'être coupées.
+        if (compact)
+          Expanded(
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerRight,
+              child: Row(mainAxisSize: MainAxisSize.min, children: controls),
+            ),
+          )
+        else ...[
+          Expanded(
+            child: Text(
+              'Ride with Yan',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: AppText.display(26, color: p.text),
+            ),
+          ),
+          ...controls,
+        ],
+      ],
+    );
+  }
+}
+
+/// Invitation rouge qui bat, sous le nom de l'app : "Découvrez cette
+/// application, faite par moi". Un toucher lance la visite.
+class _DiscoverPill extends StatelessWidget {
+  const _DiscoverPill({required this.onTap});
+
+  final VoidCallback onTap;
+
+  static const _red = Color(0xFFE5342B);
+
+  @override
+  Widget build(BuildContext context) {
+    final english = SessionScope.of(context).displayLocale.languageCode == 'en';
+    return Pressable(
+      onTap: onTap,
+      child: Heartbeat(
+        color: _red,
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(8, 8, 20, 8),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(999),
+            gradient: const LinearGradient(
+              colors: [Color(0xFFFF5A4D), _red, Color(0xFFB8171A)],
+            ),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.35)),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 34,
+                height: 34,
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white,
+                ),
+                child: const Icon(AppIcons.handTap, size: 19, color: _red),
+              ),
+              const SizedBox(width: 12),
+              Flexible(
+                child: Text(
+                  english
+                      ? 'Discover this app, built by me'
+                      : 'Découvrez cette application, faite par moi',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppText.body(
+                    16,
+                    weight: FontWeight.w700,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
-        QuickDock(compact: MediaQuery.sizeOf(context).width < 760),
-        const SizedBox(width: 12),
-        // Langue de l'accueil (anglais par défaut) avant le choix du passager.
-        PillButton(
-          label: SessionScope.of(context).displayLocale.languageCode == 'en'
-              ? 'Français'
-              : 'English',
-          filled: false,
-          onTap: SessionScope.of(context).togglePreferred,
-          trailing: const Icon(AppIcons.translate),
-        ),
-        const SizedBox(width: 12),
-        LiquidIconButton(
-          icon: context.isDark ? AppIcons.sun : AppIcons.moon,
-          onTap: appearance.toggle,
-        ),
-      ],
+      ),
     );
   }
 }
