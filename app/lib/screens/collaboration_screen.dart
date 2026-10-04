@@ -13,6 +13,7 @@ import '../theme/app_icons.dart';
 import '../theme/app_theme.dart';
 import '../widgets/blueprint_mockup.dart';
 import '../widgets/glass.dart';
+import '../widgets/heartbeat.dart';
 import '../widgets/mesh_background.dart';
 import '../widgets/qr_card.dart';
 import '../widgets/section_scaffold.dart';
@@ -161,7 +162,10 @@ class _Showroom extends StatefulWidget {
 }
 
 class _ShowroomState extends State<_Showroom> {
-  static const _autoAdvance = Duration(seconds: 9);
+  /// Les reels durent 13 s : on leur laisse le temps de se terminer.
+  Duration get _autoAdvance => widget.tab.showcases.any((s) => s.reel != null)
+      ? const Duration(milliseconds: 13200)
+      : const Duration(seconds: 9);
 
   // Point de départ au hasard : chaque passager découvre une autre démo d'abord.
   late int _index = widget.tab.showcases.isEmpty
@@ -381,6 +385,40 @@ class _DeviceFrame extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final reel = showcase.reel;
+    if (reel != null) {
+      // Reel monté : plein cadre, sans barre de navigateur, avec un halo
+      // de la couleur du site qui bat doucement.
+      final poster = showcase.reelPoster ?? showcase.image;
+      return Center(
+        child: AspectRatio(
+          aspectRatio: 16 / 9,
+          child: TouchTilt(
+            child: Heartbeat(
+              radius: 24,
+              color: showcase.accent,
+              child: Container(
+                clipBehavior: Clip.antiAlias,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(
+                    color: showcase.accent.withValues(alpha: 0.55),
+                    width: 1.5,
+                  ),
+                ),
+                child: Transform.translate(
+                  offset: Offset(parallax * 60, 0),
+                  child: active
+                      ? _LoopingVideo(asset: reel, poster: poster)
+                      : Image.asset(poster, fit: BoxFit.cover),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
     final Widget content = showcase.video != null && active
         ? _LoopingVideo(asset: showcase.video!, poster: showcase.image)
         : _KenBurns(
@@ -628,11 +666,115 @@ class _Pitch extends StatelessWidget {
                 .animate()
                 .fadeIn(delay: (100 * i).ms, duration: 500.ms)
                 .slideX(begin: 0.06, delay: (100 * i).ms),
-          const SizedBox(height: 28),
+          const SizedBox(height: 14),
+          const _Steps(),
+          const SizedBox(height: 26),
           GlowButton(
             label: l10n.collabCta,
             icon: AppIcons.arrowRight,
             onTap: () => showContactSheet(context),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Les trois étapes d'une collaboration, reliées par un fil doré qui se
+/// dessine de gauche à droite.
+class _Steps extends StatelessWidget {
+  const _Steps();
+
+  @override
+  Widget build(BuildContext context) {
+    final p = context.palette;
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 14),
+      decoration: BoxDecoration(
+        color: p.glass,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: p.hairline),
+      ),
+      child: Stack(
+        children: [
+          // Fil entre les pastilles numérotées.
+          Positioned(
+            left: 40,
+            right: 40,
+            top: 16,
+            child:
+                Container(
+                  height: 2,
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [Brand.goldSoft, Brand.gold],
+                    ),
+                  ),
+                ).animate().scaleX(
+                  begin: 0,
+                  alignment: Alignment.centerLeft,
+                  delay: 500.ms,
+                  duration: 1100.ms,
+                  curve: AppMotion.emphasized,
+                ),
+          ),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              for (final (i, step) in collabSteps.indexed)
+                Expanded(
+                  child:
+                      Column(
+                            children: [
+                              Container(
+                                width: 34,
+                                height: 34,
+                                alignment: Alignment.center,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: Brand.gold,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Brand.gold.withValues(alpha: 0.5),
+                                      blurRadius: 16,
+                                    ),
+                                  ],
+                                ),
+                                child: Text(
+                                  '${i + 1}',
+                                  style: AppText.body(
+                                    15,
+                                    weight: FontWeight.w800,
+                                    color: Brand.ink,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 4,
+                                ),
+                                child: Text(
+                                  step.of(context),
+                                  textAlign: TextAlign.center,
+                                  style: AppText.body(
+                                    13,
+                                    weight: FontWeight.w600,
+                                    color: p.text,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          )
+                          .animate()
+                          .fadeIn(delay: (500 + 350 * i).ms, duration: 450.ms)
+                          .scaleXY(
+                            begin: 0.7,
+                            delay: (500 + 350 * i).ms,
+                            curve: AppMotion.spring,
+                          ),
+                ),
+            ],
           ),
         ],
       ),

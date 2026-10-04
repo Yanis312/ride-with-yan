@@ -16,12 +16,19 @@ class Showcase {
     required this.frame,
     required this.accent,
     this.video,
+    this.reel,
+    this.reelPoster,
   });
 
   final String title;
   final Bi kind;
   final String image;
   final String? video;
+
+  /// Vidéo de présentation montée (Remotion, dossier /video du dépôt) : elle
+  /// contient déjà ses propres écrans, donc s'affiche sans cadre de navigateur.
+  final String? reel;
+  final String? reelPoster;
   final ShowcaseFrame frame;
   final Color accent;
 }
@@ -50,6 +57,13 @@ class ServiceTab {
   final ShowcaseFrame frame;
 }
 
+/// Les étapes d'une collaboration, montrées sous l'argumentaire.
+const collabSteps = [
+  Bi('On en parle', 'We talk it over'),
+  Bi('Je vous montre une maquette', 'I show you a mockup'),
+  Bi('Mise en ligne', 'We go live'),
+];
+
 const serviceTabs = [
   ServiceTab(
     label: Bi('Sites web', 'Websites'),
@@ -73,7 +87,8 @@ const serviceTabs = [
         title: 'Maison Mokka',
         kind: Bi('Café et boulangerie', 'Coffee shop and bakery'),
         image: 'assets/showcase/mokka.jpg',
-        video: 'assets/showcase/mokka.mp4',
+        reel: 'assets/showcase/mokka-reel.mp4',
+        reelPoster: 'assets/showcase/mokka-reel.jpg',
         frame: ShowcaseFrame.browser,
         accent: Color(0xFFC98A4B),
       ),
@@ -81,7 +96,8 @@ const serviceTabs = [
         title: 'Atelier Nord',
         kind: Bi('Boutique de mode', 'Fashion boutique'),
         image: 'assets/showcase/atelier-nord.jpg',
-        video: 'assets/showcase/atelier-nord.mp4',
+        reel: 'assets/showcase/atelier-nord-reel.mp4',
+        reelPoster: 'assets/showcase/atelier-nord-reel.jpg',
         frame: ShowcaseFrame.browser,
         accent: Color(0xFFD2552B),
       ),
@@ -89,7 +105,8 @@ const serviceTabs = [
         title: 'Noir Tailor',
         kind: Bi('Prêt-à-porter de luxe', 'Luxury menswear'),
         image: 'assets/showcase/noir-tailor.jpg',
-        video: 'assets/showcase/noir-tailor.mp4',
+        reel: 'assets/showcase/noir-tailor-reel.mp4',
+        reelPoster: 'assets/showcase/noir-tailor-reel.jpg',
         frame: ShowcaseFrame.browser,
         accent: Color(0xFFC9A36A),
       ),
@@ -97,7 +114,8 @@ const serviceTabs = [
         title: 'VLT Active',
         kind: Bi('Vêtements de sport', 'Sportswear'),
         image: 'assets/showcase/vlt-active.jpg',
-        video: 'assets/showcase/vlt-active.mp4',
+        reel: 'assets/showcase/vlt-active-reel.mp4',
+        reelPoster: 'assets/showcase/vlt-active-reel.jpg',
         frame: ShowcaseFrame.browser,
         accent: Color(0xFFD4FF3A),
       ),
