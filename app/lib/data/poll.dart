@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:flutter/widgets.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../backend/backend.dart';
+import '../backend/remote_config.dart';
 import 'bilingual.dart';
 
 @immutable
@@ -133,6 +135,11 @@ const pollQuestions = [
 /// Question du jour : elle change chaque jour, la même pour tous les
 /// passagers d'une même journée.
 PollQuestion questionOfTheDay([DateTime? now]) {
+  // Question imposée depuis le panneau d'administration, s'il y en a une.
+  final forced = RemoteConfig.instance.setting('poll_question');
+  for (final q in pollQuestions) {
+    if (q.id == forced) return q;
+  }
   final date = now ?? DateTime.now();
   final day = date.difference(DateTime(date.year)).inDays;
   return pollQuestions[day % pollQuestions.length];
@@ -170,6 +177,25 @@ class PollStore extends ChangeNotifier {
     } catch (_) {
       // Stockage indisponible : le sondage marche quand même, sans mémoire.
     }
+    await syncFromBackend();
+  }
+
+  /// Reprend les totaux de la base en ligne (toutes les tablettes, tous les
+  /// passagers). Hors ligne, on garde les votes connus de cette tablette.
+  Future<void> syncFromBackend() async {
+    if (!Backend.enabled) return;
+    try {
+      final rows = await Backend.select('poll_votes');
+      _votes.clear();
+      for (final r in rows) {
+        _votes.putIfAbsent(r['question_id'] as String, () => {})[r['option_id']
+            as String] = (r['votes'] as num)
+            .toInt();
+      }
+      notifyListeners();
+    } catch (_) {
+      // Voir le commentaire de la méthode.
+    }
   }
 
   int count(PollQuestion q, PollOption o) => _votes[q.id]?[o.id] ?? 0;
@@ -196,6 +222,13 @@ class PollStore extends ChangeNotifier {
       await prefs.setString(_key, jsonEncode(_votes));
     } catch (_) {
       // Voir load().
+    }
+    if (Backend.enabled) {
+      try {
+        await Backend.rpc('cast_vote', {'question': q.id, 'choice': o.id});
+      } catch (_) {
+        // Hors ligne : le vote reste compté sur cette tablette.
+      }
     }
   }
 

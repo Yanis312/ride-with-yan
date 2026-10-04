@@ -1,4 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:ride_with_yan/backend/backend.dart';
+import 'package:ride_with_yan/backend/remote_config.dart';
+import 'package:ride_with_yan/data/store_catalog.dart';
 import 'package:ride_with_yan/data/news.dart';
 import 'package:ride_with_yan/data/poll.dart';
 import 'package:ride_with_yan/data/videos.dart';
@@ -6,6 +9,8 @@ import 'package:ride_with_yan/data/weather.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
+  setUpAll(() => Backend.offline = true);
+
   test('un fil RSS donne titre, résumé, image et date', () {
     final items = parseRss('''<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0"><channel><title>Fil</title>
@@ -93,5 +98,37 @@ void main() {
   test('aucune vidéo en double', () {
     final ids = [for (final c in videoCategories) ...c.videos.map((v) => v.id)];
     expect(ids.toSet(), hasLength(ids.length));
+  });
+
+  test("les réglages de l'administration s'appliquent au catalogue", () {
+    final remote = RemoteConfig.instance;
+    addTearDown(remote.setForTest);
+
+    remote.setForTest(
+      products: {
+        'chaussures-blanc': {
+          'price': 85,
+          'sizes': {'US 9': 4, 'US 99': 7},
+        },
+        'water': {'hidden': true},
+        'umbrella': {'stock': 9},
+      },
+      settings: {'poll_question': 'plat'},
+    );
+
+    final shoes = catalog.firstWhere((p) => p.id == 'chaussures-blanc');
+    expect(shoes.price, 85);
+    expect(shoes.stockOf('US 9'), 4);
+    expect(
+      shoes.sizes.containsKey('US 99'),
+      isFalse,
+    ); // taille inconnue ignorée
+    expect(shoes.stockOf('US 8'), 1); // taille non modifiée
+    expect(catalog.any((p) => p.id == 'water'), isFalse);
+    expect(catalog.firstWhere((p) => p.id == 'umbrella').stock, 9);
+    expect(questionOfTheDay().id, 'plat');
+
+    remote.setForTest();
+    expect(catalog.any((p) => p.id == 'water'), isTrue);
   });
 }

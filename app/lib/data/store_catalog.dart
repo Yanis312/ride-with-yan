@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 
+import '../backend/remote_config.dart';
 import '../theme/app_icons.dart';
 import 'bilingual.dart';
 
@@ -96,6 +97,31 @@ class Product {
 
   bool get hasSizes => sizes.isNotEmpty;
 
+  /// Le même article avec le prix et le stock saisis dans l'administration.
+  Product withOverride(Map<String, dynamic> o) => Product(
+    id: id,
+    name: name,
+    blurb: blurb,
+    price: (o['price'] as num?)?.toDouble() ?? price,
+    category: category,
+    icon: icon,
+    colors: colors,
+    brand: brand,
+    art: art,
+    // On ne garde que les tailles connues de l'app.
+    sizes: o['sizes'] is Map
+        ? {
+            for (final size in sizes.keys)
+              size:
+                  ((o['sizes'] as Map)[size] as num?)?.toInt() ?? sizes[size]!,
+          }
+        : sizes,
+    stock: (o['stock'] as num?)?.toInt() ?? stock,
+    photoCount: photoCount,
+    framed: framed,
+    details: details,
+  );
+
   /// Article revendu (neuf), par opposition aux essentiels.
   bool get isResale => category != ProductCategory.essentials;
 
@@ -144,7 +170,7 @@ const _shoeSizes = {'US 7': 1, 'US 8': 1, 'US 9': 1, 'US 10': 1, 'US 11': 1};
 
 /// Catalogue. Aucun nom de marque : les chaussures sont désignées par leur
 /// couleur. Tailles, quantités et prix sont à ajuster au vrai stock.
-const catalog = [
+const baseCatalog = [
   Product(
     id: 'chaussures-blanc',
     name: Bi('Blanc intégral', 'All white'),
@@ -370,6 +396,29 @@ const catalog = [
   ),
 ];
 
+List<Product>? _catalog;
+int _catalogRevision = -1;
+
+/// Catalogue affiché : celui de l'app, avec les prix, stocks et articles
+/// masqués décidés dans le panneau d'administration.
+List<Product> get catalog {
+  final remote = RemoteConfig.instance;
+  if (_catalog == null || _catalogRevision != remote.revision) {
+    _catalogRevision = remote.revision;
+    final products = <Product>[];
+    for (final p in baseCatalog) {
+      final o = remote.productOverride(p.id);
+      if (o == null) {
+        products.add(p);
+      } else if (o['hidden'] != true) {
+        products.add(p.withOverride(o));
+      }
+    }
+    _catalog = products;
+  }
+  return _catalog!;
+}
+
 /// Articles mis en avant dans la vitrine de l'écran de veille.
 List<Product> get featuredProducts => [
   for (final p in catalog)
@@ -407,7 +456,14 @@ class Cart extends ChangeNotifier {
 
   List<CartLine> get lines => [
     for (final e in _lines.entries)
-      CartLine(catalog.firstWhere((p) => p.id == e.key.$1), e.key.$2, e.value),
+      CartLine(
+        catalog.firstWhere(
+          (p) => p.id == e.key.$1,
+          orElse: () => baseCatalog.firstWhere((p) => p.id == e.key.$1),
+        ),
+        e.key.$2,
+        e.value,
+      ),
   ];
 
   bool get isEmpty => _lines.isEmpty;

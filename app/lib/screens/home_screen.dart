@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:intl/intl.dart';
 
+import '../backend/remote_config.dart';
 import '../data/bilingual.dart';
 import '../data/poll.dart';
 import '../data/store_catalog.dart';
@@ -28,8 +29,22 @@ import '../widgets/road_logo.dart';
 /// Lounge principal : grille "bento" asymétrique. Les deux cartes qui
 /// rapportent (ma boutique, services et collaborations) sont les plus
 /// grandes et les seules à briller.
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Nouveau passager : on reprend les prix, stocks et réglages à jour.
+    RemoteConfig.instance.refresh().then((_) {
+      if (mounted) setState(() {});
+    });
+  }
 
   @override
   Widget build(BuildContext context) {

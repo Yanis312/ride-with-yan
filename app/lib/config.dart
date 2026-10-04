@@ -14,6 +14,11 @@ abstract final class AppConfig {
   /// Volume maximal du coin musique (0 à 100) : jamais trop fort en conduisant.
   static const maxMusicVolume = 70;
 
+  /// Base en ligne (Supabase, plan gratuit) du panneau d'administration.
+  /// Cette clé est publique par nature : les droits sont gérés par la base.
+  static const supabaseUrl = 'https://jwwftxjbswpwtbkluslz.supabase.co';
+  static const supabaseKey = 'sb_publishable_HQyveAWuMCiS0PLoTFrJmg_Ga6v5rsp';
+
   static String? get whatsAppLink =>
       whatsAppNumber.isEmpty ? null : 'https://wa.me/$whatsAppNumber';
 }
