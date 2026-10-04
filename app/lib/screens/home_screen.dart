@@ -5,10 +5,16 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:intl/intl.dart';
 
 import '../data/bilingual.dart';
+import '../data/poll.dart';
 import '../data/store_catalog.dart';
+import '../data/weather.dart';
 import '../l10n/app_localizations.dart';
 import '../navigation/sections.dart';
 import '../session/session_controller.dart';
+import 'entertainment_screen.dart';
+import 'news_screen.dart';
+import 'poll_screen.dart';
+import 'weather_screen.dart';
 import '../theme/app_icons.dart';
 import '../theme/app_theme.dart';
 import '../theme/appearance_controller.dart';
@@ -57,13 +63,6 @@ class HomeScreen extends StatelessWidget {
       ),
     );
   }
-}
-
-void _comingSoon(BuildContext context, String title) {
-  final l10n = AppLocalizations.of(context);
-  ScaffoldMessenger.of(context)
-    ..hideCurrentSnackBar()
-    ..showSnackBar(SnackBar(content: Text('$title  ·  ${l10n.comingSoon}')));
 }
 
 // ---------------------------------------------------------------------------
@@ -341,18 +340,13 @@ class _Tiles {
     return _Tiles._(
       const _EntertainmentTile(),
       const _PollTile(),
-      _PhotoTile(
-        photo: 'assets/photos/city-london.jpg',
-        icon: AppIcons.cloudSun,
-        title: l10n.sectionWeather,
-        hint: l10n.sectionWeatherHint,
-        tint: const Color(0xFF0B2A5B),
-      ),
+      const _WeatherTile(),
       _PhotoTile(
         photo: 'assets/photos/news-paper.jpg',
         icon: AppIcons.newspaper,
         title: l10n.sectionNews,
         hint: l10n.sectionNewsHint,
+        onTap: () => openPage(context, const NewsScreen(), name: 'news'),
       ),
       const _StoreTile(),
       const _AboutTile(),
@@ -890,7 +884,8 @@ class _EntertainmentTile extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
 
     return Pressable(
-      onTap: () => _comingSoon(context, l10n.sectionEntertainment),
+      onTap: () =>
+          openPage(context, const EntertainmentScreen(), name: 'entertainment'),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(32),
         child: Stack(
@@ -981,7 +976,7 @@ class _PollTile extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
 
     return Pressable(
-      onTap: () => _comingSoon(context, l10n.sectionPoll),
+      onTap: () => openPage(context, const PollScreen(), name: 'poll'),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(32),
         child: Stack(
@@ -1016,7 +1011,7 @@ class _PollTile extends StatelessWidget {
                   ),
                   const Spacer(),
                   Text(
-                    l10n.pollQuestion,
+                    questionOfTheDay().question.of(context),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: AppText.display(
@@ -1067,6 +1062,52 @@ class _MiniBars extends StatelessWidget {
   }
 }
 
+/// Carte météo : la température de Montréal en direct, dès qu'elle arrive.
+class _WeatherTile extends StatefulWidget {
+  const _WeatherTile();
+
+  @override
+  State<_WeatherTile> createState() => _WeatherTileState();
+}
+
+class _WeatherTileState extends State<_WeatherTile> {
+  Weather? _weather = WeatherService.cached(places.first);
+
+  @override
+  void initState() {
+    super.initState();
+    if (_weather == null) {
+      WeatherService.fetch(places.first).then(
+        (w) {
+          if (mounted) setState(() => _weather = w);
+        },
+        // Sans réseau, la carte reste simplement sans température.
+        onError: (_) {},
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final weather = _weather;
+    return _PhotoTile(
+      photo: 'assets/photos/city-london.jpg',
+      icon: weather == null
+          ? AppIcons.cloudSun
+          : describeWeather(weather.code, isDay: weather.isDay).$2,
+      title: l10n.sectionWeather,
+      hint: weather == null
+          ? l10n.sectionWeatherHint
+          : '${places.first.name.of(context)} · '
+                '${describeWeather(weather.code, isDay: weather.isDay).$1.of(context)}',
+      badge: weather == null ? null : '${weather.temperature.round()}°',
+      tint: const Color(0xFF0B2A5B),
+      onTap: () => openPage(context, const WeatherScreen(), name: 'weather'),
+    );
+  }
+}
+
 /// Petite carte-photo : icône en haut, titre et sous-titre en bas.
 class _PhotoTile extends StatelessWidget {
   const _PhotoTile({
@@ -1074,19 +1115,25 @@ class _PhotoTile extends StatelessWidget {
     required this.icon,
     required this.title,
     required this.hint,
+    required this.onTap,
     this.tint = Colors.black,
+    this.badge,
   });
 
   final String photo;
   final IconData icon;
   final String title;
   final String hint;
+  final VoidCallback onTap;
   final Color tint;
+
+  /// Information en direct affichée en haut à droite (ex. la température).
+  final String? badge;
 
   @override
   Widget build(BuildContext context) {
     return Pressable(
-      onTap: () => _comingSoon(context, title),
+      onTap: onTap,
       child: ClipRRect(
         borderRadius: BorderRadius.circular(32),
         child: Stack(
@@ -1108,6 +1155,17 @@ class _PhotoTile extends StatelessWidget {
                     ),
                     child: Icon(icon, color: Colors.white, size: 22),
                   ),
+                  if (badge != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 10),
+                      child: Text(
+                        badge!,
+                        style: AppText.display(
+                          44,
+                          color: _ink,
+                        ).copyWith(height: 1),
+                      ),
+                    ),
                   const Spacer(),
                   FittedBox(
                     fit: BoxFit.scaleDown,

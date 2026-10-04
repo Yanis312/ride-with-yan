@@ -81,6 +81,7 @@ class SessionController extends ChangeNotifier {
   void reset() {
     _inactivityTimer?.cancel();
     _inactivityTimer = null;
+    _mediaPlaying = false;
     if (_locale == null) return;
     _locale = null;
     cart.clear();
@@ -88,9 +89,26 @@ class SessionController extends ChangeNotifier {
     notifyListeners();
   }
 
+  bool _mediaPlaying = false;
+
+  /// Délai sans toucher l'écran tant qu'une vidéo ou une chanson joue.
+  static const mediaTimeout = Duration(minutes: 20);
+
+  /// À appeler quand la lecture démarre ou s'arrête : pendant une vidéo, le
+  /// passager ne touche plus l'écran et la session ne doit pas se terminer
+  /// au bout du délai habituel.
+  void setMediaPlaying(bool playing) {
+    if (_mediaPlaying == playing) return;
+    _mediaPlaying = playing;
+    if (isActive) _restartTimer();
+  }
+
   void _restartTimer() {
     _inactivityTimer?.cancel();
-    _inactivityTimer = Timer(inactivityTimeout, reset);
+    _inactivityTimer = Timer(
+      _mediaPlaying ? mediaTimeout : inactivityTimeout,
+      reset,
+    );
   }
 
   @override

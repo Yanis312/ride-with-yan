@@ -23,18 +23,28 @@ void openSection(BuildContext context, Section section) {
   navigator.push(_sectionRoute(section));
 }
 
+/// Ouvre un écran du lounge (divertissement, actualités, météo, sondage)
+/// au-dessus de celui-ci, avec la même transition que les sections.
+void openPage(BuildContext context, Widget page, {required String name}) {
+  Navigator.of(context, rootNavigator: true).push(_fadeRoute(name, page));
+}
+
 Route<void> _sectionRoute(Section section) {
+  return _fadeRoute(section.name, switch (section) {
+    Section.music => const MusicScreen(),
+    Section.linkedin => const LinkedInScreen(),
+    Section.collaboration => const CollaborationScreen(),
+    Section.store => const StoreScreen(),
+    Section.ads => const AdsScreen(),
+  });
+}
+
+Route<void> _fadeRoute(String name, Widget page) {
   return PageRouteBuilder<void>(
-    settings: RouteSettings(name: section.name),
+    settings: RouteSettings(name: name),
     transitionDuration: const Duration(milliseconds: 650),
     reverseTransitionDuration: const Duration(milliseconds: 420),
-    pageBuilder: (context, _, _) => switch (section) {
-      Section.music => const MusicScreen(),
-      Section.linkedin => const LinkedInScreen(),
-      Section.collaboration => const CollaborationScreen(),
-      Section.store => const StoreScreen(),
-      Section.ads => const AdsScreen(),
-    },
+    pageBuilder: (context, _, _) => page,
     transitionsBuilder: (context, animation, _, child) {
       final curved = CurvedAnimation(
         parent: animation,

@@ -9,6 +9,7 @@ import '../data/bilingual.dart';
 import '../data/music.dart';
 import '../l10n/app_localizations.dart';
 import '../navigation/sections.dart';
+import '../session/session_controller.dart';
 import '../theme/app_icons.dart';
 import '../theme/app_theme.dart';
 import '../widgets/glass.dart';
@@ -48,7 +49,10 @@ class _MusicScreenState extends State<MusicScreen> {
     super.initState();
     _sub = _player.listen((v) {
       final playing = v.playerState == PlayerState.playing;
-      if (playing != _playing && mounted) setState(() => _playing = playing);
+      if (playing != _playing && mounted) {
+        setState(() => _playing = playing);
+        SessionScope.of(context).setMediaPlaying(playing);
+      }
       // Morceau terminé : on enchaîne sur le suivant de la sélection.
       if (v.playerState == PlayerState.ended) _step(1);
     });
@@ -59,8 +63,17 @@ class _MusicScreenState extends State<MusicScreen> {
     }
   }
 
+  SessionController? _session;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _session = SessionScope.of(context);
+  }
+
   @override
   void dispose() {
+    _session?.setMediaPlaying(false);
     _sub.cancel();
     _player.close();
     super.dispose();

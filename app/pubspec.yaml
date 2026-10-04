@@ -20,6 +20,9 @@ dependencies:
   flutter_map: ^8.3.2
   latlong2: ^0.10.1
   youtube_player_iframe: ^6.0.2
+  http: ^1.6.0
+  xml: ^7.1.0
+  shared_preferences: ^2.5.5
 dev_dependencies:
   flutter_test:
     sdk: flutter

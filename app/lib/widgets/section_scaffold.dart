@@ -15,14 +15,16 @@ class SectionScaffold extends StatelessWidget {
   const SectionScaffold({
     super.key,
     required this.scene,
-    required this.section,
+    this.section,
     required this.title,
     required this.child,
     this.trailing,
   });
 
   final Scene scene;
-  final Section section;
+
+  /// Section du dock à surligner ; aucune pour les écrans du lounge.
+  final Section? section;
   final String title;
   final Widget child;
 
