@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 
 import '../theme/app_icons.dart';
 import '../theme/app_theme.dart';
@@ -727,16 +728,24 @@ class _Finale extends StatelessWidget {
   }
 }
 
-/// Carte de commerce qui se retourne : la photo, puis l'adresse et les réseaux.
+/// Carte de commerce : la photo reste affichée, puis la carte se retourne
+/// d'un coup sec pour montrer le plan, l'adresse et l'offre.
 class _Ads extends StatelessWidget {
   const _Ads({required this.t, required this.size});
 
   final double t;
   final double size;
 
+  /// Demi-tours : chaque face reste posée, le retournement est bref.
+  static double _turns(double t) {
+    double flip(double from) =>
+        Curves.easeInOutCubic.transform(((t - from) / 0.12).clamp(0.0, 1.0));
+    return flip(0.38) + flip(0.88);
+  }
+
   @override
   Widget build(BuildContext context) {
-    final angle = t * 2 * math.pi;
+    final angle = _turns(t) * math.pi;
     final showBack = math.cos(angle) < 0;
     final card = showBack ? _AdBack(size: size) : _AdFront(size: size);
 
@@ -852,26 +861,32 @@ class _AdFront extends StatelessWidget {
   }
 }
 
+/// Dos de la carte : plan du quartier, coordonnées, offre et code QR.
 class _AdBack extends StatelessWidget {
   const _AdBack({required this.size});
 
   final double size;
 
+  static const _pink = Color(0xFFFF5C8A);
+
   @override
   Widget build(BuildContext context) {
-    final p = context.palette;
-    Widget line(IconData icon, double width) => Padding(
-      padding: const EdgeInsets.only(bottom: 14),
+    Widget line(IconData icon, String text) => Padding(
+      padding: const EdgeInsets.only(bottom: 9),
       child: Row(
         children: [
-          Icon(icon, size: 22, color: const Color(0xFFE1306C)),
-          const SizedBox(width: 12),
-          Container(
-            width: width,
-            height: 10,
-            decoration: BoxDecoration(
-              color: p.text.withValues(alpha: 0.18),
-              borderRadius: BorderRadius.circular(99),
+          Icon(icon, size: 17, color: _pink),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              text,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: AppText.body(
+                13,
+                weight: FontWeight.w500,
+                color: Colors.white,
+              ),
             ),
           ),
         ],
@@ -881,36 +896,157 @@ class _AdBack extends StatelessWidget {
     return Container(
       width: size * 0.78,
       height: size * 0.95,
-      padding: const EdgeInsets.all(24),
+      clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(30),
-        color: p.coreTop,
-        border: Border.all(
-          color: const Color(0xFFE1306C).withValues(alpha: 0.5),
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF2A1220), Color(0xFF0D0A10)],
         ),
+        border: Border.all(color: _pink.withValues(alpha: 0.45)),
+        boxShadow: [
+          BoxShadow(color: _pink.withValues(alpha: 0.4), blurRadius: 60),
+        ],
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          line(AppIcons.mapPin, size * 0.4),
-          line(AppIcons.phone, size * 0.3),
-          line(AppIcons.clock, size * 0.35),
-          line(AppIcons.instagram, size * 0.28),
-          const SizedBox(height: 8),
-          Container(
-            height: size * 0.22,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
-              gradient: LinearGradient(
-                colors: [
-                  const Color(0xFF3AA6FF).withValues(alpha: 0.35),
-                  const Color(0xFF7EE3A8).withValues(alpha: 0.35),
-                ],
-              ),
+          // Plan stylisé du quartier, avec l'épingle du commerce.
+          Expanded(
+            flex: 40,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                const CustomPaint(painter: _MiniMapPainter()),
+                Center(
+                  child: Container(
+                    padding: const EdgeInsets.all(9),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: _pink,
+                      boxShadow: [
+                        BoxShadow(
+                          color: _pink.withValues(alpha: 0.7),
+                          blurRadius: 22,
+                        ),
+                      ],
+                    ),
+                    child: const Icon(
+                      AppIcons.mapPin,
+                      size: 22,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+                Positioned(
+                  left: 14,
+                  top: 14,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 5,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.black54,
+                      borderRadius: BorderRadius.circular(99),
+                    ),
+                    child: Text(
+                      'À 4 MIN  ·  4 MIN AWAY',
+                      style: AppText.eyebrow(Colors.white)
+                          .copyWith(fontSize: 10),
+                    ),
+                  ),
+                ),
+              ],
             ),
-            child: const Center(
-              child: Icon(AppIcons.mapPin, size: 34, color: Color(0xFFE1306C)),
+          ),
+          Expanded(
+            flex: 60,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(18, 14, 18, 16),
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.topLeft,
+                child: SizedBox(
+                  width: 300,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'Sushi Kumo',
+                        style: AppText.display(26, color: Colors.white),
+                      ),
+                      const SizedBox(height: 10),
+                      line(AppIcons.mapPin, '123, rue Exemple, Montréal'),
+                      line(AppIcons.clock, '11 h – 23 h  ·  11 am – 11 pm'),
+                      line(AppIcons.phone, '514 000-0000'),
+                      const SizedBox(height: 6),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 12,
+                              ),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(16),
+                                gradient: const LinearGradient(
+                                  colors: [Color(0xFFFFE08A), Brand.gold],
+                                ),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      const Icon(
+                                        AppIcons.gift,
+                                        size: 16,
+                                        color: Brand.ink,
+                                      ),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        'OFFRE  ·  OFFER',
+                                        style: AppText.eyebrow(Brand.ink)
+                                            .copyWith(fontSize: 10),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    '−10 % avec Ride with Yan',
+                                    style: AppText.body(
+                                      14,
+                                      weight: FontWeight.w700,
+                                      color: Brand.ink,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: QrImageView(
+                              data: 'Sushi Kumo · exemple Ride with Yan',
+                              size: 58,
+                              padding: EdgeInsets.zero,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ),
           ),
         ],
@@ -919,7 +1055,88 @@ class _AdBack extends StatelessWidget {
   }
 }
 
-/// Vinyle qui tourne, étiquette dorée : la chanson préférée de Yanis.
+/// Plan de quartier dessiné : îlots, rues, une avenue et l'itinéraire.
+class _MiniMapPainter extends CustomPainter {
+  const _MiniMapPainter();
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final w = size.width;
+    final h = size.height;
+    canvas.drawRect(
+      Offset.zero & size,
+      Paint()..color = const Color(0xFF16222B),
+    );
+
+    // Îlots : grille légèrement penchée, comme les rues de Montréal.
+    canvas.save();
+    canvas.translate(w / 2, h / 2);
+    canvas.rotate(-0.28);
+    final block = Paint()..color = const Color(0xFF223440);
+    const step = 46.0;
+    for (var x = -w; x < w; x += step) {
+      for (var y = -h; y < h; y += step * 0.72) {
+        canvas.drawRRect(
+          RRect.fromRectAndRadius(
+            Rect.fromLTWH(x + 3, y + 3, step - 6, step * 0.72 - 6),
+            const Radius.circular(4),
+          ),
+          block,
+        );
+      }
+    }
+    // Un parc et une grande avenue.
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(-w * 0.42, -h * 0.2, step * 2 - 6, step * 1.44 - 6),
+        const Radius.circular(6),
+      ),
+      Paint()..color = const Color(0xFF1F4A3A),
+    );
+    canvas.drawRect(
+      Rect.fromLTWH(-w, step * 0.72 - 5, w * 2, 10),
+      Paint()..color = const Color(0xFF3A4E5C),
+    );
+    canvas.restore();
+
+    // Itinéraire du taxi jusqu'au commerce.
+    final route = Path()
+      ..moveTo(w * 0.06, h * 0.92)
+      ..quadraticBezierTo(w * 0.2, h * 0.55, w * 0.38, h * 0.62)
+      ..quadraticBezierTo(w * 0.48, h * 0.66, w * 0.5, h * 0.5);
+    canvas.drawPath(
+      route,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 4
+        ..strokeCap = StrokeCap.round
+        ..color = Brand.gold,
+    );
+    canvas.drawCircle(
+      Offset(w * 0.06, h * 0.92),
+      5,
+      Paint()..color = Brand.gold,
+    );
+
+    // Fondu vers le bas de la carte.
+    canvas.drawRect(
+      Offset.zero & size,
+      Paint()
+        ..shader = const LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Color(0x00120C14), Color(0xFF160E18)],
+          stops: [0.6, 1],
+        ).createShader(Offset.zero & size),
+    );
+  }
+
+  @override
+  bool shouldRepaint(_MiniMapPainter oldDelegate) => false;
+}
+
+/// Vinyle qui tourne : la chanson préférée de Yanis, avec une photo de
+/// concert du groupe sur l'étiquette (licence CC BY, créditée dessous).
 class _Vinyl extends StatelessWidget {
   const _Vinyl({required this.t, required this.size});
 
@@ -928,86 +1145,138 @@ class _Vinyl extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final d = size * 0.82;
-    return Center(
-      child: Transform.rotate(
-        angle: t * 2 * math.pi * 2,
-        child: Container(
-          width: d,
-          height: d,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            gradient: const SweepGradient(
-              colors: [
-                Color(0xFF0B0B0F),
-                Color(0xFF2A2D36),
-                Color(0xFF0B0B0F),
-                Color(0xFF23262E),
-                Color(0xFF0B0B0F),
-              ],
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: const Color(0xFF8A9BB8).withValues(alpha: 0.35),
-                blurRadius: 60,
-              ),
-            ],
+    final p = context.palette;
+    final d = size * 0.78;
+
+    final disc = Container(
+      width: d,
+      height: d,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: const SweepGradient(
+          colors: [
+            Color(0xFF0B0B0F),
+            Color(0xFF2A2D36),
+            Color(0xFF0B0B0F),
+            Color(0xFF23262E),
+            Color(0xFF0B0B0F),
+          ],
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF8A9BB8).withValues(alpha: 0.35),
+            blurRadius: 60,
           ),
-          child: Stack(
-            alignment: Alignment.center,
-            children: [
-              // Sillons du disque.
-              for (var i = 1; i <= 6; i++)
-                Container(
-                  width: d * (0.42 + i * 0.09),
-                  height: d * (0.42 + i * 0.09),
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.05),
-                    ),
-                  ),
-                ),
-              Container(
-                width: d * 0.38,
-                height: d * 0.38,
-                alignment: Alignment.center,
-                padding: EdgeInsets.all(d * 0.04),
-                decoration: const BoxDecoration(
+        ],
+      ),
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          // Sillons du disque.
+          for (var i = 1; i <= 5; i++)
+            Container(
+              width: d * (0.56 + i * 0.08),
+              height: d * (0.56 + i * 0.08),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+              ),
+            ),
+          // Étiquette : photo de concert cerclée d'or.
+          Container(
+            width: d * 0.54,
+            height: d * 0.54,
+            padding: EdgeInsets.all(d * 0.012),
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: LinearGradient(colors: [Brand.goldSoft, Brand.gold]),
+            ),
+            child: ClipOval(
+              child: Image.asset(
+                'assets/photos/metallica-live.jpg',
+                fit: BoxFit.cover,
+              ),
+            ),
+          ),
+          Container(
+            width: d * 0.035,
+            height: d * 0.035,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: const Color(0xFF0B0B0F),
+              border: Border.all(color: Brand.gold, width: 1.5),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Stack(
+          alignment: Alignment.center,
+          children: [
+            // Un tour par boucle : assez lent pour reconnaître la photo.
+            RepaintBoundary(
+              child: Transform.rotate(angle: t * 2 * math.pi, child: disc),
+            ),
+            // Reflet fixe : c'est le disque qui tourne dessous, pas la lumière.
+            IgnorePointer(
+              child: Container(
+                width: d,
+                height: d,
+                decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   gradient: LinearGradient(
-                    colors: [Brand.goldSoft, Brand.gold],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Colors.white.withValues(alpha: 0.16),
+                      Colors.transparent,
+                      Colors.transparent,
+                      Colors.white.withValues(alpha: 0.08),
+                    ],
+                    stops: const [0, 0.35, 0.7, 1],
                   ),
                 ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      'Nothing Else Matters',
-                      textAlign: TextAlign.center,
-                      style: AppText.display(d * 0.045, color: Brand.ink),
-                    ),
-                    SizedBox(height: d * 0.01),
-                    Text(
-                      'METALLICA',
-                      style: AppText.eyebrow(Brand.ink)
-                          .copyWith(fontSize: d * 0.026),
-                    ),
-                  ],
-                ),
               ),
-              Container(
-                width: d * 0.035,
-                height: d * 0.035,
-                decoration: const BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Color(0xFF0B0B0F),
+            ),
+          ],
+        ),
+        SizedBox(height: size * 0.035),
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            decoration: BoxDecoration(
+              color: Colors.black.withValues(alpha: 0.55),
+              borderRadius: BorderRadius.circular(99),
+              border: Border.all(color: Brand.gold.withValues(alpha: 0.5)),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(AppIcons.music, size: 16, color: Brand.gold),
+                const SizedBox(width: 8),
+                Text(
+                  'Nothing Else Matters  ·  Metallica',
+                  style: AppText.body(
+                    14,
+                    weight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
-      ),
+        const SizedBox(height: 4),
+        Text(
+          'Photo : Alberto Cabello · CC BY 2.0',
+          style: AppText.body(9, color: p.textMuted),
+        ),
+      ],
     );
   }
 }

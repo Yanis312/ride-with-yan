@@ -4,3 +4,7 @@ projector F07E9C9CA2, theatre M46KG27B0X, news-paper FT18I6U09O, news-business 3
 city-montreal FB6D3F13E4, city-tokyo 1ZJSU7ORAZ, city-paris XYA2D7ONMG, city-barcelona F04956C7DE,
 city-london Q5F4Y33RNK, city-amsterdam DRAIDVOPDD, ad-sushi BBD3AU9NSR, ad-sushi-2 R6DB535ZZA,
 ad-cafe THXU08ODDE.
+
+metallica-live.jpg : « James Hetfield Madrid 2009 », photo d'Alberto Cabello (Vitoria-Gasteiz),
+licence CC BY 2.0, recadrée. Source : https://commons.wikimedia.org/wiki/File:James_Hetfield_Madrid_2009.jpg
+Le crédit doit rester affiché sous le disque (écran de veille, phase musique).
