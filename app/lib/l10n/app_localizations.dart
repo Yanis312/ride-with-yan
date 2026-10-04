@@ -155,7 +155,7 @@ abstract class AppLocalizations {
   /// No description provided for @sectionStoreHint.
   ///
   /// In fr, this message translates to:
-  /// **'Air Force 1 et maillots de foot, neufs et authentiques'**
+  /// **'Chaussures et maillots de foot, neufs'**
   String get sectionStoreHint;
 
   /// No description provided for @sectionWeather.
@@ -323,7 +323,7 @@ abstract class AppLocalizations {
   /// No description provided for @storeSubtitle.
   ///
   /// In fr, this message translates to:
-  /// **'Sneakers, maillots et petits essentiels, payés par Interac.'**
+  /// **'Chaussures, maillots et petits essentiels, payés par Interac.'**
   String get storeSubtitle;
 
   /// No description provided for @addToCart.

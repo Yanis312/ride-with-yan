@@ -29,25 +29,32 @@ void main() {
     expect(cart.isEmpty, isTrue);
   });
 
-  final af1 = catalog.firstWhere((p) => p.id == 'af1-blanc');
+  final shoes = catalog.firstWhere((p) => p.id == 'chaussures-blanc');
 
   test('une ligne par taille, stock propre à chaque taille', () {
     final cart = Cart()
-      ..add(af1, 'US 9')
-      ..add(af1, 'US 10');
+      ..add(shoes, 'US 9')
+      ..add(shoes, 'US 10');
     expect(cart.lines, hasLength(2));
-    expect(cart.total, af1.price * 2);
+    expect(cart.total, shoes.price * 2);
 
     for (var i = 0; i < 5; i++) {
-      cart.add(af1, 'US 9');
+      cart.add(shoes, 'US 9');
     }
-    expect(cart.quantityOf(af1, 'US 9'), af1.stockOf('US 9'));
+    expect(cart.quantityOf(shoes, 'US 9'), shoes.stockOf('US 9'));
   });
 
   test("une taille épuisée ne s'ajoute pas", () {
-    final cart = Cart()..add(af1, 'US 12');
-    expect(af1.stockOf('US 12'), 0);
+    final jersey = catalog.firstWhere((p) => p.id == 'maillot-exterieur');
+    final cart = Cart()..add(jersey, 'S');
+    expect(jersey.stockOf('S'), 0);
     expect(cart.isEmpty, isTrue);
+  });
+
+  test('aucun nom de marque dans le catalogue', () {
+    for (final p in catalog) {
+      expect(p.brand, isNull);
+    }
   });
 
   test('la vitrine ne montre que les articles revendus en stock', () {

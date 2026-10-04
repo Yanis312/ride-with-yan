@@ -490,8 +490,11 @@ class _StoreTileState extends State<_StoreTile> {
                                 alignment: Alignment.centerLeft,
                                 child: Row(
                                   children: [
-                                    for (final (i, p)
-                                        in _products.take(4).indexed)
+                                    for (final (i, p) in productWindow(
+                                      _products,
+                                      _index,
+                                      4,
+                                    ))
                                       AnimatedContainer(
                                         duration: AppMotion.medium,
                                         curve: AppMotion.spring,
@@ -594,15 +597,12 @@ class _StoreStage extends StatelessWidget {
       child: Stack(
         children: [
           Positioned.fill(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(24, 50, 24, 62),
-              child: swap(
-                Transform.rotate(
-                  angle: product.art?.kind == ArtKind.sneaker ? productTilt : 0,
-                  child: ProductVisual(product: product),
-                ),
-                slide: true,
+            child: swap(
+              ProductFigure(
+                product: product,
+                padding: const EdgeInsets.fromLTRB(24, 50, 24, 62),
               ),
+              slide: !product.framed,
             ),
           ),
           Positioned(
@@ -620,10 +620,7 @@ class _StoreStage extends StatelessWidget {
                   const Icon(AppIcons.sealCheck, size: 14, color: Colors.white),
                   const SizedBox(width: 6),
                   Text(
-                    const Bi(
-                      'Neuf · Authentique',
-                      'New · Authentic',
-                    ).of(context),
+                    const Bi('Neuf', 'New').of(context),
                     style: AppText.eyebrow(Colors.white).copyWith(fontSize: 10),
                   ),
                 ],

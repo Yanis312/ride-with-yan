@@ -57,8 +57,8 @@ const _phases = [
       ('Jetez un œil à ma boutique.', 'Take a look at my shop.'),
     ],
     note: (
-      'Air Force 1 et maillots de foot, neufs et authentiques. Payez par Interac.',
-      'Air Force 1s and football jerseys, new and authentic. Pay with Interac.',
+      'Chaussures et maillots de foot, neufs. Payez par Interac.',
+      'Shoes and football jerseys, brand new. Pay with Interac.',
     ),
     duration: WelcomeScreen.storeDuration,
   ),

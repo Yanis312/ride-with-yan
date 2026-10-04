@@ -104,46 +104,58 @@ class _StoreShowcaseState extends State<StoreShowcase> {
                 ),
               ),
             ),
-            // Ombre au sol : se resserre quand l'article monte.
-            Positioned(
-              left: s * (0.2 + 0.03 * bob),
-              right: s * (0.34 + 0.03 * bob),
-              top: s * 0.58,
-              height: s * 0.05,
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.all(
-                    Radius.elliptical(s, s * 0.05),
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.45 - 0.1 * bob),
-                      blurRadius: s * 0.04,
+            // Photo de studio : elle remplit la vitrine, au-dessus de la carte
+            // d'infos. Sinon l'article flotte au-dessus de son ombre.
+            if (product.framed)
+              Positioned(
+                left: 0,
+                right: 0,
+                top: 0,
+                bottom: s * 0.16,
+                child: _swap(product, ProductFigure(product: product)),
+              )
+            else ...[
+              // Ombre au sol : se resserre quand l'article monte.
+              Positioned(
+                left: s * (0.2 + 0.03 * bob),
+                right: s * (0.34 + 0.03 * bob),
+                top: s * 0.58,
+                height: s * 0.05,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.all(
+                      Radius.elliptical(s, s * 0.05),
                     ),
-                  ],
-                ),
-              ),
-            ),
-            // L'article, qui entre par la droite et flotte.
-            Positioned(
-              left: s * 0.07,
-              right: s * (small ? 0.07 : 0.2),
-              top: s * 0.12,
-              height: s * 0.46,
-              child: Transform.translate(
-                offset: Offset(0, -s * 0.02 * (bob + 1)),
-                child: _swap(
-                  product,
-                  Transform.rotate(
-                    angle: product.art?.kind == ArtKind.sneaker
-                        ? productTilt
-                        : 0,
-                    child: ProductVisual(product: product, shadow: false),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.45 - 0.1 * bob),
+                        blurRadius: s * 0.04,
+                      ),
+                    ],
                   ),
-                  slide: true,
                 ),
               ),
-            ),
+              // L'article, qui entre par la droite et flotte.
+              Positioned(
+                left: s * 0.07,
+                right: s * (small ? 0.07 : 0.2),
+                top: s * 0.12,
+                height: s * 0.46,
+                child: Transform.translate(
+                  offset: Offset(0, -s * 0.02 * (bob + 1)),
+                  child: _swap(
+                    product,
+                    Transform.rotate(
+                      angle: product.art?.kind == ArtKind.sneaker
+                          ? productTilt
+                          : 0,
+                      child: ProductVisual(product: product, shadow: false),
+                    ),
+                    slide: true,
+                  ),
+                ),
+              ),
+            ],
             Positioned(
               left: 16,
               top: 16,
@@ -159,10 +171,10 @@ class _StoreShowcaseState extends State<StoreShowcase> {
                   const Spacer(),
                   _Pill(
                     label: const Bi(
-                      'Neuf · Authentique',
-                      'New · Authentic',
+                      'Payez par Interac',
+                      'Pay with Interac',
                     ).of(context),
-                    icon: AppIcons.sealCheck,
+                    icon: AppIcons.check,
                   ),
                 ],
               ),
@@ -174,7 +186,7 @@ class _StoreShowcaseState extends State<StoreShowcase> {
                 top: s * 0.15,
                 child: Column(
                   children: [
-                    for (final (i, p) in _products.indexed)
+                    for (final (i, p) in productWindow(_products, _index, 5))
                       AnimatedContainer(
                         duration: AppMotion.medium,
                         curve: AppMotion.spring,
@@ -235,9 +247,8 @@ class _StoreShowcaseState extends State<StoreShowcase> {
   }
 
   static String _bigWord(Product p) => switch (p.art?.kind) {
-    ArtKind.sneaker => 'AF1',
     ArtKind.jersey => 'KIT',
-    null => p.category.label.en.toUpperCase(),
+    _ => p.category.label.en.toUpperCase(),
   };
 }
 

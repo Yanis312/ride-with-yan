@@ -4,7 +4,7 @@ import '../theme/app_icons.dart';
 import 'bilingual.dart';
 
 enum ProductCategory {
-  sneakers(Bi('Sneakers', 'Sneakers'), AppIcons.sneaker),
+  sneakers(Bi('Chaussures', 'Shoes'), AppIcons.sneaker),
   jerseys(Bi('Maillots', 'Jerseys'), AppIcons.tShirt),
   essentials(Bi('Essentiels', 'Essentials'), AppIcons.batteryCharging);
 
@@ -66,6 +66,7 @@ class Product {
     this.sizes = const {},
     this.stock = 5,
     this.photoCount = 0,
+    this.framed = false,
     this.details = const [],
   });
 
@@ -87,15 +88,20 @@ class Product {
   /// Stock d'un article sans taille.
   final int stock;
   final int photoCount;
+
+  /// Photos de studio gardées entières (.jpg, affichées plein cadre) plutôt
+  /// que détourées sur fond transparent (.png).
+  final bool framed;
   final List<Bi> details;
 
   bool get hasSizes => sizes.isNotEmpty;
 
-  /// Article revendu (neuf, authentique), par opposition aux essentiels.
+  /// Article revendu (neuf), par opposition aux essentiels.
   bool get isResale => category != ProductCategory.essentials;
 
   List<String> get photos => [
-    for (var i = 1; i <= photoCount; i++) 'assets/products/$id-$i.png',
+    for (var i = 1; i <= photoCount; i++)
+      'assets/products/$id-$i.${framed ? 'jpg' : 'png'}',
   ];
 
   int stockOf([String? size]) {
@@ -112,62 +118,174 @@ class Product {
 
 /// Mention légale affichée dans la boutique.
 const resellerNotice = Bi(
-  'Revendeur indépendant · articles neufs et authentiques. '
-      'Non affilié aux marques citées.',
-  'Independent reseller · new, authentic items. '
-      'Not affiliated with the brands mentioned.',
+  'Revendeur indépendant · articles neufs. Non affilié à une marque.',
+  'Independent reseller · new items. Not affiliated with any brand.',
 );
 
 const _sneakerDetails = [
-  Bi('Neuve, jamais portée, dans sa boîte', 'New, never worn, in the box'),
-  Bi('Authentique, facture d’achat conservée', 'Authentic, receipt on file'),
+  Bi('Neuves, jamais portées', 'New, never worn'),
+  Bi('Paiement par virement Interac', 'Pay by Interac e-Transfer'),
   Bi('Remise en main propre, ici même', 'Handed to you right here'),
 ];
 
 const _jerseyDetails = [
-  Bi('Neuf, étiquettes attachées', 'New, tags attached'),
-  Bi('Authentique, facture d’achat conservée', 'Authentic, receipt on file'),
+  Bi('Neuf, jamais porté', 'New, never worn'),
+  Bi('Paiement par virement Interac', 'Pay by Interac e-Transfer'),
   Bi('Remise en main propre, ici même', 'Handed to you right here'),
 ];
 
-/// Catalogue de départ. Les sneakers et maillots sont des exemples à ajuster
-/// (tailles, quantités, prix) dès que les articles sont achetés.
+const _shoeBlurb = Bi('Chaussures basses · neuves', 'Low-top shoes · new');
+
+/// Couleurs du fond de studio des photos (texte sombre par-dessus).
+const _studio = [Color(0xFFD5D9E0), Color(0xFF9AA2AE)];
+
+/// Tailles et quantités provisoires : à remplacer par le vrai stock.
+const _shoeSizes = {'US 7': 1, 'US 8': 1, 'US 9': 1, 'US 10': 1, 'US 11': 1};
+
+/// Catalogue. Aucun nom de marque : les chaussures sont désignées par leur
+/// couleur. Tailles, quantités et prix sont à ajuster au vrai stock.
 const catalog = [
   Product(
-    id: 'af1-blanc',
-    brand: 'Nike',
-    name: Bi('Air Force 1 ’07', 'Air Force 1 ’07'),
-    blurb: Bi('Blanc intégral · cuir', 'Triple white · leather'),
+    id: 'chaussures-blanc',
+    name: Bi('Blanc intégral', 'All white'),
+    blurb: _shoeBlurb,
     price: 100,
     category: ProductCategory.sneakers,
     icon: AppIcons.sneaker,
-    colors: [Color(0xFF3A3F4B), Color(0xFF0E1015)],
-    art: ProductArt.sneaker(base: Color(0xFFF6F4EF), accent: Color(0xFFEDEAE3)),
-    sizes: {
-      'US 7': 1,
-      'US 8': 2,
-      'US 9': 2,
-      'US 10': 2,
-      'US 11': 1,
-      'US 12': 0,
-    },
+    colors: _studio,
+    sizes: _shoeSizes,
+    photoCount: 1,
+    framed: true,
     details: _sneakerDetails,
   ),
   Product(
-    id: 'af1-noir',
-    brand: 'Nike',
-    name: Bi('Air Force 1 ’07', 'Air Force 1 ’07'),
-    blurb: Bi('Noir intégral · cuir', 'Triple black · leather'),
+    id: 'chaussures-blanc-noir',
+    name: Bi('Blanc et noir', 'White and black'),
+    blurb: _shoeBlurb,
     price: 100,
     category: ProductCategory.sneakers,
     icon: AppIcons.sneaker,
-    colors: [Color(0xFFE8E1D3), Color(0xFF9A8B70)],
-    art: ProductArt.sneaker(
-      base: Color(0xFF1E1E21),
-      accent: Color(0xFF2B2B2F),
-      sole: Color(0xFF1A1A1C),
-    ),
-    sizes: {'US 8': 1, 'US 9': 2, 'US 10': 1, 'US 11': 1},
+    colors: _studio,
+    sizes: _shoeSizes,
+    photoCount: 1,
+    framed: true,
+    details: _sneakerDetails,
+  ),
+  Product(
+    id: 'chaussures-blanc-noir-or',
+    name: Bi('Blanc, noir et or', 'White, black and gold'),
+    blurb: _shoeBlurb,
+    price: 100,
+    category: ProductCategory.sneakers,
+    icon: AppIcons.sneaker,
+    colors: _studio,
+    sizes: _shoeSizes,
+    photoCount: 1,
+    framed: true,
+    details: _sneakerDetails,
+  ),
+  Product(
+    id: 'chaussures-blanc-gris',
+    name: Bi('Blanc et gris', 'White and grey'),
+    blurb: _shoeBlurb,
+    price: 100,
+    category: ProductCategory.sneakers,
+    icon: AppIcons.sneaker,
+    colors: _studio,
+    sizes: _shoeSizes,
+    photoCount: 1,
+    framed: true,
+    details: _sneakerDetails,
+  ),
+  Product(
+    id: 'chaussures-camel',
+    name: Bi('Camel', 'Wheat'),
+    blurb: _shoeBlurb,
+    price: 100,
+    category: ProductCategory.sneakers,
+    icon: AppIcons.sneaker,
+    colors: _studio,
+    sizes: _shoeSizes,
+    photoCount: 1,
+    framed: true,
+    details: _sneakerDetails,
+  ),
+  Product(
+    id: 'chaussures-blanc-lacets-noirs',
+    name: Bi('Blanc, lacets noirs', 'White, black laces'),
+    blurb: _shoeBlurb,
+    price: 100,
+    category: ProductCategory.sneakers,
+    icon: AppIcons.sneaker,
+    colors: _studio,
+    sizes: _shoeSizes,
+    photoCount: 1,
+    framed: true,
+    details: _sneakerDetails,
+  ),
+  Product(
+    id: 'chaussures-noir-blanc',
+    name: Bi('Noir et blanc', 'Black and white'),
+    blurb: _shoeBlurb,
+    price: 100,
+    category: ProductCategory.sneakers,
+    icon: AppIcons.sneaker,
+    colors: _studio,
+    sizes: _shoeSizes,
+    photoCount: 1,
+    framed: true,
+    details: _sneakerDetails,
+  ),
+  Product(
+    id: 'chaussures-noir',
+    name: Bi('Noir intégral', 'All black'),
+    blurb: _shoeBlurb,
+    price: 100,
+    category: ProductCategory.sneakers,
+    icon: AppIcons.sneaker,
+    colors: _studio,
+    sizes: _shoeSizes,
+    photoCount: 1,
+    framed: true,
+    details: _sneakerDetails,
+  ),
+  Product(
+    id: 'chaussures-blanc-vert',
+    name: Bi('Blanc et vert, nœud rouge', 'White and green, red knot'),
+    blurb: _shoeBlurb,
+    price: 100,
+    category: ProductCategory.sneakers,
+    icon: AppIcons.sneaker,
+    colors: _studio,
+    sizes: _shoeSizes,
+    photoCount: 1,
+    framed: true,
+    details: _sneakerDetails,
+  ),
+  Product(
+    id: 'chaussures-blanc-rouge',
+    name: Bi('Blanc, semelle rouge', 'White, red sole'),
+    blurb: _shoeBlurb,
+    price: 100,
+    category: ProductCategory.sneakers,
+    icon: AppIcons.sneaker,
+    colors: _studio,
+    sizes: _shoeSizes,
+    photoCount: 1,
+    framed: true,
+    details: _sneakerDetails,
+  ),
+  Product(
+    id: 'chaussures-creme-menthe',
+    name: Bi('Crème et menthe', 'Cream and mint'),
+    blurb: _shoeBlurb,
+    price: 100,
+    category: ProductCategory.sneakers,
+    icon: AppIcons.sneaker,
+    colors: _studio,
+    sizes: _shoeSizes,
+    photoCount: 1,
+    framed: true,
     details: _sneakerDetails,
   ),
   Product(
@@ -257,6 +375,19 @@ List<Product> get featuredProducts => [
   for (final p in catalog)
     if (p.isResale && p.stockOf() > 0) p,
 ];
+
+/// Fenêtre de [size] articles contenant l'article n° [index], chacun avec
+/// sa position dans [all] (pour les rangées de miniatures).
+Iterable<(int, Product)> productWindow(
+  List<Product> all,
+  int index,
+  int size,
+) sync* {
+  final start = (index ~/ size) * size;
+  for (var i = start; i < all.length && i < start + size; i++) {
+    yield (i, all[i]);
+  }
+}
 
 /// Une ligne du panier : un article, et sa taille s'il en a une.
 @immutable

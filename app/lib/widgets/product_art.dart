@@ -5,9 +5,8 @@ import 'package:flutter/material.dart';
 
 import '../data/store_catalog.dart';
 
-/// Visuel d'un article : la vraie photo détourée quand elle existe
-/// (`assets/products/<id>-<n>.png`), sinon une illustration dessinée,
-/// sans aucun logo, en attendant les photos.
+/// Visuel d'un article : sa photo quand elle existe (détourée en .png, ou
+/// photo de studio entière en .jpg), sinon une illustration dessinée.
 class ProductVisual extends StatelessWidget {
   const ProductVisual({
     super.key,
@@ -27,11 +26,22 @@ class ProductVisual extends StatelessWidget {
     final photos = product.photos;
     final Widget visual;
     if (photos.isNotEmpty) {
-      visual = Image.asset(
-        photos[photo % photos.length],
-        fit: BoxFit.contain,
-        filterQuality: FilterQuality.medium,
-      );
+      visual = product.framed
+          ? ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Image.asset(
+                photos[photo % photos.length],
+                fit: BoxFit.cover,
+                width: double.infinity,
+                height: double.infinity,
+                filterQuality: FilterQuality.medium,
+              ),
+            )
+          : Image.asset(
+              photos[photo % photos.length],
+              fit: BoxFit.contain,
+              filterQuality: FilterQuality.medium,
+            );
     } else if (product.art case final art?) {
       visual = CustomPaint(
         painter: ProductArtPainter(art, shadow: shadow),
@@ -49,6 +59,47 @@ class ProductVisual extends StatelessWidget {
       );
     }
     return RepaintBoundary(child: visual);
+  }
+}
+
+/// Article posé dans sa vitrine : une photo de studio remplit toute la zone ;
+/// une illustration ou une photo détourée garde une marge et, pour les
+/// chaussures dessinées, une légère inclinaison.
+class ProductFigure extends StatelessWidget {
+  const ProductFigure({
+    super.key,
+    required this.product,
+    this.padding = EdgeInsets.zero,
+    this.photo = 0,
+    this.shadow = true,
+  });
+
+  final Product product;
+  final EdgeInsets padding;
+  final int photo;
+  final bool shadow;
+
+  @override
+  Widget build(BuildContext context) {
+    final photos = product.photos;
+    if (product.framed && photos.isNotEmpty) {
+      return Image.asset(
+        photos[photo % photos.length],
+        fit: BoxFit.cover,
+        // Cadre un peu vers le haut : les deux chaussures restent visibles.
+        alignment: const Alignment(0, -0.3),
+        width: double.infinity,
+        height: double.infinity,
+        filterQuality: FilterQuality.medium,
+      );
+    }
+    return Padding(
+      padding: padding,
+      child: Transform.rotate(
+        angle: product.art?.kind == ArtKind.sneaker ? productTilt : 0,
+        child: ProductVisual(product: product, photo: photo, shadow: shadow),
+      ),
+    );
   }
 }
 

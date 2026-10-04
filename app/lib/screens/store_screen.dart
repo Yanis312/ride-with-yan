@@ -375,7 +375,7 @@ class _Tag extends StatelessWidget {
   }
 }
 
-const _newAuthentic = Bi('Neuf · Authentique', 'New · Authentic');
+const _newTag = Bi('Neuf', 'New');
 
 class _ProductCard extends StatelessWidget {
   const _ProductCard({required this.product, required this.cart});
@@ -409,13 +409,11 @@ class _ProductCard extends StatelessWidget {
                 child: Stack(
                   children: [
                     Positioned.fill(
-                      child: Padding(
-                        padding: const EdgeInsets.fromLTRB(18, 34, 18, 14),
-                        child: Transform.rotate(
-                          angle: product.art?.kind == ArtKind.sneaker
-                              ? productTilt
-                              : 0,
-                          child: ProductVisual(product: product),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(22),
+                        child: ProductFigure(
+                          product: product,
+                          padding: const EdgeInsets.fromLTRB(18, 34, 18, 14),
                         ),
                       ),
                     ),
@@ -424,7 +422,7 @@ class _ProductCard extends StatelessWidget {
                         left: 10,
                         top: 10,
                         child: _Tag(
-                          label: _newAuthentic.of(context),
+                          label: _newTag.of(context),
                           icon: AppIcons.sealCheck,
                         ),
                       ),
@@ -751,11 +749,8 @@ class _Gallery extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final count = math.max(1, product.photos.length);
-    final word =
-        (product.art?.kind == ArtKind.jersey
-                ? product.art?.number ?? product.category.label.en
-                : product.name.en.split(' ').take(2).join(' '))
-            .toUpperCase();
+    final word = (product.art?.number ?? product.category.label.en)
+        .toUpperCase();
 
     return _Stage(
       product: product,
@@ -784,12 +779,10 @@ class _Gallery extends StatelessWidget {
             PageView.builder(
               itemCount: count,
               onPageChanged: onPage,
-              itemBuilder: (context, i) => Padding(
+              itemBuilder: (context, i) => ProductFigure(
+                product: product,
+                photo: i,
                 padding: const EdgeInsets.fromLTRB(36, 56, 36, 48),
-                child: Transform.rotate(
-                  angle: product.art?.kind == ArtKind.sneaker ? productTilt : 0,
-                  child: ProductVisual(product: product, photo: i),
-                ),
               ),
             ),
             if (product.isResale)
@@ -797,7 +790,7 @@ class _Gallery extends StatelessWidget {
                 left: 16,
                 top: 16,
                 child: _Tag(
-                  label: _newAuthentic.of(context),
+                  label: _newTag.of(context),
                   icon: AppIcons.sealCheck,
                 ),
               ),
