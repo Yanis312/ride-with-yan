@@ -149,13 +149,13 @@ abstract class AppLocalizations {
   /// No description provided for @sectionStore.
   ///
   /// In fr, this message translates to:
-  /// **'Boutique'**
+  /// **'Ma boutique'**
   String get sectionStore;
 
   /// No description provided for @sectionStoreHint.
   ///
   /// In fr, this message translates to:
-  /// **'Petits articles à bord'**
+  /// **'Air Force 1 et maillots de foot, neufs et authentiques'**
   String get sectionStoreHint;
 
   /// No description provided for @sectionWeather.
@@ -287,7 +287,7 @@ abstract class AppLocalizations {
   /// No description provided for @dockStore.
   ///
   /// In fr, this message translates to:
-  /// **'Boutique'**
+  /// **'Ma boutique'**
   String get dockStore;
 
   /// No description provided for @back.
@@ -317,7 +317,7 @@ abstract class AppLocalizations {
   /// No description provided for @storeTitle.
   ///
   /// In fr, this message translates to:
-  /// **'Boutique à bord'**
+  /// **'Ma boutique'**
   String get storeTitle;
 
   /// No description provided for @storeSubtitle.

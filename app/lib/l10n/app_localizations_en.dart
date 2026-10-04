@@ -34,10 +34,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sectionPollHint => 'Vote and see the results';
 
   @override
-  String get sectionStore => 'Store';
+  String get sectionStore => 'My store';
 
   @override
-  String get sectionStoreHint => 'Small items on board';
+  String get sectionStoreHint =>
+      'Air Force 1s and football jerseys, new and authentic';
 
   @override
   String get sectionWeather => 'Weather';
@@ -103,7 +104,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dockCollab => 'Collaborations';
 
   @override
-  String get dockStore => 'Store';
+  String get dockStore => 'My store';
 
   @override
   String get back => 'Back';
@@ -118,7 +119,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get collabDemoBadge => 'Demo built by Yanis';
 
   @override
-  String get storeTitle => 'Onboard store';
+  String get storeTitle => 'My store';
 
   @override
   String get storeSubtitle =>

@@ -34,10 +34,11 @@ class AppLocalizationsFr extends AppLocalizations {
   String get sectionPollHint => 'Votez et voyez les résultats';
 
   @override
-  String get sectionStore => 'Boutique';
+  String get sectionStore => 'Ma boutique';
 
   @override
-  String get sectionStoreHint => 'Petits articles à bord';
+  String get sectionStoreHint =>
+      'Air Force 1 et maillots de foot, neufs et authentiques';
 
   @override
   String get sectionWeather => 'Météo';
@@ -103,7 +104,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get dockCollab => 'Collaborations';
 
   @override
-  String get dockStore => 'Boutique';
+  String get dockStore => 'Ma boutique';
 
   @override
   String get back => 'Retour';
@@ -118,7 +119,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get collabDemoBadge => 'Démo réalisée par Yanis';
 
   @override
-  String get storeTitle => 'Boutique à bord';
+  String get storeTitle => 'Ma boutique';
 
   @override
   String get storeSubtitle =>

@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:ride_with_yan/screens/store_screen.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:ride_with_yan/theme/app_icons.dart';
 import 'package:ride_with_yan/app.dart';
@@ -81,12 +82,12 @@ void main() {
       addTearDown(session.dispose);
       await pumpApp(tester, session);
 
-      await tester.tap(find.text('Store'));
+      await tester.tap(find.text('My store'));
       await tester.pump(const Duration(seconds: 2));
       await tester.pump();
 
       expect(session.isActive, isTrue);
-      expect(find.text('Onboard store'), findsOneWidget);
+      expect(find.byType(StoreScreen), findsOneWidget);
       await endSession(tester, session);
     },
   );
