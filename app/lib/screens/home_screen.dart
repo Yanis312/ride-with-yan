@@ -840,17 +840,19 @@ class _AboutTile extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    Flexible(
-                      child: FractionallySizedBox(
-                        widthFactor: 0.6,
+                    // Une seule ligne, qui rétrécit plutôt que d'être coupée.
+                    FractionallySizedBox(
+                      widthFactor: 0.64,
+                      alignment: Alignment.centerLeft,
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
                         alignment: Alignment.centerLeft,
                         child: Text(
                           const Bi(
                             'Sites web · Applications · Automatisation',
                             'Websites · Apps · Automation',
                           ).of(context),
-                          maxLines: 3,
-                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
                           style: AppText.body(
                             15,
                             weight: FontWeight.w400,
