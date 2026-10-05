@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:shared_preferences/shared_preferences.dart';
+
 import '../backend/backend.dart';
 import '../backend/remote_config.dart';
 import '../config.dart';
@@ -29,6 +31,7 @@ class _AdminAppState extends State<AdminApp> {
   void initState() {
     super.initState();
     _session.addListener(_check);
+    _restoreTheme();
     _session.restore().whenComplete(() {
       if (mounted) setState(() => _ready = true);
     });
@@ -70,23 +73,21 @@ class _AdminAppState extends State<AdminApp> {
       home = AdminHome(session: _session);
     }
 
-    return MaterialApp(
-      title: 'Ride with Yan · Admin',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        useMaterial3: true,
-        brightness: Brightness.dark,
-        fontFamily: AppFonts.sans,
-        scaffoldBackgroundColor: const Color(0xFF0B0B0F),
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Brand.gold,
-          brightness: Brightness.dark,
-          primary: Brand.gold,
-          onPrimary: Brand.ink,
-          surface: const Color(0xFF15161B),
-        ),
+    return ValueListenableBuilder<bool?>(
+      valueListenable: _darkMode,
+      builder: (context, dark, _) => MaterialApp(
+        title: 'Ride with Yan · Admin',
+        debugShowCheckedModeBanner: false,
+        theme: _adminTheme(Brightness.light),
+        darkTheme: _adminTheme(Brightness.dark),
+        // Sans choix de Yanis, on suit le réglage du téléphone.
+        themeMode: switch (dark) {
+          null => ThemeMode.system,
+          true => ThemeMode.dark,
+          false => ThemeMode.light,
+        },
+        home: home,
       ),
-      home: home,
     );
   }
 }
@@ -99,6 +100,80 @@ String _french(String message) => switch (message) {
   'User already registered' => 'Ce compte existe déjà : connectez-vous.',
   _ => message,
 };
+
+/// Mode sombre choisi par Yanis (null : celui du téléphone), gardé en mémoire.
+final _darkMode = ValueNotifier<bool?>(null);
+const _darkKey = 'admin_dark_mode';
+
+Future<void> _restoreTheme() async {
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    _darkMode.value = prefs.getBool(_darkKey);
+  } catch (_) {
+    // Stockage indisponible : on suit le téléphone.
+  }
+}
+
+Future<void> _toggleTheme(BuildContext context) async {
+  final dark = Theme.of(context).brightness != Brightness.dark;
+  _darkMode.value = dark;
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_darkKey, dark);
+  } catch (_) {
+    // Voir _restoreTheme().
+  }
+}
+
+ThemeData _adminTheme(Brightness brightness) {
+  final dark = brightness == Brightness.dark;
+  return ThemeData(
+    useMaterial3: true,
+    brightness: brightness,
+    fontFamily: AppFonts.sans,
+    scaffoldBackgroundColor: dark
+        ? const Color(0xFF0B0B0F)
+        : const Color(0xFFF4F3EF),
+    colorScheme: ColorScheme.fromSeed(
+      seedColor: Brand.gold,
+      brightness: brightness,
+      // Sur fond clair, l'or vif se lit mal : on prend sa version foncée.
+      primary: dark ? Brand.gold : Brand.goldDeep,
+      onPrimary: dark ? Brand.ink : Colors.white,
+      surface: dark ? const Color(0xFF15161B) : Colors.white,
+      onSurface: dark ? Colors.white : Brand.ink,
+    ),
+    // Les boutons principaux restent or vif, texte noir, dans les deux modes.
+    filledButtonTheme: FilledButtonThemeData(
+      style: FilledButton.styleFrom(
+        backgroundColor: Brand.gold,
+        foregroundColor: Brand.ink,
+      ),
+    ),
+  );
+}
+
+/// Couleurs de texte et de filets qui suivent le mode clair ou sombre.
+extension on BuildContext {
+  Color get ink => Theme.of(this).colorScheme.onSurface;
+  Color get inkMuted => ink.withValues(alpha: 0.62);
+  Color get line => ink.withValues(alpha: 0.16);
+}
+
+/// Bouton soleil / lune pour changer de mode.
+class _ThemeButton extends StatelessWidget {
+  const _ThemeButton();
+
+  @override
+  Widget build(BuildContext context) {
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    return IconButton(
+      tooltip: dark ? 'Mode clair' : 'Mode sombre',
+      onPressed: () => _toggleTheme(context),
+      icon: Icon(dark ? AppIcons.sun : AppIcons.moon),
+    );
+  }
+}
 
 void _toast(BuildContext context, String message, {bool error = false}) {
   ScaffoldMessenger.of(context)
@@ -171,18 +246,26 @@ class _LoginPageState extends State<_LoginPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Icon(AppIcons.lockKey, size: 44, color: Brand.gold),
+                  const Align(
+                    alignment: Alignment.centerRight,
+                    child: _ThemeButton(),
+                  ),
+                  Icon(
+                    AppIcons.lockKey,
+                    size: 44,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
                   const SizedBox(height: 12),
                   Text(
                     'Administration',
                     textAlign: TextAlign.center,
-                    style: AppText.display(40, color: Colors.white),
+                    style: AppText.display(40, color: context.ink),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     'Ride with Yan',
                     textAlign: TextAlign.center,
-                    style: AppText.body(15, color: Colors.white60),
+                    style: AppText.body(15, color: context.inkMuted),
                   ),
                   const SizedBox(height: 28),
                   TextField(
@@ -265,17 +348,17 @@ class _DeniedPage extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(AppIcons.lockKey, size: 48, color: Colors.white54),
+              Icon(AppIcons.lockKey, size: 48, color: context.inkMuted),
               const SizedBox(height: 14),
               Text(
                 'Ce compte n’a pas accès à l’administration.',
                 textAlign: TextAlign.center,
-                style: AppText.body(17, color: Colors.white),
+                style: AppText.body(17, color: context.ink),
               ),
               const SizedBox(height: 6),
               Text(
                 session.email ?? '',
-                style: AppText.body(14, color: Colors.white60),
+                style: AppText.body(14, color: context.inkMuted),
               ),
               const SizedBox(height: 20),
               OutlinedButton(
@@ -320,9 +403,10 @@ class AdminHomeState extends State<AdminHome> {
         appBar: AppBar(
           title: Text(
             'Administration',
-            style: AppText.display(26, color: Colors.white),
+            style: AppText.display(26, color: context.ink),
           ),
           actions: [
+            const _ThemeButton(),
             IconButton(
               tooltip: 'Recharger',
               onPressed: () => setState(() => _loading = _load()),
@@ -381,7 +465,7 @@ class _ProductsTab extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(4, 0, 4, 12),
             child: Text(
               'Les changements apparaissent sur la tablette au passager suivant.',
-              style: AppText.body(13, color: Colors.white60),
+              style: AppText.body(13, color: context.inkMuted),
             ),
           );
         }
@@ -483,7 +567,7 @@ class _ProductEditorState extends State<_ProductEditor> {
       margin: const EdgeInsets.only(bottom: 12),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
-        side: BorderSide(color: _dirty ? Brand.gold : Colors.white12),
+        side: BorderSide(color: _dirty ? Brand.gold : context.line),
       ),
       child: Padding(
         padding: const EdgeInsets.all(14),
@@ -512,12 +596,12 @@ class _ProductEditorState extends State<_ProductEditor> {
                         style: AppText.body(
                           16,
                           weight: FontWeight.w700,
-                          color: Colors.white,
+                          color: context.ink,
                         ),
                       ),
                       Text(
                         '${product.category.label.fr} · $total en stock',
-                        style: AppText.body(13, color: Colors.white60),
+                        style: AppText.body(13, color: context.inkMuted),
                       ),
                     ],
                   ),
@@ -572,7 +656,7 @@ class _ProductEditorState extends State<_ProductEditor> {
                 Expanded(
                   child: Text(
                     _hidden ? 'Masqué' : 'Visible',
-                    style: AppText.body(14, color: Colors.white70),
+                    style: AppText.body(14, color: context.inkMuted),
                   ),
                 ),
                 FilledButton(
@@ -606,7 +690,7 @@ class _Counter extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(12, 2, 2, 2),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.white24),
+        border: Border.all(color: context.line),
         color: value == 0 ? const Color(0x33B3261E) : null,
       ),
       child: Row(
@@ -617,7 +701,7 @@ class _Counter extends StatelessWidget {
             style: AppText.body(
               13,
               weight: FontWeight.w600,
-              color: Colors.white70,
+              color: context.inkMuted,
             ),
           ),
           IconButton(
@@ -633,7 +717,7 @@ class _Counter extends StatelessWidget {
               style: AppText.body(
                 16,
                 weight: FontWeight.w700,
-                color: Colors.white,
+                color: context.ink,
               ),
             ),
           ),
@@ -769,13 +853,13 @@ class _PollTabState extends State<_PollTab> {
                             style: AppText.body(
                               16,
                               weight: FontWeight.w700,
-                              color: Colors.white,
+                              color: context.ink,
                             ),
                           ),
                         ),
                         Text(
                           '${_store.total(q)} vote${_store.total(q) > 1 ? 's' : ''}',
-                          style: AppText.body(13, color: Colors.white60),
+                          style: AppText.body(13, color: context.inkMuted),
                         ),
                       ],
                     ),
@@ -791,7 +875,10 @@ class _PollTabState extends State<_PollTab> {
                                 o.label.fr,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style: AppText.body(14, color: Colors.white70),
+                                style: AppText.body(
+                                  14,
+                                  color: context.inkMuted,
+                                ),
                               ),
                             ),
                             Expanded(
@@ -800,7 +887,7 @@ class _PollTabState extends State<_PollTab> {
                                 child: LinearProgressIndicator(
                                   value: _store.share(q, o),
                                   minHeight: 8,
-                                  backgroundColor: Colors.white12,
+                                  backgroundColor: context.line,
                                 ),
                               ),
                             ),
@@ -812,7 +899,7 @@ class _PollTabState extends State<_PollTab> {
                                 style: AppText.body(
                                   14,
                                   weight: FontWeight.w700,
-                                  color: Colors.white,
+                                  color: context.ink,
                                 ),
                               ),
                             ),
