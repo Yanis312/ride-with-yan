@@ -25,6 +25,16 @@ class SceneVignette extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // La vitrine de la boutique s'anime toute seule (pages) : inutile de la
+    // reconstruire à chaque image de la boucle.
+    if (scene == Scene.store) {
+      return RepaintBoundary(
+        child: SizedBox.square(
+          dimension: size,
+          child: StoreShowcase(t: 0, size: size),
+        ),
+      );
+    }
     return RepaintBoundary(
       child: SizedBox.square(
         dimension: size,

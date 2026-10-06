@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:http/http.dart' as http;
 import 'package:xml/xml.dart';
@@ -93,9 +94,12 @@ abstract final class NewsService {
     } catch (_) {
       // Dans un navigateur, certains fils refusent l'accès direct : on passe
       // alors par un relais public qui les convertit en JSON.
+      // Sur la tablette, l'échec vient du réseau : inutile d'attendre
+      // une seconde fois par le relais.
+      if (!kIsWeb) rethrow;
       items = await _viaRelay(feedUrl);
     }
-    _cache[feedUrl] = (DateTime.now(), items);
+    if (items.isNotEmpty) _cache[feedUrl] = (DateTime.now(), items);
     return items;
   }
 

@@ -82,7 +82,10 @@ class SessionController extends ChangeNotifier {
     _inactivityTimer?.cancel();
     _inactivityTimer = null;
     _mediaPlaying = false;
+    _paying = false;
     if (_locale == null) return;
+    // Le passager suivant retrouve la langue d'accueil par défaut.
+    _preferred = const Locale('en');
     _locale = null;
     cart.clear();
     _generation++;
@@ -92,7 +95,21 @@ class SessionController extends ChangeNotifier {
   bool _mediaPlaying = false;
 
   /// Délai sans toucher l'écran tant qu'une vidéo ou une chanson joue.
-  static const mediaTimeout = Duration(minutes: 20);
+  /// Plus long que la plus longue vidéo proposée (30 min).
+  static const mediaTimeout = Duration(minutes: 45);
+
+  bool _paying = false;
+
+  /// Délai pendant un paiement ou une commande : le passager est sur son
+  /// téléphone, en train de faire son virement ou d'écrire sur WhatsApp.
+  static const payingTimeout = Duration(minutes: 6);
+
+  /// À appeler quand l'écran de paiement (ou de commande) s'ouvre ou se ferme.
+  void setPaying(bool paying) {
+    if (_paying == paying) return;
+    _paying = paying;
+    if (isActive) _restartTimer();
+  }
 
   /// À appeler quand la lecture démarre ou s'arrête : pendant une vidéo, le
   /// passager ne touche plus l'écran et la session ne doit pas se terminer
@@ -105,10 +122,10 @@ class SessionController extends ChangeNotifier {
 
   void _restartTimer() {
     _inactivityTimer?.cancel();
-    _inactivityTimer = Timer(
-      _mediaPlaying ? mediaTimeout : inactivityTimeout,
-      reset,
-    );
+    final delay = _mediaPlaying
+        ? mediaTimeout
+        : (_paying ? payingTimeout : inactivityTimeout);
+    _inactivityTimer = Timer(delay, reset);
   }
 
   @override

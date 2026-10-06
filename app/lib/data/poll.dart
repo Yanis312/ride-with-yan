@@ -156,6 +156,9 @@ class PollStore extends ChangeNotifier {
   final Map<String, Map<String, int>> _votes = {};
   bool _loaded = false;
 
+  /// Votes pas encore envoyés à la base (question, réponse).
+  final List<(String, String)> _pending = [];
+
   /// Passager (numéro de session) qui a déjà voté, par question.
   final Map<String, int> _votedBy = {};
 
@@ -185,6 +188,15 @@ class PollStore extends ChangeNotifier {
   Future<void> syncFromBackend() async {
     if (!Backend.enabled) return;
     try {
+      // D'abord les votes restés sur la tablette faute de réseau.
+      while (_pending.isNotEmpty) {
+        final (question, choice) = _pending.first;
+        await Backend.rpc('cast_vote', {
+          'question': question,
+          'choice': choice,
+        });
+        _pending.removeAt(0);
+      }
       final rows = await Backend.select('poll_votes');
       _votes.clear();
       for (final r in rows) {
@@ -227,7 +239,9 @@ class PollStore extends ChangeNotifier {
       try {
         await Backend.rpc('cast_vote', {'question': q.id, 'choice': o.id});
       } catch (_) {
-        // Hors ligne : le vote reste compté sur cette tablette.
+        // Hors ligne : le vote est gardé et renvoyé à la prochaine
+        // synchronisation.
+        _pending.add((q.id, o.id));
       }
     }
   }
@@ -237,5 +251,6 @@ class PollStore extends ChangeNotifier {
   void clear() {
     _votes.clear();
     _votedBy.clear();
+    _pending.clear();
   }
 }

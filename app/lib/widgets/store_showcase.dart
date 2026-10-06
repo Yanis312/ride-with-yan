@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:intl/intl.dart';
 
+import '../backend/remote_config.dart';
 import '../data/bilingual.dart';
 import '../data/store_catalog.dart';
 import '../navigation/sections.dart';
@@ -32,7 +33,7 @@ class StoreShowcase extends StatefulWidget {
 }
 
 class _StoreShowcaseState extends State<StoreShowcase> {
-  final _products = featuredProducts;
+  List<Product> _products = featuredProducts;
   int _page = 0;
   Timer? _timer;
 
@@ -41,6 +42,12 @@ class _StoreShowcaseState extends State<StoreShowcase> {
   @override
   void initState() {
     super.initState();
+    RemoteConfig.instance.addListener(_onConfig);
+    _schedule();
+  }
+
+  void _schedule() {
+    _timer?.cancel();
     if (_pages > 1) {
       _timer = Timer.periodic(StoreShowcase.total ~/ _pages, (_) {
         if (mounted) setState(() => _page = (_page + 1) % _pages);
@@ -48,8 +55,19 @@ class _StoreShowcaseState extends State<StoreShowcase> {
     }
   }
 
+  /// Catalogue modifié depuis l'administration pendant la diapo.
+  void _onConfig() {
+    if (!mounted) return;
+    setState(() {
+      _products = featuredProducts;
+      _page = _pages == 0 ? 0 : _page % _pages;
+    });
+    _schedule();
+  }
+
   @override
   void dispose() {
+    RemoteConfig.instance.removeListener(_onConfig);
     _timer?.cancel();
     super.dispose();
   }

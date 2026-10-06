@@ -80,7 +80,11 @@ class SectionScaffold extends StatelessWidget {
                       onTap: appearance.toggle,
                     ),
                     const SizedBox(width: 12),
-                    QuickDock(current: section, compact: compact),
+                    QuickDock(
+                      current: section,
+                      // Icônes seules sous 1100 px : le titre garde sa place.
+                      compact: MediaQuery.sizeOf(context).width < 1100,
+                    ),
                   ],
                 ).animate().fadeIn(
                   duration: AppMotion.medium,

@@ -41,6 +41,7 @@ class _MusicScreenState extends State<MusicScreen> {
 
   Track _current = yanFavorite;
   bool _playing = false;
+  bool _wasEnded = false;
   int _volume = AppConfig.maxMusicVolume;
   Bi? _mood;
 
@@ -52,9 +53,13 @@ class _MusicScreenState extends State<MusicScreen> {
       if (playing != _playing && mounted) {
         setState(() => _playing = playing);
         SessionScope.of(context).setMediaPlaying(playing);
+        // Le plafond de volume vaut aussi pour la toute première lecture.
+        if (playing) _player.setVolume(_volume);
       }
       // Morceau terminé : on enchaîne sur le suivant de la sélection.
-      if (v.playerState == PlayerState.ended) _step(1);
+      final ended = v.playerState == PlayerState.ended;
+      if (ended && !_wasEnded && mounted) _step(1);
+      _wasEnded = ended;
     });
     if (widget.autoPlayFavorite) {
       _play(yanFavorite);
@@ -86,6 +91,7 @@ class _MusicScreenState extends State<MusicScreen> {
   Future<void> _play(Track track) async {
     setState(() => _current = track);
     await _player.loadVideoById(videoId: track.videoId);
+    if (!mounted) return;
     await _player.setVolume(_volume);
   }
 

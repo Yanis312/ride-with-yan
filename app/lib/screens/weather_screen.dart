@@ -59,10 +59,21 @@ class _WeatherScreenState extends State<WeatherScreen> {
             child: FutureBuilder<Weather>(
               future: _weather,
               builder: (context, snapshot) {
+                // Pendant un nouvel essai, on montre le chargement, pas
+                // l'ancienne erreur.
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(
+                    child: CircularProgressIndicator(color: Brand.gold),
+                  );
+                }
                 if (snapshot.hasError) {
                   return _Offline(onRetry: () => _select(_place));
                 }
                 final weather = snapshot.data;
+                if (weather != null &&
+                    (weather.days.isEmpty || weather.hours.isEmpty)) {
+                  return _Offline(onRetry: () => _select(_place));
+                }
                 if (snapshot.connectionState != ConnectionState.done ||
                     weather == null) {
                   return const Center(

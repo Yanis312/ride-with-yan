@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:intl/intl.dart';
 
+import '../backend/remote_config.dart';
 import '../config.dart';
 import '../data/bilingual.dart';
 import '../data/store_catalog.dart';
@@ -41,6 +42,22 @@ class _StoreScreenState extends State<StoreScreen> {
   ProductCategory? _category;
 
   @override
+  void initState() {
+    super.initState();
+    RemoteConfig.instance.addListener(_onConfig);
+  }
+
+  void _onConfig() {
+    if (mounted) setState(() {});
+  }
+
+  @override
+  void dispose() {
+    RemoteConfig.instance.removeListener(_onConfig);
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final cart = SessionScope.of(context).cart;
@@ -58,7 +75,8 @@ class _StoreScreenState extends State<StoreScreen> {
       key: ValueKey(_category),
       products: products,
       cart: cart,
-      columns: compact ? 2 : 3,
+      // Trois colonnes seulement quand il y a vraiment la place.
+      columns: MediaQuery.sizeOf(context).width < 1150 ? 2 : 3,
     );
     final panel = _CartPanel(cart: cart);
 
@@ -241,35 +259,44 @@ class _CartBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListenableBuilder(
       listenable: cart,
-      builder: (context, _) => AnimatedScale(
-        scale: cart.isEmpty ? 0 : 1,
-        duration: AppMotion.medium,
-        curve: AppMotion.spring,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(999),
-            gradient: const LinearGradient(
-              colors: [Brand.goldSoft, Brand.gold],
-            ),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(AppIcons.shoppingBag, size: 20, color: Brand.ink),
-              const SizedBox(width: 8),
-              Text(
-                '${cart.count}',
-                style: AppText.body(
-                  16,
-                  weight: FontWeight.w600,
-                  color: Brand.ink,
+      builder: (context, _) => cart.isEmpty
+          ? const SizedBox.shrink()
+          : AnimatedScale(
+              scale: cart.isEmpty ? 0 : 1,
+              duration: AppMotion.medium,
+              curve: AppMotion.spring,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(999),
+                  gradient: const LinearGradient(
+                    colors: [Brand.goldSoft, Brand.gold],
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      AppIcons.shoppingBag,
+                      size: 20,
+                      color: Brand.ink,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      '${cart.count}',
+                      style: AppText.body(
+                        16,
+                        weight: FontWeight.w600,
+                        color: Brand.ink,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ],
-          ),
-        ),
-      ),
+            ),
     );
   }
 }
@@ -493,10 +520,16 @@ class _ProductCard extends StatelessWidget {
                           ),
                         )
                       else
-                        ListenableBuilder(
-                          listenable: cart,
-                          builder: (context, _) =>
-                              _Stepper(product: product, cart: cart),
+                        Flexible(
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            alignment: Alignment.centerRight,
+                            child: ListenableBuilder(
+                              listenable: cart,
+                              builder: (context, _) =>
+                                  _Stepper(product: product, cart: cart),
+                            ),
+                          ),
                         ),
                     ],
                   ),
@@ -675,7 +708,12 @@ class _ProductSheetState extends State<_ProductSheet> {
       widget.cart.add(product, size);
     } else if (product.preorder) {
       // Pas à bord dans cette taille : on passe à la commande.
-      showPreorderSheet(root, product, size);
+      final session = SessionScope.of(root)..setPaying(true);
+      showPreorderSheet(
+        root,
+        product,
+        size,
+      ).whenComplete(() => session.setPaying(false));
     }
   }
 
@@ -1163,18 +1201,50 @@ class _CartPanelState extends State<_CartPanel> {
   String _reference = '';
   double _paidTotal = 0;
 
+  SessionController? _session;
+
+  @override
+  void initState() {
+    super.initState();
+    widget.cart.addListener(_onCartChanged);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _session = SessionScope.of(context);
+  }
+
+  @override
+  void dispose() {
+    widget.cart.removeListener(_onCartChanged);
+    _session?.setPaying(false);
+    super.dispose();
+  }
+
+  void _setStep(_Step step) {
+    setState(() => _step = step);
+    // Pendant le virement, le passager est sur son téléphone : la session
+    // ne doit pas se terminer au bout de 90 secondes.
+    _session?.setPaying(step == _Step.pay);
+  }
+
+  /// Le panier a changé pendant le paiement : le montant affiché serait
+  /// faux, on revient au panier.
+  void _onCartChanged() {
+    if (_step == _Step.pay && mounted) _setStep(_Step.cart);
+  }
+
   void _goToPayment() {
     // Code court à mettre dans le message Interac pour retrouver la commande.
     final n = math.Random().nextInt(9000) + 1000;
-    setState(() {
-      _reference = 'RWY-$n';
-      _paidTotal = widget.cart.total;
-      _step = _Step.pay;
-    });
+    _reference = 'RWY-$n';
+    _paidTotal = widget.cart.total;
+    _setStep(_Step.pay);
   }
 
   void _confirmSent() {
-    setState(() => _step = _Step.done);
+    _setStep(_Step.done);
     widget.cart.clear();
   }
 
@@ -1200,12 +1270,12 @@ class _CartPanelState extends State<_CartPanel> {
               key: const ValueKey('pay'),
               total: _paidTotal,
               reference: _reference,
-              onBack: () => setState(() => _step = _Step.cart),
+              onBack: () => _setStep(_Step.cart),
               onSent: _confirmSent,
             ),
             _Step.done => _DoneView(
               key: const ValueKey('done'),
-              onNewOrder: () => setState(() => _step = _Step.cart),
+              onNewOrder: () => _setStep(_Step.cart),
             ),
           },
         ),
@@ -1337,7 +1407,7 @@ class _CartLineRow extends StatelessWidget {
           _RoundTap(
             icon: line.quantity == 1 ? AppIcons.trash : AppIcons.minus,
             onTap: () => cart.remove(product, size),
-            size: 34,
+            size: 44,
           ),
         ],
       ),

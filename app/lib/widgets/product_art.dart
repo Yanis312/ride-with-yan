@@ -35,12 +35,16 @@ class ProductVisual extends StatelessWidget {
                 width: double.infinity,
                 height: double.infinity,
                 filterQuality: FilterQuality.medium,
+                // Les photos font 900 px : inutile de les garder entières en mémoire.
+                cacheWidth: 640,
               ),
             )
           : Image.asset(
               photos[photo % photos.length],
               fit: BoxFit.contain,
               filterQuality: FilterQuality.medium,
+              // Les photos font 900 px : inutile de les garder entières en mémoire.
+              cacheWidth: 640,
             );
     } else if (product.art case final art?) {
       visual = CustomPaint(
@@ -91,6 +95,8 @@ class ProductFigure extends StatelessWidget {
         width: double.infinity,
         height: double.infinity,
         filterQuality: FilterQuality.medium,
+        // Les photos font 900 px : inutile de les garder entières en mémoire.
+        cacheWidth: 640,
       );
     }
     return Padding(

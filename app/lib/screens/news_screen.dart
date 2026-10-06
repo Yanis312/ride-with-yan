@@ -77,6 +77,13 @@ class _NewsScreenState extends State<NewsScreen> {
             child: FutureBuilder<List<NewsItem>>(
               future: _items,
               builder: (context, snapshot) {
+                // Pendant un nouvel essai, on montre le chargement, pas
+                // l'ancienne erreur.
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(
+                    child: CircularProgressIndicator(color: Brand.gold),
+                  );
+                }
                 if (snapshot.hasError ||
                     (snapshot.connectionState == ConnectionState.done &&
                         (snapshot.data?.isEmpty ?? true))) {

@@ -809,47 +809,49 @@ Future<void> showContactSheet(BuildContext context) {
           child: LiquidPill(
             radius: 40,
             padding: const EdgeInsets.fromLTRB(40, 36, 40, 36),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  l10n.contactTitle,
-                  textAlign: TextAlign.center,
-                  style: AppText.display(40, color: context.palette.text),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  l10n.contactScan,
-                  style: AppText.body(16, color: context.palette.textMuted),
-                ),
-                const SizedBox(height: 28),
-                Wrap(
-                  spacing: 36,
-                  runSpacing: 24,
-                  alignment: WrapAlignment.center,
-                  children: [
-                    QrCard(
-                      data: AppConfig.linkedInUrl,
-                      icon: AppIcons.linkedin,
-                      label: 'LinkedIn',
-                      color: const Color(0xFF0A66C2),
-                    ),
-                    QrCard(
-                      data: AppConfig.whatsAppLink,
-                      icon: AppIcons.whatsapp,
-                      label: 'WhatsApp',
-                      color: const Color(0xFF128C4A),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 24),
-                PillButton(
-                  label: l10n.back,
-                  filled: false,
-                  onTap: () => Navigator.of(context).pop(),
-                  trailing: const Icon(AppIcons.close),
-                ),
-              ],
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    l10n.contactTitle,
+                    textAlign: TextAlign.center,
+                    style: AppText.display(40, color: context.palette.text),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    l10n.contactScan,
+                    style: AppText.body(16, color: context.palette.textMuted),
+                  ),
+                  const SizedBox(height: 28),
+                  Wrap(
+                    spacing: 36,
+                    runSpacing: 24,
+                    alignment: WrapAlignment.center,
+                    children: [
+                      QrCard(
+                        data: AppConfig.linkedInUrl,
+                        icon: AppIcons.linkedin,
+                        label: 'LinkedIn',
+                        color: const Color(0xFF0A66C2),
+                      ),
+                      QrCard(
+                        data: AppConfig.whatsAppLink,
+                        icon: AppIcons.whatsapp,
+                        label: 'WhatsApp',
+                        color: const Color(0xFF128C4A),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  PillButton(
+                    label: l10n.back,
+                    filled: false,
+                    onTap: () => Navigator.of(context).pop(),
+                    trailing: const Icon(AppIcons.close),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -874,6 +876,11 @@ class _KenBurns extends StatelessWidget {
       alignment: Alignment.topCenter,
     );
     if (MediaQuery.disableAnimationsOf(context)) return img;
+    // Isolé : le zoom lent ne fait pas repeindre le reste de l'écran.
+    return RepaintBoundary(child: _moving(img));
+  }
+
+  Widget _moving(Widget img) {
     return img
         .animate(onPlay: (c) => c.repeat(reverse: true))
         .scaleXY(

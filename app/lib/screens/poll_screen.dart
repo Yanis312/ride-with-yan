@@ -27,7 +27,9 @@ class _PollScreenState extends State<PollScreen> {
   @override
   void initState() {
     super.initState();
-    _store.load();
+    // Totaux à jour à chaque ouverture (la première charge aussi la copie
+    // gardée sur la tablette).
+    _store.load().then((_) => _store.syncFromBackend());
   }
 
   @override

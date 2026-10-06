@@ -26,6 +26,7 @@ class _AdminAppState extends State<AdminApp> {
   final _session = AdminSession();
   bool _ready = false;
   bool? _allowed;
+  bool _checkFailed = false;
 
   @override
   void initState() {
@@ -43,13 +44,14 @@ class _AdminAppState extends State<AdminApp> {
       setState(() => _allowed = null);
       return;
     }
-    bool allowed;
+    if (mounted) setState(() => _checkFailed = false);
     try {
-      allowed = await _session.isAdmin();
+      final allowed = await _session.isAdmin();
+      if (mounted) setState(() => _allowed = allowed);
     } catch (_) {
-      allowed = false;
+      // Réseau coupé ou base injoignable : on propose de réessayer.
+      if (mounted) setState(() => _checkFailed = true);
     }
-    if (mounted) setState(() => _allowed = allowed);
   }
 
   @override
@@ -61,7 +63,9 @@ class _AdminAppState extends State<AdminApp> {
   @override
   Widget build(BuildContext context) {
     final Widget home;
-    if (!_ready || (_session.signedIn && _allowed == null)) {
+    if (_session.signedIn && _checkFailed) {
+      home = _RetryPage(onRetry: _check);
+    } else if (!_ready || (_session.signedIn && _allowed == null)) {
       home = const Scaffold(
         body: Center(child: CircularProgressIndicator(color: Brand.gold)),
       );
@@ -334,6 +338,38 @@ class _LoginPageState extends State<_LoginPage> {
   }
 }
 
+/// La vérification du compte n'a pas abouti (réseau) : on réessaie.
+class _RetryPage extends StatelessWidget {
+  const _RetryPage({required this.onRetry});
+
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(28),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(AppIcons.wifiSlash, size: 48, color: context.inkMuted),
+              const SizedBox(height: 14),
+              Text(
+                'Connexion à la base impossible. Vérifiez le réseau.',
+                textAlign: TextAlign.center,
+                style: AppText.body(17, color: context.ink),
+              ),
+              const SizedBox(height: 20),
+              FilledButton(onPressed: onRetry, child: const Text('Réessayer')),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _DeniedPage extends StatelessWidget {
   const _DeniedPage({required this.session});
 
@@ -449,32 +485,46 @@ class AdminHomeState extends State<AdminHome> {
 // ---------------------------------------------------------------------------
 // Articles : prix, stock, visibilité.
 
-class _ProductsTab extends StatelessWidget {
+class _ProductsTab extends StatefulWidget {
   const _ProductsTab({required this.session});
 
   final AdminSession session;
 
   @override
+  State<_ProductsTab> createState() => _ProductsTabState();
+}
+
+class _ProductsTabState extends State<_ProductsTab>
+    with AutomaticKeepAliveClientMixin {
+  // L'onglet reste en mémoire quand on passe au sondage, et la liste n'est
+  // pas paresseuse : une modification pas encore enregistrée ne se perd
+  // ni en changeant d'onglet ni en faisant défiler.
+  @override
+  bool get wantKeepAlive => true;
+
+  @override
   Widget build(BuildContext context) {
-    return ListView.builder(
+    super.build(context);
+    return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(14, 14, 14, 40),
-      itemCount: baseCatalog.length + 1,
-      itemBuilder: (context, i) {
-        if (i == 0) {
-          return Padding(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
             padding: const EdgeInsets.fromLTRB(4, 0, 4, 12),
             child: Text(
               'Les changements apparaissent sur la tablette au passager suivant.',
               style: AppText.body(13, color: context.inkMuted),
             ),
-          );
-        }
-        return _ProductEditor(
-          key: ValueKey(baseCatalog[i - 1].id),
-          product: baseCatalog[i - 1],
-          session: session,
-        );
-      },
+          ),
+          for (final product in baseCatalog)
+            _ProductEditor(
+              key: ValueKey(product.id),
+              product: product,
+              session: widget.session,
+            ),
+        ],
+      ),
     );
   }
 }
@@ -530,11 +580,12 @@ class _ProductEditorState extends State<_ProductEditor> {
   });
 
   Future<void> _save() async {
-    final price = double.tryParse(_price.text.replaceAll(',', '.'));
-    if (price == null || price < 0) {
-      _toast(context, 'Prix invalide.', error: true);
+    final typed = double.tryParse(_price.text.replaceAll(',', '.'));
+    if (typed == null || !typed.isFinite || typed < 0 || typed > 10000) {
+      _toast(context, 'Prix invalide (entre 0 et 10 000 \$).', error: true);
       return;
     }
+    final price = (typed * 100).round() / 100;
     setState(() => _saving = true);
     try {
       await Backend.upsert('product_overrides', {

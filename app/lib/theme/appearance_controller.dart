@@ -38,6 +38,14 @@ class AppearanceController extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Retour au mode automatique : le choix d'un passager ne s'impose pas
+  /// au suivant.
+  void resetToAuto() {
+    if (_mode == AppearanceMode.auto) return;
+    _mode = AppearanceMode.auto;
+    notifyListeners();
+  }
+
   @override
   void dispose() {
     _timer.cancel();

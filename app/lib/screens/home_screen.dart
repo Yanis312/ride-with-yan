@@ -396,6 +396,35 @@ class _Tiles {
 
 const _ink = Color(0xFFFFF6EC);
 
+/// Contenu d'une carte qui garde au moins [minHeight] de haut : sur un
+/// petit écran, il rétrécit en bloc au lieu de déborder de la carte.
+class _FitTile extends StatelessWidget {
+  const _FitTile({required this.minHeight, required this.child});
+
+  final double minHeight;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, c) {
+        if (c.maxHeight >= minHeight) return child;
+        return FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.bottomLeft,
+          child: SizedBox(
+            // Même proportion que la carte, agrandie jusqu'à la hauteur
+            // dont le contenu a besoin.
+            width: c.maxWidth * minHeight / c.maxHeight,
+            height: minHeight,
+            child: child,
+          ),
+        );
+      },
+    );
+  }
+}
+
 /// Photo plein cadre assombrie vers le bas, pour que le texte reste lisible.
 class _PhotoBackdrop extends StatelessWidget {
   const _PhotoBackdrop({required this.photo, this.tint = Colors.black});
@@ -436,22 +465,34 @@ class _StoreTile extends StatefulWidget {
 }
 
 class _StoreTileState extends State<_StoreTile> {
-  final _products = featuredProducts;
+  List<Product> _products = featuredProducts;
   int _index = 0;
   Timer? _timer;
 
   @override
   void initState() {
     super.initState();
-    if (_products.length > 1) {
-      _timer = Timer.periodic(const Duration(milliseconds: 3400), (_) {
-        if (mounted) setState(() => _index = (_index + 1) % _products.length);
-      });
-    }
+    RemoteConfig.instance.addListener(_onConfig);
+    _timer = Timer.periodic(const Duration(milliseconds: 3400), (_) {
+      if (mounted && _products.length > 1) {
+        setState(() => _index = (_index + 1) % _products.length);
+      }
+    });
+  }
+
+  /// Prix, stock ou article masqué depuis l'administration : on reprend
+  /// le catalogue à jour.
+  void _onConfig() {
+    if (!mounted) return;
+    setState(() {
+      _products = featuredProducts;
+      _index = _products.isEmpty ? 0 : _index % _products.length;
+    });
   }
 
   @override
   void dispose() {
+    RemoteConfig.instance.removeListener(_onConfig);
     _timer?.cancel();
     super.dispose();
   }
@@ -810,95 +851,98 @@ class _AboutTile extends StatelessWidget {
               ),
               Padding(
                 padding: const EdgeInsets.all(24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // L'en-tête s'arrête avant l'éventail d'aperçus.
-                    FractionallySizedBox(
-                      widthFactor: 0.68,
-                      alignment: Alignment.centerLeft,
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 56,
-                            height: 56,
-                            alignment: Alignment.center,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              gradient: const LinearGradient(
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                                colors: [Color(0xFFFFE08A), Brand.gold],
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Brand.gold.withValues(alpha: 0.6),
-                                  blurRadius: 22,
-                                ),
-                              ],
-                            ),
-                            child: Text(
-                              'Y',
-                              style: AppText.display(32, color: Brand.ink),
-                            ),
-                          ),
-                          const SizedBox(width: 14),
-                          Flexible(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  l10n.driverEyebrow.toUpperCase(),
-                                  style: AppText.eyebrow(Brand.goldSoft),
-                                ),
-                                const SizedBox(height: 2),
-                                FittedBox(
-                                  fit: BoxFit.scaleDown,
-                                  alignment: Alignment.centerLeft,
-                                  child: Text(
-                                    'Yanis Garoui',
-                                    style: AppText.display(34, color: _ink),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    // Une seule ligne, qui rétrécit plutôt que d'être coupée.
-                    FractionallySizedBox(
-                      widthFactor: 0.64,
-                      alignment: Alignment.centerLeft,
-                      child: FittedBox(
-                        fit: BoxFit.scaleDown,
+                child: _FitTile(
+                  minHeight: 165,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // L'en-tête s'arrête avant l'éventail d'aperçus.
+                      FractionallySizedBox(
+                        widthFactor: 0.68,
                         alignment: Alignment.centerLeft,
-                        child: Text(
-                          const Bi(
-                            'Sites web · Applications · Automatisation',
-                            'Websites · Apps · Automation',
-                          ).of(context),
-                          maxLines: 1,
-                          style: AppText.body(
-                            15,
-                            weight: FontWeight.w400,
-                            color: _ink.withValues(alpha: 0.85),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 56,
+                              height: 56,
+                              alignment: Alignment.center,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                gradient: const LinearGradient(
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                  colors: [Color(0xFFFFE08A), Brand.gold],
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Brand.gold.withValues(alpha: 0.6),
+                                    blurRadius: 22,
+                                  ),
+                                ],
+                              ),
+                              child: Text(
+                                'Y',
+                                style: AppText.display(32, color: Brand.ink),
+                              ),
+                            ),
+                            const SizedBox(width: 14),
+                            Flexible(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    l10n.driverEyebrow.toUpperCase(),
+                                    style: AppText.eyebrow(Brand.goldSoft),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    alignment: Alignment.centerLeft,
+                                    child: Text(
+                                      'Yanis Garoui',
+                                      style: AppText.display(34, color: _ink),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      // Une seule ligne, qui rétrécit plutôt que d'être coupée.
+                      FractionallySizedBox(
+                        widthFactor: 0.64,
+                        alignment: Alignment.centerLeft,
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            const Bi(
+                              'Sites web · Applications · Automatisation',
+                              'Websites · Apps · Automation',
+                            ).of(context),
+                            maxLines: 1,
+                            style: AppText.body(
+                              15,
+                              weight: FontWeight.w400,
+                              color: _ink.withValues(alpha: 0.85),
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                    const Spacer(),
-                    FittedBox(
-                      fit: BoxFit.scaleDown,
-                      alignment: Alignment.centerLeft,
-                      child: GlowButton(
-                        label: l10n.aboutCta,
-                        icon: AppIcons.arrowUpRight,
-                        onTap: open,
+                      const Spacer(),
+                      FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.centerLeft,
+                        child: GlowButton(
+                          label: l10n.aboutCta,
+                          icon: AppIcons.arrowUpRight,
+                          onTap: open,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ],
@@ -930,44 +974,47 @@ class _EntertainmentTile extends StatelessWidget {
             ),
             Padding(
               padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Align(
-                          alignment: Alignment.centerLeft,
-                          child: Eyebrow(
-                            l10n.featuredEyebrow,
-                            color: Brand.goldSoft,
+              child: _FitTile(
+                minHeight: 130,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Align(
+                            alignment: Alignment.centerLeft,
+                            child: Eyebrow(
+                              l10n.featuredEyebrow,
+                              color: Brand.goldSoft,
+                            ),
                           ),
                         ),
+                        const _PlayOrb(),
+                      ],
+                    ),
+                    const Spacer(),
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        l10n.sectionEntertainment,
+                        style: AppText.display(34, color: _ink),
                       ),
-                      const _PlayOrb(),
-                    ],
-                  ),
-                  const Spacer(),
-                  FittedBox(
-                    fit: BoxFit.scaleDown,
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      l10n.sectionEntertainment,
-                      style: AppText.display(34, color: _ink),
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    l10n.sectionEntertainmentHint,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: AppText.body(
-                      14,
-                      weight: FontWeight.w300,
-                      color: _ink.withValues(alpha: 0.8),
+                    const SizedBox(height: 4),
+                    Text(
+                      l10n.sectionEntertainmentHint,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppText.body(
+                        14,
+                        weight: FontWeight.w300,
+                        color: _ink.withValues(alpha: 0.8),
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ],
@@ -995,9 +1042,12 @@ class _PlayOrb extends StatelessWidget {
     );
 
     if (MediaQuery.disableAnimationsOf(context)) return orb;
-    return orb
-        .animate(onPlay: (c) => c.repeat(reverse: true))
-        .scaleXY(end: 1.08, duration: 2400.ms, curve: Curves.easeInOutSine);
+    // Isolé : sa respiration ne fait pas repeindre tout le lounge.
+    return RepaintBoundary(
+      child: orb
+          .animate(onPlay: (c) => c.repeat(reverse: true))
+          .scaleXY(end: 1.08, duration: 2400.ms, curve: Curves.easeInOutSine),
+    );
   }
 }
 
@@ -1021,41 +1071,44 @@ class _PollTile extends StatelessWidget {
             ),
             Padding(
               padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Align(
-                          alignment: Alignment.centerLeft,
-                          child: Eyebrow(
-                            l10n.sectionPoll,
-                            color: Brand.goldSoft,
+              child: _FitTile(
+                minHeight: 150,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Align(
+                            alignment: Alignment.centerLeft,
+                            child: Eyebrow(
+                              l10n.sectionPoll,
+                              color: Brand.goldSoft,
+                            ),
                           ),
                         ),
-                      ),
-                      const Icon(
-                        AppIcons.chartBar,
-                        color: Brand.goldSoft,
-                        size: 24,
-                      ),
-                    ],
-                  ),
-                  const Spacer(),
-                  Text(
-                    questionOfTheDay().question.of(context),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: AppText.display(
-                      28,
-                      style: FontStyle.italic,
-                      color: _ink,
+                        const Icon(
+                          AppIcons.chartBar,
+                          color: Brand.goldSoft,
+                          size: 24,
+                        ),
+                      ],
                     ),
-                  ),
-                  const SizedBox(height: 12),
-                  const _MiniBars(),
-                ],
+                    const Spacer(),
+                    Text(
+                      questionOfTheDay().question.of(context),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppText.display(
+                        28,
+                        style: FontStyle.italic,
+                        color: _ink,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    const _MiniBars(),
+                  ],
+                ),
               ),
             ),
           ],
@@ -1175,48 +1228,56 @@ class _PhotoTile extends StatelessWidget {
             _PhotoBackdrop(photo: photo, tint: tint),
             Padding(
               padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.black.withValues(alpha: 0.35),
-                      border: Border.all(color: Colors.white24),
+              child: _FitTile(
+                minHeight: 130,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          width: 44,
+                          height: 44,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.black.withValues(alpha: 0.35),
+                            border: Border.all(color: Colors.white24),
+                          ),
+                          child: Icon(icon, color: Colors.white, size: 22),
+                        ),
+                        const Spacer(),
+                        if (badge != null)
+                          Text(
+                            badge!,
+                            style: AppText.display(
+                              40,
+                              color: _ink,
+                            ).copyWith(height: 1),
+                          ),
+                      ],
                     ),
-                    child: Icon(icon, color: Colors.white, size: 22),
-                  ),
-                  if (badge != null)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 10),
+                    const Spacer(),
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerLeft,
                       child: Text(
-                        badge!,
-                        style: AppText.display(
-                          44,
-                          color: _ink,
-                        ).copyWith(height: 1),
+                        title,
+                        style: AppText.display(28, color: _ink),
                       ),
                     ),
-                  const Spacer(),
-                  FittedBox(
-                    fit: BoxFit.scaleDown,
-                    alignment: Alignment.centerLeft,
-                    child: Text(title, style: AppText.display(28, color: _ink)),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    hint,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: AppText.body(
-                      13,
-                      weight: FontWeight.w300,
-                      color: _ink.withValues(alpha: 0.8),
+                    const SizedBox(height: 4),
+                    Text(
+                      hint,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppText.body(
+                        13,
+                        weight: FontWeight.w300,
+                        color: _ink.withValues(alpha: 0.8),
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ],

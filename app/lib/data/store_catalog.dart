@@ -107,7 +107,7 @@ class Product {
     id: id,
     name: name,
     blurb: blurb,
-    price: (o['price'] as num?)?.toDouble() ?? price,
+    price: _amount(o['price']) ?? price,
     category: category,
     icon: icon,
     colors: colors,
@@ -117,16 +117,22 @@ class Product {
     sizes: o['sizes'] is Map
         ? {
             for (final size in sizes.keys)
-              size:
-                  ((o['sizes'] as Map)[size] as num?)?.toInt() ?? sizes[size]!,
+              size: _count((o['sizes'] as Map)[size]) ?? sizes[size]!,
           }
         : sizes,
-    stock: (o['stock'] as num?)?.toInt() ?? stock,
+    stock: _count(o['stock']) ?? stock,
     photoCount: photoCount,
     framed: framed,
     preorder: preorder,
     details: details,
   );
+
+  // Une valeur mal saisie dans la base (texte, négatif) est ignorée plutôt
+  // que de faire planter l'affichage.
+  static double? _amount(Object? v) =>
+      v is num && v.isFinite && v >= 0 ? v.toDouble() : null;
+  static int? _count(Object? v) =>
+      v is num && v.isFinite && v >= 0 ? v.toInt() : null;
 
   /// Article revendu (neuf), par opposition aux essentiels.
   bool get isResale => category != ProductCategory.essentials;

@@ -35,6 +35,7 @@ class _RideWithYanAppState extends State<RideWithYanApp> {
   void _onSessionChanged() {
     if (!_session.isActive) {
       _navigatorKey.currentState?.popUntil((route) => route.isFirst);
+      _appearance.resetToAuto();
     }
   }
 
@@ -78,15 +79,20 @@ class _RideWithYanAppState extends State<RideWithYanApp> {
               onPointerDown: (_) => _session.registerInteraction(),
               child: child,
             ),
-            home: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 600),
-              switchInCurve: AppMotion.spring,
-              switchOutCurve: AppMotion.spring,
-              child: _session.isActive
-                  ? const HomeScreen(key: ValueKey('home'))
-                  : WelcomeScreen(
-                      key: ValueKey('welcome-${_session.generation}'),
-                    ),
+            // Tablette de bord : le bouton Retour d'Android ne doit jamais
+            // faire quitter l'app depuis l'accueil ou le lounge.
+            home: PopScope(
+              canPop: false,
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 600),
+                switchInCurve: AppMotion.spring,
+                switchOutCurve: AppMotion.spring,
+                child: _session.isActive
+                    ? const HomeScreen(key: ValueKey('home'))
+                    : WelcomeScreen(
+                        key: ValueKey('welcome-${_session.generation}'),
+                      ),
+              ),
             ),
           ),
         ),
