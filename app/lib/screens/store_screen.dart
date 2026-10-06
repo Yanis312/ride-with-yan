@@ -190,7 +190,59 @@ class _CategoryTabs extends StatelessWidget {
             selected: selected == c,
             onTap: () => onSelected(c),
           ),
+        const _WhatsAppButton(),
       ],
+    );
+  }
+}
+
+/// "Me contacter sur WhatsApp" : ouvre le code QR de Yanis.
+class _WhatsAppButton extends StatelessWidget {
+  const _WhatsAppButton();
+
+  static const _green = Color(0xFF128C4A);
+
+  @override
+  Widget build(BuildContext context) {
+    final session = SessionScope.of(context);
+    return Semantics(
+      button: true,
+      child: Pressable(
+        onTap: () {
+          // Le passager sort son téléphone : la session patiente.
+          session.setPaying(true);
+          showStoreContactSheet(context)
+              .whenComplete(() => session.setPaying(false));
+        },
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(999),
+            color: _green,
+            boxShadow: [
+              BoxShadow(color: _green.withValues(alpha: 0.45), blurRadius: 18),
+            ],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(AppIcons.whatsapp, size: 18, color: Colors.white),
+              const SizedBox(width: 8),
+              Text(
+                const Bi(
+                  'Me contacter sur WhatsApp',
+                  'Contact me on WhatsApp',
+                ).of(context),
+                style: AppText.body(
+                  15,
+                  weight: FontWeight.w600,
+                  color: Colors.white,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
@@ -1029,18 +1081,63 @@ Future<void> showPreorderSheet(
   Product product,
   String size,
 ) {
-  final french = Localizations.localeOf(context).languageCode != 'en';
-  final message = french
-      ? 'Bonjour Yanis, je veux commander : ${product.name.fr}, taille $size.'
-      : 'Hi Yanis, I would like to order: ${product.name.en}, size $size.';
+  final price = _money(context, product.price);
+  return _showWhatsAppSheet(
+    context,
+    eyebrow: const Bi('SUR COMMANDE', 'ON ORDER'),
+    title: '${product.name.of(context)} · $size',
+    body: Bi(
+      'Livré chez vous en 20 à 30 jours. Vous payez $price à la réception.',
+      'Delivered to your door in 20 to 30 days. '
+          'You pay $price when it arrives.',
+    ),
+    message: Bi(
+      'Bonjour Yanis, je veux commander : ${product.name.fr}, taille $size.',
+      'Hi Yanis, I would like to order: ${product.name.en}, size $size.',
+    ),
+  );
+}
+
+/// Une question sur la boutique : le passager écrit à Yanis sur WhatsApp.
+Future<void> showStoreContactSheet(BuildContext context) {
+  final title = const Bi(
+    'Écrivez-moi sur WhatsApp',
+    'Message me on WhatsApp',
+  ).of(context);
+  return _showWhatsAppSheet(
+    context,
+    eyebrow: const Bi('UNE QUESTION ?', 'ANY QUESTION?'),
+    title: title,
+    body: const Bi(
+      'Une taille, une couleur, un autre modèle ? Je vous réponds vite.',
+      'A size, a colour, another model? I reply quickly.',
+    ),
+    message: const Bi(
+      'Bonjour Yanis, j’ai une question sur ta boutique.',
+      'Hi Yanis, I have a question about your store.',
+    ),
+  );
+}
+
+/// Feuille avec le code QR WhatsApp de Yanis et un message déjà rempli.
+/// La tablette n'envoie rien elle-même : le passager vise le code avec son
+/// téléphone.
+Future<void> _showWhatsAppSheet(
+  BuildContext context, {
+  required Bi eyebrow,
+  required String title,
+  required Bi body,
+  required Bi message,
+}) {
   final link = AppConfig.whatsAppLink == null
       ? null
-      : '${AppConfig.whatsAppLink}?text=${Uri.encodeComponent(message)}';
+      : '${AppConfig.whatsAppLink}'
+            '?text=${Uri.encodeComponent(message.of(context))}';
 
   return showGeneralDialog<void>(
     context: context,
     barrierDismissible: true,
-    barrierLabel: product.name.of(context),
+    barrierLabel: title,
     barrierColor: Colors.black.withValues(alpha: 0.55),
     transitionDuration: AppMotion.medium,
     transitionBuilder: (context, a, _, child) => FadeTransition(
@@ -1073,23 +1170,18 @@ Future<void> showPreorderSheet(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        const Bi('SUR COMMANDE', 'ON ORDER').of(context),
+                        eyebrow.of(context),
                         style: AppText.eyebrow(p.accentText),
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        '${product.name.of(context)} · $size',
+                        title,
                         textAlign: TextAlign.center,
                         style: AppText.display(34, color: p.text),
                       ),
                       const SizedBox(height: 10),
                       Text(
-                        Bi(
-                          'Livré chez vous en 20 à 30 jours. '
-                              'Vous payez ${_money(context, product.price)} à la réception.',
-                          'Delivered to your door in 20 to 30 days. '
-                              'You pay ${_money(context, product.price)} when it arrives.',
-                        ).of(context),
+                        body.of(context),
                         textAlign: TextAlign.center,
                         style: AppText.body(16, color: p.textMuted),
                       ),
