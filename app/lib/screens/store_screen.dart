@@ -431,7 +431,10 @@ class _ProductCard extends StatelessWidget {
                       bottom: 10,
                       child: _Tag(
                         label: soldOut
-                            ? const Bi('Épuisé', 'Sold out').of(context)
+                            ? (product.preorder
+                                      ? const Bi('Sur commande', 'On order')
+                                      : const Bi('Épuisé', 'Sold out'))
+                                  .of(context)
                             : l10n.stockLeft(product.stockOf()),
                       ),
                     ),
@@ -664,8 +667,16 @@ class _ProductSheetState extends State<_ProductSheet> {
       setState(() => _askSize = true);
       return;
     }
-    widget.cart.add(product, size);
-    Navigator.of(context).pop();
+    final left = product.stockOf(size) - widget.cart.quantityOf(product, size);
+    final navigator = Navigator.of(context);
+    final root = navigator.context;
+    navigator.pop();
+    if (left > 0) {
+      widget.cart.add(product, size);
+    } else if (product.preorder) {
+      // Pas à bord dans cette taille : on passe à la commande.
+      showPreorderSheet(root, product, size);
+    }
   }
 
   @override
@@ -845,9 +856,15 @@ class _SheetInfo extends StatelessWidget {
   Widget build(BuildContext context) {
     final p = context.palette;
     final selected = size;
+    final onBoard =
+        selected != null &&
+        product.stockOf(selected) - cart.quantityOf(product, selected) > 0;
+    final verb = onBoard
+        ? const Bi('Ajouter', 'Add')
+        : const Bi('Commander', 'Order');
     final addLabel = selected == null
         ? const Bi('Choisir une taille', 'Select a size').of(context)
-        : '${const Bi('Ajouter', 'Add').of(context)} · ${_money(context, product.price)}';
+        : '${verb.of(context)} · ${_money(context, product.price)}';
 
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(4, 8, 8, 8),
@@ -914,13 +931,32 @@ class _SheetInfo extends StatelessWidget {
                   _SizeChip(
                     label: e.key,
                     // Ce qui est déjà au panier n'est plus disponible.
-                    available: e.value - cart.quantityOf(product, e.key) > 0,
+                    // Un article commandable se choisit dans toutes les tailles.
+                    available:
+                        product.preorder ||
+                        e.value - cart.quantityOf(product, e.key) > 0,
                     selected: e.key == selected,
                     onTap: () => onSize(e.key),
                   ),
               ],
             ),
           ),
+          if (product.preorder) ...[
+            const SizedBox(height: 14),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(AppIcons.package, size: 18, color: p.accentText),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    preorderNotice.of(context),
+                    style: AppText.body(13, color: p.textMuted),
+                  ),
+                ),
+              ],
+            ),
+          ],
           const SizedBox(height: 24),
           GlowButton(label: addLabel, icon: AppIcons.shoppingBag, onTap: onAdd),
           const SizedBox(height: 24),
@@ -946,6 +982,115 @@ class _SheetInfo extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Commande d'un article qui n'est pas à bord : le passager écrit à Yanis
+/// sur WhatsApp (message déjà rempli). Aucune donnée n'est gardée ici.
+Future<void> showPreorderSheet(
+  BuildContext context,
+  Product product,
+  String size,
+) {
+  final french = Localizations.localeOf(context).languageCode != 'en';
+  final message = french
+      ? 'Bonjour Yanis, je veux commander : ${product.name.fr}, taille $size.'
+      : 'Hi Yanis, I would like to order: ${product.name.en}, size $size.';
+  final link = AppConfig.whatsAppLink == null
+      ? null
+      : '${AppConfig.whatsAppLink}?text=${Uri.encodeComponent(message)}';
+
+  return showGeneralDialog<void>(
+    context: context,
+    barrierDismissible: true,
+    barrierLabel: product.name.of(context),
+    barrierColor: Colors.black.withValues(alpha: 0.55),
+    transitionDuration: AppMotion.medium,
+    transitionBuilder: (context, a, _, child) => FadeTransition(
+      opacity: a,
+      child: ScaleTransition(
+        scale: Tween(
+          begin: 0.94,
+          end: 1.0,
+        ).animate(CurvedAnimation(parent: a, curve: AppMotion.spring)),
+        child: child,
+      ),
+    ),
+    pageBuilder: (context, _, _) {
+      final p = context.palette;
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 520),
+            child: Material(
+              color: context.isDark
+                  ? const Color(0xFF121317)
+                  : const Color(0xFFF3F4F7),
+              borderRadius: BorderRadius.circular(38),
+              child: BezelCard(
+                radius: 38,
+                padding: const EdgeInsets.fromLTRB(28, 28, 28, 24),
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        const Bi('SUR COMMANDE', 'ON ORDER').of(context),
+                        style: AppText.eyebrow(p.accentText),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        '${product.name.of(context)} · $size',
+                        textAlign: TextAlign.center,
+                        style: AppText.display(34, color: p.text),
+                      ),
+                      const SizedBox(height: 10),
+                      Text(
+                        Bi(
+                          'Livré chez vous en 20 à 30 jours. '
+                              'Vous payez ${_money(context, product.price)} à la réception.',
+                          'Delivered to your door in 20 to 30 days. '
+                              'You pay ${_money(context, product.price)} when it arrives.',
+                        ).of(context),
+                        textAlign: TextAlign.center,
+                        style: AppText.body(16, color: p.textMuted),
+                      ),
+                      const SizedBox(height: 22),
+                      if (link != null)
+                        QrCard(
+                          data: link,
+                          icon: AppIcons.whatsapp,
+                          label: 'WhatsApp',
+                          color: const Color(0xFF128C4A),
+                        ),
+                      const SizedBox(height: 14),
+                      Text(
+                        const Bi(
+                          'Visez le code avec votre téléphone : le message '
+                              'est déjà écrit, il ne reste qu’à l’envoyer.',
+                          'Point your phone at the code: the message is '
+                              'already written, just send it.',
+                        ).of(context),
+                        textAlign: TextAlign.center,
+                        style: AppText.body(14, color: p.textMuted),
+                      ),
+                      const SizedBox(height: 18),
+                      PillButton(
+                        label: const Bi('Fermer', 'Close').of(context),
+                        filled: false,
+                        onTap: () => Navigator.of(context).pop(),
+                        trailing: const Icon(AppIcons.close),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    },
+  );
 }
 
 class _SizeChip extends StatelessWidget {

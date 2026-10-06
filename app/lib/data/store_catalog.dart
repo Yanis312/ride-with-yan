@@ -68,6 +68,7 @@ class Product {
     this.stock = 5,
     this.photoCount = 0,
     this.framed = false,
+    this.preorder = false,
     this.details = const [],
   });
 
@@ -93,6 +94,10 @@ class Product {
   /// Photos de studio gardées entières (.jpg, affichées plein cadre) plutôt
   /// que détourées sur fond transparent (.png).
   final bool framed;
+
+  /// Peut être commandé quand la taille voulue n'est pas à bord : Yanis le
+  /// livre ensuite chez le client (voir [preorderNotice]).
+  final bool preorder;
   final List<Bi> details;
 
   bool get hasSizes => sizes.isNotEmpty;
@@ -119,6 +124,7 @@ class Product {
     stock: (o['stock'] as num?)?.toInt() ?? stock,
     photoCount: photoCount,
     framed: framed,
+    preorder: preorder,
     details: details,
   );
 
@@ -156,9 +162,28 @@ const _sneakerDetails = [
 
 const _jerseyDetails = [
   Bi('Neuf, jamais porté', 'New, never worn'),
-  Bi('Paiement par virement Interac', 'Pay by Interac e-Transfer'),
-  Bi('Remise en main propre, ici même', 'Handed to you right here'),
+  Bi('À bord : remis en main propre', 'On board: handed to you right here'),
+  Bi(
+    'Sur commande : livré chez vous en 20 à 30 jours',
+    'On order: delivered to your door in 20 to 30 days',
+  ),
+  Bi('Commande : vous payez à la réception', 'Orders: you pay when it arrives'),
 ];
+
+/// Délai et paiement d'une commande, affichés sous les tailles.
+const preorderNotice = Bi(
+  'Votre taille n’est pas à bord ? Commandez-la : je vous la livre chez vous '
+      'en 20 à 30 jours, et vous payez à la réception.',
+  'Your size is not on board? Order it: I deliver it to your door in 20 to '
+      '30 days, and you pay when it arrives.',
+);
+
+/// Tailles des maillots. Zéro partout par défaut : tout est sur commande
+/// tant que le stock réel n'est pas saisi dans le panneau d'administration.
+const _jerseySizes = {'S': 0, 'M': 0, 'L': 0, 'XL': 0};
+
+/// Fond sombre derrière les photos de maillots (texte clair par-dessus).
+const _jerseyStage = [Color(0xFF2A2D36), Color(0xFF0E0F13)];
 
 const _shoeBlurb = Bi('Chaussures basses · neuves', 'Low-top shoes · new');
 
@@ -315,38 +340,62 @@ const baseCatalog = [
     details: _sneakerDetails,
   ),
   Product(
-    id: 'maillot-domicile',
-    name: Bi('Maillot domicile', 'Home jersey'),
-    blurb: Bi('Saison en cours · coupe stade', 'Current season · stadium fit'),
-    price: 90,
+    id: 'maillot-yamal',
+    name: Bi('Maillot Yamal', 'Yamal jersey'),
+    blurb: Bi(
+      'Rayé bleu et grenat · n° 10',
+      'Blue and garnet stripes · no. 10',
+    ),
+    price: 50,
     category: ProductCategory.jerseys,
     icon: AppIcons.tShirt,
-    colors: [Color(0xFF2A1A3E), Color(0xFF0B0712)],
-    art: ProductArt.jersey(
-      base: Color(0xFFC8102E),
-      accent: Color(0xFF9E0B23),
-      trim: Color(0xFFF5F2EA),
-      number: '10',
-    ),
-    sizes: {'S': 1, 'M': 2, 'L': 2, 'XL': 1},
+    colors: _jerseyStage,
+    sizes: _jerseySizes,
+    photoCount: 2,
+    framed: true,
+    preorder: true,
     details: _jerseyDetails,
   ),
   Product(
-    id: 'maillot-exterieur',
-    name: Bi('Maillot extérieur', 'Away jersey'),
-    blurb: Bi('Saison en cours · coupe stade', 'Current season · stadium fit'),
-    price: 90,
+    id: 'maillot-olise',
+    name: Bi('Maillot Olise', 'Olise jersey'),
+    blurb: Bi('Rouge · n° 17', 'Red · no. 17'),
+    price: 50,
     category: ProductCategory.jerseys,
     icon: AppIcons.tShirt,
-    colors: [Color(0xFFF3E7C9), Color(0xFFC79A3B)],
-    art: ProductArt.jersey(
-      base: Color(0xFF0B2A5B),
-      accent: Color(0xFF1C4A8F),
-      trim: Color(0xFFF5B700),
-      number: '7',
-      stripes: true,
-    ),
-    sizes: {'S': 0, 'M': 1, 'L': 2, 'XL': 1},
+    colors: _jerseyStage,
+    sizes: _jerseySizes,
+    photoCount: 2,
+    framed: true,
+    preorder: true,
+    details: _jerseyDetails,
+  ),
+  Product(
+    id: 'maillot-mbappe',
+    name: Bi('Maillot Mbappé', 'Mbappé jersey'),
+    blurb: Bi('Blanc, manches longues · n° 10', 'White, long sleeves · no. 10'),
+    price: 50,
+    category: ProductCategory.jerseys,
+    icon: AppIcons.tShirt,
+    colors: _jerseyStage,
+    sizes: _jerseySizes,
+    photoCount: 2,
+    framed: true,
+    preorder: true,
+    details: _jerseyDetails,
+  ),
+  Product(
+    id: 'maillot-bellingham',
+    name: Bi('Maillot Bellingham', 'Bellingham jersey'),
+    blurb: Bi('Blanc, manches longues · n° 5', 'White, long sleeves · no. 5'),
+    price: 50,
+    category: ProductCategory.jerseys,
+    icon: AppIcons.tShirt,
+    colors: _jerseyStage,
+    sizes: _jerseySizes,
+    photoCount: 2,
+    framed: true,
+    preorder: true,
     details: _jerseyDetails,
   ),
   Product(
@@ -422,7 +471,7 @@ List<Product> get catalog {
 /// Articles mis en avant dans la vitrine de l'écran de veille.
 List<Product> get featuredProducts => [
   for (final p in catalog)
-    if (p.isResale && p.stockOf() > 0) p,
+    if (p.isResale && (p.stockOf() > 0 || p.preorder)) p,
 ];
 
 /// Fenêtre de [size] articles contenant l'article n° [index], chacun avec

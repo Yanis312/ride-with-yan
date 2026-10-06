@@ -44,11 +44,18 @@ void main() {
     expect(cart.quantityOf(shoes, 'US 9'), shoes.stockOf('US 9'));
   });
 
-  test("une taille épuisée ne s'ajoute pas", () {
-    final jersey = catalog.firstWhere((p) => p.id == 'maillot-exterieur');
+  test("une taille qui n'est pas à bord ne va pas au panier", () {
+    final jersey = catalog.firstWhere((p) => p.id == 'maillot-mbappe');
     final cart = Cart()..add(jersey, 'S');
     expect(jersey.stockOf('S'), 0);
     expect(cart.isEmpty, isTrue);
+  });
+
+  test('les maillots sur commande restent dans la vitrine', () {
+    final jersey = catalog.firstWhere((p) => p.id == 'maillot-yamal');
+    expect(jersey.stockOf(), 0);
+    expect(jersey.preorder, isTrue);
+    expect(featuredProducts, contains(jersey));
   });
 
   test('aucun nom de marque dans le catalogue', () {
@@ -57,10 +64,12 @@ void main() {
     }
   });
 
-  test('la vitrine ne montre que les articles revendus en stock', () {
+  test('la vitrine montre les articles à bord ou commandables', () {
     expect(featuredProducts, isNotEmpty);
     expect(
-      featuredProducts.every((p) => p.isResale && p.stockOf() > 0),
+      featuredProducts.every(
+        (p) => p.isResale && (p.stockOf() > 0 || p.preorder),
+      ),
       isTrue,
     );
   });
