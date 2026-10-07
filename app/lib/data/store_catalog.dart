@@ -503,6 +503,10 @@ class CartLine {
   final int quantity;
 
   double get subtotal => product.price * quantity;
+
+  /// Pas à bord dans cette taille : commandé, livré chez le client et payé
+  /// à la réception.
+  bool get onOrder => product.preorder && product.stockOf(size) == 0;
 }
 
 /// Panier du passager en cours. Vidé à chaque fin de session.
@@ -525,11 +529,27 @@ class Cart extends ChangeNotifier {
   int get count => _lines.values.fold(0, (a, b) => a + b);
   double get total => lines.fold(0, (sum, l) => sum + l.subtotal);
 
+  /// Ce qui se paie tout de suite par Interac (articles à bord).
+  double get payNow =>
+      lines.where((l) => !l.onOrder).fold(0, (sum, l) => sum + l.subtotal);
+
+  /// Ce qui se paiera à la livraison (articles sur commande).
+  double get payLater =>
+      lines.where((l) => l.onOrder).fold(0, (sum, l) => sum + l.subtotal);
+
+  bool get hasOnOrder => lines.any((l) => l.onOrder);
+
+  /// Quantité maximale d'un même article sur commande.
+  static const maxOnOrder = 3;
+
   int quantityOf(Product p, [String? size]) => _lines[(p.id, size)] ?? 0;
 
   void add(Product p, [String? size]) {
     final q = quantityOf(p, size);
-    if (q >= p.stockOf(size)) return;
+    final stock = p.stockOf(size);
+    // À bord : jusqu'au stock. Pas à bord mais commandable : quelques pièces.
+    final limit = stock > 0 ? stock : (p.preorder ? maxOnOrder : 0);
+    if (q >= limit) return;
     _lines[(p.id, size)] = q + 1;
     notifyListeners();
   }

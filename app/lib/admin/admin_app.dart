@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
+import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../backend/backend.dart';
 import '../backend/remote_config.dart';
@@ -434,7 +436,7 @@ class AdminHomeState extends State<AdminHome> {
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
-      length: 2,
+      length: 3,
       child: Scaffold(
         appBar: AppBar(
           title: Text(
@@ -456,6 +458,7 @@ class AdminHomeState extends State<AdminHome> {
           ],
           bottom: const TabBar(
             tabs: [
+              Tab(icon: Icon(AppIcons.package), text: 'Commandes'),
               Tab(icon: Icon(AppIcons.shoppingBag), text: 'Articles'),
               Tab(icon: Icon(AppIcons.chartBar), text: 'Sondage'),
             ],
@@ -471,11 +474,407 @@ class AdminHomeState extends State<AdminHome> {
             }
             return TabBarView(
               children: [
+                _OrdersTab(session: widget.session),
                 _ProductsTab(session: widget.session),
                 _PollTab(session: widget.session),
               ],
             );
           },
+        ),
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Commandes : qui a commandé quoi, et où en est chaque commande.
+
+const _statusLabels = {
+  'new': 'Nouvelle',
+  'paid': 'Payée',
+  'delivered': 'Livrée',
+  'cancelled': 'Annulée',
+};
+
+class _OrdersTab extends StatefulWidget {
+  const _OrdersTab({required this.session});
+
+  final AdminSession session;
+
+  @override
+  State<_OrdersTab> createState() => _OrdersTabState();
+}
+
+class _OrdersTabState extends State<_OrdersTab>
+    with AutomaticKeepAliveClientMixin {
+  late Future<List<Map<String, dynamic>>> _orders = _load();
+
+  @override
+  bool get wantKeepAlive => true;
+
+  Future<List<Map<String, dynamic>>> _load() async => Backend.select(
+    'orders',
+    token: await widget.session.token(),
+    order: 'created_at.desc',
+  );
+
+  void _reload() => setState(() => _orders = _load());
+
+  Future<void> _run(
+    Future<void> Function(String token) action,
+    String done,
+  ) async {
+    try {
+      await action(await widget.session.token());
+      if (!mounted) return;
+      _toast(context, done);
+      _reload();
+    } catch (e) {
+      if (mounted) _toast(context, 'Échec : $e', error: true);
+    }
+  }
+
+  Future<void> _setStatus(Map<String, dynamic> order, String status) => _run(
+    (token) async {
+      // Payée : les articles pris à bord sortent du stock.
+      if (status == 'paid' && order['status'] != 'paid') {
+        await _takeFromStock(order, token);
+      }
+      await Backend.update('orders', 'id', order['id'] as String, {
+        'status': status,
+      }, token: token);
+    },
+    'Commande ${order['reference']} : ${_statusLabels[status]!.toLowerCase()}.',
+  );
+
+  /// Retire du stock les articles à bord de la commande (pas ceux sur
+  /// commande, qui n'étaient pas en stock).
+  Future<void> _takeFromStock(Map<String, dynamic> order, String token) async {
+    await RemoteConfig.instance.refresh();
+    for (final line in (order['lines'] as List).cast<Map<String, dynamic>>()) {
+      if (line['on_order'] == true) continue;
+      final matches = baseCatalog.where((p) => p.id == line['id']);
+      if (matches.isEmpty) continue;
+      final base = matches.first;
+      final override = RemoteConfig.instance.productOverride(base.id);
+      final current = override == null ? base : base.withOverride(override);
+      final qty = (line['qty'] as num?)?.toInt() ?? 1;
+      final size = line['size'] as String? ?? '';
+      int less(int stock) => stock - qty < 0 ? 0 : stock - qty;
+
+      await Backend.upsert('product_overrides', {
+        'id': base.id,
+        'price': current.price,
+        'sizes': current.hasSizes
+            ? {
+                for (final e in current.sizes.entries)
+                  e.key: e.key == size ? less(e.value) : e.value,
+              }
+            : null,
+        'stock': current.hasSizes ? null : less(current.stock),
+        'hidden': override?['hidden'] == true,
+        'updated_at': DateTime.now().toUtc().toIso8601String(),
+      }, token: token);
+    }
+    await RemoteConfig.instance.refresh();
+  }
+
+  Future<void> _delete(Map<String, dynamic> order) async {
+    final sure = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Supprimer la commande ?'),
+        content: Text(
+          '${order['reference']} de ${order['name']} sera effacée, avec ses '
+          'coordonnées.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Annuler'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Supprimer'),
+          ),
+        ],
+      ),
+    );
+    if (sure != true || !mounted) return;
+    await _run(
+      (token) =>
+          Backend.delete('orders', 'id', order['id'] as String, token: token),
+      'Commande supprimée.',
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
+    return FutureBuilder<List<Map<String, dynamic>>>(
+      future: _orders,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState != ConnectionState.done) {
+          return const Center(
+            child: CircularProgressIndicator(color: Brand.gold),
+          );
+        }
+        if (snapshot.hasError) {
+          return Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(AppIcons.wifiSlash, size: 44, color: context.inkMuted),
+                const SizedBox(height: 12),
+                Text(
+                  'Commandes indisponibles pour le moment.',
+                  style: AppText.body(15, color: context.inkMuted),
+                ),
+                const SizedBox(height: 14),
+                FilledButton(
+                  onPressed: _reload,
+                  child: const Text('Réessayer'),
+                ),
+              ],
+            ),
+          );
+        }
+        final orders = snapshot.data ?? const [];
+        return RefreshIndicator(
+          onRefresh: () async => _reload(),
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(14, 14, 14, 40),
+            children: [
+              if (orders.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(top: 80),
+                  child: Column(
+                    children: [
+                      Icon(AppIcons.package, size: 48, color: context.inkMuted),
+                      const SizedBox(height: 12),
+                      Text(
+                        'Aucune commande pour le moment.',
+                        style: AppText.body(16, color: context.inkMuted),
+                      ),
+                    ],
+                  ),
+                ),
+              for (final order in orders)
+                _OrderCard(
+                  key: ValueKey(order['id']),
+                  order: order,
+                  onStatus: (status) => _setStatus(order, status),
+                  onDelete: () => _delete(order),
+                ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _OrderCard extends StatelessWidget {
+  const _OrderCard({
+    super.key,
+    required this.order,
+    required this.onStatus,
+    required this.onDelete,
+  });
+
+  final Map<String, dynamic> order;
+  final ValueChanged<String> onStatus;
+  final VoidCallback onDelete;
+
+  static String _money(Object? value) {
+    final v = (value as num?)?.toDouble() ?? 0;
+    return '${v == v.roundToDouble() ? v.round() : v.toStringAsFixed(2)} \$';
+  }
+
+  /// Lien WhatsApp du client : numéro en chiffres, indicatif 1 par défaut.
+  static Uri _whatsApp(String phone) {
+    var digits = phone.replaceAll(RegExp(r'\D'), '');
+    if (digits.length == 10) digits = '1$digits';
+    return Uri.parse('https://wa.me/$digits');
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final status = order['status'] as String? ?? 'new';
+    final lines = (order['lines'] as List? ?? const [])
+        .cast<Map<String, dynamic>>();
+    final payNow = order['pay_now'];
+    final payLater = (order['pay_later'] as num?) ?? 0;
+    final address = order['address'] as String?;
+    final phone = order['phone'] as String? ?? '';
+    final created = DateTime.tryParse(order['created_at'] as String? ?? '');
+    final statusColor = switch (status) {
+      'paid' => const Color(0xFF1B8A4B),
+      'delivered' => const Color(0xFF2F7FE0),
+      'cancelled' => const Color(0xFF8A8A8A),
+      _ => Brand.gold,
+    };
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+        side: BorderSide(
+          color: status == 'new' ? Brand.gold : context.line,
+          width: status == 'new' ? 1.5 : 1,
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Text(
+                  order['reference'] as String? ?? '',
+                  style: AppText.body(
+                    17,
+                    weight: FontWeight.w800,
+                    color: context.ink,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: statusColor,
+                    borderRadius: BorderRadius.circular(99),
+                  ),
+                  child: Text(
+                    _statusLabels[status] ?? status,
+                    style: AppText.body(
+                      12,
+                      weight: FontWeight.w700,
+                      color: status == 'new' ? Brand.ink : Colors.white,
+                    ),
+                  ),
+                ),
+                const Spacer(),
+                if (created != null)
+                  Text(
+                    DateFormat('d MMM, HH:mm', 'fr').format(created.toLocal()),
+                    style: AppText.body(12, color: context.inkMuted),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Text(
+              order['name'] as String? ?? '',
+              style: AppText.body(
+                16,
+                weight: FontWeight.w700,
+                color: context.ink,
+              ),
+            ),
+            const SizedBox(height: 2),
+            SelectableText(phone, style: AppText.body(15, color: context.ink)),
+            if (address != null && address.isNotEmpty) ...[
+              const SizedBox(height: 4),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(AppIcons.mapPin, size: 16, color: context.inkMuted),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: SelectableText(
+                      address,
+                      style: AppText.body(14, color: context.inkMuted),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+            const Divider(height: 22),
+            for (final line in lines)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 4),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        '${line['qty']} × ${line['name']}'
+                        '${(line['size'] as String? ?? '').isEmpty ? '' : ' · ${line['size']}'}'
+                        '${line['on_order'] == true ? ' (sur commande)' : ''}',
+                        style: AppText.body(14, color: context.ink),
+                      ),
+                    ),
+                    Text(
+                      _money(
+                        ((line['price'] as num?) ?? 0) *
+                            ((line['qty'] as num?) ?? 1),
+                      ),
+                      style: AppText.body(14, color: context.inkMuted),
+                    ),
+                  ],
+                ),
+              ),
+            const SizedBox(height: 6),
+            Text(
+              'À payer maintenant : ${_money(payNow)}'
+              '${payLater > 0 ? '  ·  à la livraison : ${_money(payLater)}' : ''}',
+              style: AppText.body(
+                14,
+                weight: FontWeight.w700,
+                color: context.ink,
+              ),
+            ),
+            if (order['transfer_claimed'] == true && status == 'new')
+              Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: Text(
+                  'Le client dit avoir envoyé le virement : vérifiez Interac.',
+                  style: AppText.body(13, color: context.inkMuted),
+                ),
+              ),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                FilledButton.icon(
+                  onPressed: () => launchUrl(
+                    _whatsApp(phone),
+                    mode: LaunchMode.externalApplication,
+                  ),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: const Color(0xFF128C4A),
+                    foregroundColor: Colors.white,
+                  ),
+                  icon: const Icon(AppIcons.whatsapp, size: 18),
+                  label: const Text('WhatsApp'),
+                ),
+                if (status == 'new')
+                  FilledButton(
+                    onPressed: () => onStatus('paid'),
+                    child: const Text('Payée'),
+                  ),
+                if (status == 'new' || status == 'paid')
+                  OutlinedButton(
+                    onPressed: () => onStatus('delivered'),
+                    child: const Text('Livrée'),
+                  ),
+                if (status == 'new')
+                  OutlinedButton(
+                    onPressed: () => onStatus('cancelled'),
+                    child: const Text('Annuler'),
+                  ),
+                IconButton(
+                  tooltip: 'Supprimer',
+                  onPressed: onDelete,
+                  icon: const Icon(AppIcons.trash, size: 20),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );

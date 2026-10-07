@@ -16,6 +16,11 @@ Future<void> main() async {
 
   // Adresse terminée par ?admin : panneau d'administration de Yanis.
   if (Uri.base.queryParameters.containsKey('admin')) {
+    try {
+      await initializeDateFormatting();
+    } catch (_) {
+      // Les dates s'afficheront au format par défaut.
+    }
     runApp(const AdminApp());
     return;
   }

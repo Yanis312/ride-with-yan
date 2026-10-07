@@ -50,14 +50,55 @@ abstract final class Backend {
     return body;
   }
 
-  static Future<List<Map<String, dynamic>>> select(String table) async {
+  /// Lit une table. [token] : pour les tables réservées à l'administration.
+  /// [order] : tri au format PostgREST, ex. `created_at.desc`.
+  static Future<List<Map<String, dynamic>>> select(
+    String table, {
+    String? token,
+    String? order,
+  }) async {
+    final sort = order == null ? '' : '&order=$order';
     final response = await http
         .get(
-          Uri.parse('$_url/rest/v1/$table?select=*'),
-          headers: _headers(null),
+          Uri.parse('$_url/rest/v1/$table?select=*$sort'),
+          headers: _headers(token),
         )
         .timeout(_timeout);
     return (_read(response) as List).cast<Map<String, dynamic>>();
+  }
+
+  /// Ajoute une ligne sans la relire (la tablette n'a pas le droit de lire
+  /// les commandes).
+  static Future<void> insert(String table, Map<String, dynamic> row) async {
+    if (!enabled) throw BackendException('Base indisponible');
+    final response = await http
+        .post(
+          Uri.parse('$_url/rest/v1/$table'),
+          headers: {..._headers(null), 'Prefer': 'return=minimal'},
+          body: jsonEncode(row),
+        )
+        .timeout(_timeout);
+    _read(response);
+  }
+
+  /// Modifie les lignes dont [column] vaut [value].
+  static Future<void> update(
+    String table,
+    String column,
+    String value,
+    Map<String, dynamic> changes, {
+    required String token,
+  }) async {
+    final response = await http
+        .patch(
+          Uri.parse(
+            '$_url/rest/v1/$table?$column=eq.${Uri.encodeQueryComponent(value)}',
+          ),
+          headers: {..._headers(token), 'Prefer': 'return=minimal'},
+          body: jsonEncode(changes),
+        )
+        .timeout(_timeout);
+    _read(response);
   }
 
   /// Ajoute la ligne, ou la remplace si sa clé existe déjà.

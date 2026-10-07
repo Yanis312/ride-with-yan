@@ -23,6 +23,14 @@ void main() {
       );
       await tester.pumpAndSettle();
 
+      // Hors ligne, l'onglet Commandes le dit sans planter.
+      expect(
+        find.text('Commandes indisponibles pour le moment.'),
+        findsOneWidget,
+      );
+
+      await tester.tap(find.text('Articles'));
+      await tester.pumpAndSettle();
       expect(find.text('Blanc intégral'), findsOneWidget);
       expect(find.text('Enregistrer'), findsWidgets);
 
@@ -31,7 +39,9 @@ void main() {
         find.byIcon(const IconData(0xe3d4, fontFamily: 'PhosphorLight')).first,
       );
       await tester.pump();
-      final save = tester.widget<FilledButton>(find.byType(FilledButton).first);
+      final save = tester.widget<FilledButton>(
+        find.widgetWithText(FilledButton, 'Enregistrer').first,
+      );
       expect(save.onPressed, isNotNull);
 
       await tester.tap(find.text('Sondage'));

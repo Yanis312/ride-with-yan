@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import '../backend/remote_config.dart';
 import '../config.dart';
 import '../data/bilingual.dart';
+import '../data/orders.dart';
 import '../data/store_catalog.dart';
 import '../l10n/app_localizations.dart';
 import '../navigation/sections.dart';
@@ -752,21 +753,10 @@ class _ProductSheetState extends State<_ProductSheet> {
       setState(() => _askSize = true);
       return;
     }
-    final left = product.stockOf(size) - widget.cart.quantityOf(product, size);
-    final navigator = Navigator.of(context);
-    final root = navigator.context;
-    navigator.pop();
-    if (left > 0) {
-      widget.cart.add(product, size);
-    } else if (product.preorder) {
-      // Pas à bord dans cette taille : on passe à la commande.
-      final session = SessionScope.of(root)..setPaying(true);
-      showPreorderSheet(
-        root,
-        product,
-        size,
-      ).whenComplete(() => session.setPaying(false));
-    }
+    // À bord ou sur commande : dans les deux cas l'article va au panier, et
+    // le panier demande ensuite les coordonnées du client.
+    widget.cart.add(product, size);
+    Navigator.of(context).pop();
   }
 
   @override
@@ -1074,30 +1064,6 @@ class _SheetInfo extends StatelessWidget {
   }
 }
 
-/// Commande d'un article qui n'est pas à bord : le passager écrit à Yanis
-/// sur WhatsApp (message déjà rempli). Aucune donnée n'est gardée ici.
-Future<void> showPreorderSheet(
-  BuildContext context,
-  Product product,
-  String size,
-) {
-  final price = _money(context, product.price);
-  return _showWhatsAppSheet(
-    context,
-    eyebrow: const Bi('SUR COMMANDE', 'ON ORDER'),
-    title: '${product.name.of(context)} · $size',
-    body: Bi(
-      'Livré chez vous en 20 à 30 jours. Vous payez $price à la réception.',
-      'Delivered to your door in 20 to 30 days. '
-          'You pay $price when it arrives.',
-    ),
-    message: Bi(
-      'Bonjour Yanis, je veux commander : ${product.name.fr}, taille $size.',
-      'Hi Yanis, I would like to order: ${product.name.en}, size $size.',
-    ),
-  );
-}
-
 /// Une question sur la boutique : le passager écrit à Yanis sur WhatsApp.
 Future<void> showStoreContactSheet(BuildContext context) {
   final title = const Bi(
@@ -1277,7 +1243,7 @@ class _SizeChip extends StatelessWidget {
 // ---------------------------------------------------------------------------
 // Panier et paiement.
 
-enum _Step { cart, pay, done }
+enum _Step { cart, details, pay, done }
 
 class _CartPanel extends StatefulWidget {
   const _CartPanel({required this.cart});
@@ -1292,6 +1258,9 @@ class _CartPanelState extends State<_CartPanel> {
   _Step _step = _Step.cart;
   String _reference = '';
   double _paidTotal = 0;
+  PlacedOrder? _order;
+  bool _onOrderOnly = false;
+  bool _clearing = false;
 
   SessionController? _session;
 
@@ -1316,28 +1285,44 @@ class _CartPanelState extends State<_CartPanel> {
 
   void _setStep(_Step step) {
     setState(() => _step = step);
-    // Pendant le virement, le passager est sur son téléphone : la session
-    // ne doit pas se terminer au bout de 90 secondes.
-    _session?.setPaying(step == _Step.pay);
+    // Pendant la saisie et le virement, le passager est sur le clavier ou
+    // sur son téléphone : la session ne doit pas se terminer au bout de
+    // 90 secondes.
+    _session?.setPaying(step == _Step.details || step == _Step.pay);
   }
 
-  /// Le panier a changé pendant le paiement : le montant affiché serait
-  /// faux, on revient au panier.
+  /// Le panier a changé pendant la commande : les montants seraient faux,
+  /// on revient au panier.
   void _onCartChanged() {
-    if (_step == _Step.pay && mounted) _setStep(_Step.cart);
+    if (!mounted || _clearing) return;
+    if (_step == _Step.details || _step == _Step.pay) _setStep(_Step.cart);
   }
 
-  void _goToPayment() {
-    // Code court à mettre dans le message Interac pour retrouver la commande.
-    final n = math.Random().nextInt(9000) + 1000;
-    _reference = 'RWY-$n';
-    _paidTotal = widget.cart.total;
-    _setStep(_Step.pay);
+  /// La commande est enregistrée : on passe au virement s'il y a quelque
+  /// chose à payer tout de suite, sinon c'est terminé.
+  void _onPlaced(PlacedOrder order) {
+    _order = order;
+    _reference = order.reference;
+    _paidTotal = widget.cart.payNow;
+    _onOrderOnly = _paidTotal == 0;
+    if (_onOrderOnly) {
+      _finish();
+    } else {
+      _setStep(_Step.pay);
+    }
   }
 
   void _confirmSent() {
+    final order = _order;
+    if (order != null) OrderService.claimTransfer(order);
+    _finish();
+  }
+
+  void _finish() {
     _setStep(_Step.done);
+    _clearing = true;
     widget.cart.clear();
+    _clearing = false;
   }
 
   @override
@@ -1356,7 +1341,13 @@ class _CartPanelState extends State<_CartPanel> {
             _Step.cart => _CartView(
               key: const ValueKey('cart'),
               cart: widget.cart,
-              onCheckout: _goToPayment,
+              onCheckout: () => _setStep(_Step.details),
+            ),
+            _Step.details => _DetailsView(
+              key: const ValueKey('details'),
+              cart: widget.cart,
+              onBack: () => _setStep(_Step.cart),
+              onPlaced: _onPlaced,
             ),
             _Step.pay => _PayView(
               key: const ValueKey('pay'),
@@ -1367,6 +1358,7 @@ class _CartPanelState extends State<_CartPanel> {
             ),
             _Step.done => _DoneView(
               key: const ValueKey('done'),
+              onOrderOnly: _onOrderOnly,
               onNewOrder: () => _setStep(_Step.cart),
             ),
           },
@@ -1421,17 +1413,47 @@ class _CartView extends StatelessWidget {
           const SizedBox(height: 8),
           Row(
             children: [
-              Text(l10n.total, style: AppText.body(18, color: p.textMuted)),
-              const Spacer(),
+              Expanded(
+                child: Text(
+                  cart.hasOnOrder
+                      ? const Bi('À payer maintenant', 'To pay now').of(context)
+                      : l10n.total,
+                  style: AppText.body(18, color: p.textMuted),
+                ),
+              ),
               Text(
-                _money(context, cart.total),
+                _money(context, cart.payNow),
                 style: AppText.display(36, color: p.text),
               ),
             ],
           ),
+          if (cart.hasOnOrder) ...[
+            const SizedBox(height: 4),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    const Bi(
+                      'À la livraison (20 à 30 jours)',
+                      'On delivery (20 to 30 days)',
+                    ).of(context),
+                    style: AppText.body(14, color: p.textMuted),
+                  ),
+                ),
+                Text(
+                  _money(context, cart.payLater),
+                  style: AppText.body(
+                    16,
+                    weight: FontWeight.w600,
+                    color: p.text,
+                  ),
+                ),
+              ],
+            ),
+          ],
           const SizedBox(height: 16),
           GlowButton(
-            label: l10n.checkout,
+            label: const Bi('Commander', 'Order').of(context),
             icon: AppIcons.arrowRight,
             onTap: onCheckout,
           ),
@@ -1482,7 +1504,14 @@ class _CartLineRow extends StatelessWidget {
                     color: p.text,
                   ),
                 ),
-                if (size != null)
+                if (line.onOrder)
+                  Text(
+                    '${size ?? ''} · ${const Bi('sur commande', 'on order').of(context)}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppText.body(13, color: p.accentText),
+                  )
+                else if (size != null)
                   Text(
                     '${product.blurb.of(context).split(' · ').first} · $size',
                     maxLines: 1,
@@ -1506,6 +1535,265 @@ class _CartLineRow extends StatelessWidget {
     );
   }
 }
+
+/// Coordonnées du client, demandées avant le paiement. La commande est
+/// enregistrée ici ; Yanis reçoit une alerte sur son téléphone.
+class _DetailsView extends StatefulWidget {
+  const _DetailsView({
+    super.key,
+    required this.cart,
+    required this.onBack,
+    required this.onPlaced,
+  });
+
+  final Cart cart;
+  final VoidCallback onBack;
+  final ValueChanged<PlacedOrder> onPlaced;
+
+  @override
+  State<_DetailsView> createState() => _DetailsViewState();
+}
+
+class _DetailsViewState extends State<_DetailsView> {
+  final _name = TextEditingController();
+  final _phone = TextEditingController();
+  final _address = TextEditingController();
+  bool _sending = false;
+  bool _showErrors = false;
+  bool _failed = false;
+
+  @override
+  void dispose() {
+    _name.dispose();
+    _phone.dispose();
+    _address.dispose();
+    super.dispose();
+  }
+
+  bool get _needsAddress => widget.cart.hasOnOrder;
+  bool get _nameOk => _name.text.trim().isNotEmpty;
+  bool get _phoneOk => isValidPhone(_phone.text);
+  bool get _addressOk => !_needsAddress || _address.text.trim().length >= 8;
+
+  Future<void> _submit() async {
+    if (_sending) return;
+    if (!(_nameOk && _phoneOk && _addressOk)) {
+      setState(() => _showErrors = true);
+      return;
+    }
+    setState(() {
+      _sending = true;
+      _failed = false;
+    });
+    try {
+      final order = await OrderService.place(
+        customer: CustomerDetails(
+          name: _name.text,
+          phone: _phone.text,
+          address: _address.text,
+        ),
+        cart: widget.cart,
+        language: Localizations.localeOf(context).languageCode,
+      );
+      if (mounted) widget.onPlaced(order);
+    } catch (_) {
+      // Pas de réseau : on le dit, et on propose WhatsApp à la place.
+      if (mounted) {
+        setState(() {
+          _sending = false;
+          _failed = true;
+        });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final p = context.palette;
+
+    InputDecoration field(String label, {String? error, String? hint}) =>
+        InputDecoration(
+          labelText: label,
+          hintText: hint,
+          errorText: _showErrors ? error : null,
+          filled: true,
+          fillColor: p.glass,
+          labelStyle: AppText.body(15, color: p.textMuted),
+          hintStyle: AppText.body(15, color: p.textMuted),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: BorderSide(color: p.hairline),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: BorderSide(color: p.hairline),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: const BorderSide(color: Brand.gold, width: 1.5),
+          ),
+        );
+    final text = AppText.body(17, weight: FontWeight.w500, color: p.text);
+
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              LiquidIconButton(
+                icon: AppIcons.arrowLeft,
+                size: 40,
+                onTap: widget.onBack,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    const Bi('Vos coordonnées', 'Your details').of(context),
+                    style: AppText.display(32, color: p.text),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          TextField(
+            controller: _name,
+            style: text,
+            textCapitalization: TextCapitalization.words,
+            textInputAction: TextInputAction.next,
+            maxLength: 80,
+            buildCounter: _noCounter,
+            decoration: field(
+              const Bi('Votre nom', 'Your name').of(context),
+              error: _nameOk
+                  ? null
+                  : const Bi(
+                      'Indiquez votre nom',
+                      'Enter your name',
+                    ).of(context),
+            ),
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _phone,
+            style: text,
+            keyboardType: TextInputType.phone,
+            textInputAction: TextInputAction.next,
+            maxLength: 24,
+            buildCounter: _noCounter,
+            decoration: field(
+              const Bi('Téléphone (WhatsApp)', 'Phone (WhatsApp)').of(context),
+              hint: '514 555-0199',
+              error: _phoneOk
+                  ? null
+                  : const Bi(
+                      'Numéro à 10 chiffres',
+                      '10-digit phone number',
+                    ).of(context),
+            ),
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _address,
+            style: text,
+            keyboardType: TextInputType.streetAddress,
+            textCapitalization: TextCapitalization.words,
+            minLines: 2,
+            maxLines: 3,
+            maxLength: 300,
+            buildCounter: _noCounter,
+            decoration: field(
+              _needsAddress
+                  ? const Bi(
+                      'Adresse de livraison',
+                      'Delivery address',
+                    ).of(context)
+                  : const Bi(
+                      'Adresse de livraison (facultatif)',
+                      'Delivery address (optional)',
+                    ).of(context),
+              error: _addressOk
+                  ? null
+                  : const Bi(
+                      'Nécessaire pour vous livrer',
+                      'Needed to deliver to you',
+                    ).of(context),
+            ),
+          ),
+          if (_needsAddress) ...[
+            const SizedBox(height: 12),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(AppIcons.package, size: 18, color: p.accentText),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    const Bi(
+                      'Les articles sur commande sont livrés chez vous en '
+                          '20 à 30 jours. Je vous contacte sur WhatsApp, et '
+                          'vous payez à la réception.',
+                      'Items on order are delivered to your door in 20 to '
+                          '30 days. I will message you on WhatsApp, and you '
+                          'pay when they arrive.',
+                    ).of(context),
+                    style: AppText.body(13, color: p.textMuted),
+                  ),
+                ),
+              ],
+            ),
+          ],
+          if (_failed) ...[
+            const SizedBox(height: 12),
+            Text(
+              const Bi(
+                'Pas de réseau pour le moment. Réessayez, ou écrivez-moi sur '
+                    'WhatsApp avec le bouton vert.',
+                'No network right now. Try again, or message me on WhatsApp '
+                    'with the green button.',
+              ).of(context),
+              style: AppText.body(14, color: const Color(0xFFFF6B6B)),
+            ),
+          ],
+          const SizedBox(height: 16),
+          GlowButton(
+            label: _sending
+                ? const Bi('Envoi…', 'Sending…').of(context)
+                : const Bi(
+                    'Valider la commande',
+                    'Confirm the order',
+                  ).of(context),
+            icon: AppIcons.check,
+            onTap: _submit,
+          ),
+          const SizedBox(height: 12),
+          // Loi 25 : on dit simplement à quoi servent les coordonnées.
+          Text(
+            const Bi(
+              'Vos coordonnées servent uniquement à traiter cette commande '
+                  'et à vous contacter à son sujet.',
+              'Your details are used only to process this order and to '
+                  'contact you about it.',
+            ).of(context),
+            style: AppText.body(12, color: p.textMuted),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Pas de compteur de caractères sous les champs.
+Widget? _noCounter(
+  BuildContext context, {
+  required int currentLength,
+  required bool isFocused,
+  required int? maxLength,
+}) => null;
 
 class _PayView extends StatelessWidget {
   const _PayView({
@@ -1602,9 +1890,16 @@ class _PayView extends StatelessWidget {
 }
 
 class _DoneView extends StatelessWidget {
-  const _DoneView({super.key, required this.onNewOrder});
+  const _DoneView({
+    super.key,
+    required this.onNewOrder,
+    required this.onOrderOnly,
+  });
 
   final VoidCallback onNewOrder;
+
+  /// Rien à payer tout de suite : la commande sera livrée et payée plus tard.
+  final bool onOrderOnly;
 
   @override
   Widget build(BuildContext context) {
@@ -1629,7 +1924,12 @@ class _DoneView extends StatelessWidget {
           ),
           const SizedBox(height: 22),
           Text(
-            l10n.orderThanks,
+            onOrderOnly
+                ? const Bi(
+                    'Commande reçue ! Je vous contacte sur WhatsApp pour la livraison.',
+                    'Order received! I will message you on WhatsApp about delivery.',
+                  ).of(context)
+                : l10n.orderThanks,
             textAlign: TextAlign.center,
             style: AppText.display(28, color: p.text),
           ),

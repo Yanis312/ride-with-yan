@@ -1,4 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:ride_with_yan/backend/remote_config.dart';
+import 'package:ride_with_yan/data/orders.dart';
 import 'package:ride_with_yan/data/store_catalog.dart';
 
 void main() {
@@ -44,11 +46,57 @@ void main() {
     expect(cart.quantityOf(shoes, 'US 9'), shoes.stockOf('US 9'));
   });
 
-  test("une taille qui n'est pas à bord ne va pas au panier", () {
+  test('une taille pas à bord se commande, payable à la livraison', () {
     final jersey = catalog.firstWhere((p) => p.id == 'maillot-mbappe');
-    final cart = Cart()..add(jersey, 'S');
+    final water = catalog.firstWhere((p) => p.id == 'water');
+    final cart = Cart()
+      ..add(jersey, 'S')
+      ..add(water);
+
     expect(jersey.stockOf('S'), 0);
+    expect(cart.lines.first.onOrder, isTrue);
+    expect(cart.hasOnOrder, isTrue);
+    expect(cart.payNow, water.price);
+    expect(cart.payLater, jersey.price);
+
+    // Quelques pièces au plus pour un même article sur commande.
+    for (var i = 0; i < 10; i++) {
+      cart.add(jersey, 'S');
+    }
+    expect(cart.quantityOf(jersey, 'S'), Cart.maxOnOrder);
+  });
+
+  test("un article épuisé qui ne se commande pas ne s'ajoute pas", () {
+    final remote = RemoteConfig.instance;
+    addTearDown(remote.setForTest);
+    remote.setForTest(
+      products: {
+        'umbrella': {'stock': 0},
+      },
+    );
+    final umbrella = catalog.firstWhere((p) => p.id == 'umbrella');
+    final cart = Cart()..add(umbrella);
     expect(cart.isEmpty, isTrue);
+  });
+
+  test('les lignes de commande copient nom, taille, prix et statut', () {
+    final jersey = catalog.firstWhere((p) => p.id == 'maillot-yamal');
+    final lines = orderLines(Cart()..add(jersey, 'M'));
+    expect(lines.single, {
+      'id': 'maillot-yamal',
+      'name': 'Maillot Yamal',
+      'size': 'M',
+      'qty': 1,
+      'price': 50.0,
+      'on_order': true,
+    });
+  });
+
+  test('numéros de téléphone acceptés et refusés', () {
+    expect(isValidPhone('514 555-0199'), isTrue);
+    expect(isValidPhone('+1 (438) 994-8668'), isTrue);
+    expect(isValidPhone('12345'), isFalse);
+    expect(isValidPhone('appelle-moi'), isFalse);
   });
 
   test('les maillots sur commande restent dans la vitrine', () {
