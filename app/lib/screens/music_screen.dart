@@ -1,7 +1,7 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:youtube_player_iframe/youtube_player_iframe.dart';
 
 import '../config.dart';
@@ -12,6 +12,7 @@ import '../navigation/sections.dart';
 import '../session/session_controller.dart';
 import '../theme/app_icons.dart';
 import '../theme/app_theme.dart';
+import '../widgets/decor_clock.dart';
 import '../widgets/glass.dart';
 import '../widgets/mesh_background.dart';
 import '../widgets/section_scaffold.dart';
@@ -358,31 +359,38 @@ class _Equalizer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: 26,
-      height: 26,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          for (var i = 0; i < 4; i++)
-            Container(
+    final clock = DecorValue((s) => s);
+    return RepaintBoundary(
+      child: SizedBox(
+        width: 26,
+        height: 26,
+        child: AnimatedBuilder(
+          animation: clock,
+          builder: (context, _) => Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              for (var i = 0; i < 4; i++)
+                Container(
                   width: 4,
-                  height: 26,
+                  // Chaque barre a son propre rythme.
+                  height:
+                      26 *
+                      (0.25 +
+                          0.75 *
+                              (0.5 +
+                                  0.5 *
+                                      math.sin(
+                                        clock.value * (8.3 - i * 1.3) + i,
+                                      ))),
                   decoration: BoxDecoration(
                     color: Brand.gold,
                     borderRadius: BorderRadius.circular(2),
                   ),
-                )
-                .animate(onPlay: (c) => c.repeat(reverse: true))
-                .scaleY(
-                  begin: 0.25,
-                  end: 1,
-                  alignment: Alignment.bottomCenter,
-                  duration: (380 + i * 130).ms,
-                  curve: Curves.easeInOutSine,
                 ),
-        ],
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -498,11 +506,7 @@ class _FavoriteCard extends StatelessWidget {
         ),
       ),
     );
-    if (active) {
-      vinyl = vinyl
-          .animate(onPlay: (c) => c.repeat())
-          .rotate(duration: 2400.ms);
-    }
+    if (active) vinyl = DecorSpin(period: 2.4, child: vinyl);
 
     return Container(
       padding: const EdgeInsets.all(20),

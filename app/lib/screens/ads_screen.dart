@@ -11,6 +11,7 @@ import '../l10n/app_localizations.dart';
 import '../navigation/sections.dart';
 import '../theme/app_icons.dart';
 import '../theme/app_theme.dart';
+import '../widgets/decor_clock.dart';
 import '../widgets/glass.dart';
 import '../widgets/mesh_background.dart';
 import '../widgets/qr_card.dart';
@@ -510,6 +511,7 @@ Future<void> _showSocialQr(
         type: MaterialType.transparency,
         child: LiquidPill(
           radius: 40,
+          solid: true,
           padding: const EdgeInsets.all(36),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -561,13 +563,11 @@ class _FreeSpotCard extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(AppIcons.crown, size: 72, color: Brand.gold)
-                .animate(onPlay: (c) => c.repeat(reverse: true))
-                .scaleXY(
-                  end: 1.1,
-                  duration: 1400.ms,
-                  curve: Curves.easeInOutSine,
-                ),
+            const DecorPulse(
+              period: 2.8,
+              scale: 1.1,
+              child: Icon(AppIcons.crown, size: 72, color: Brand.gold),
+            ),
             const SizedBox(height: 22),
             Text(
               l10n.adsYourSpot,
@@ -630,39 +630,31 @@ class _Offer extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 10,
-                ),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(999),
-                  gradient: const LinearGradient(
-                    colors: [Brand.goldSoft, Brand.gold],
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(999),
+              gradient: const LinearGradient(
+                colors: [Brand.goldSoft, Brand.gold],
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(AppIcons.gift, size: 20, color: Brand.ink),
+                const SizedBox(width: 8),
+                Flexible(
+                  child: Text(
+                    l10n.adsFreeBadge,
+                    style: AppText.body(
+                      15,
+                      weight: FontWeight.w600,
+                      color: Brand.ink,
+                    ),
                   ),
                 ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(AppIcons.gift, size: 20, color: Brand.ink),
-                    const SizedBox(width: 8),
-                    Flexible(
-                      child: Text(
-                        l10n.adsFreeBadge,
-                        style: AppText.body(
-                          15,
-                          weight: FontWeight.w600,
-                          color: Brand.ink,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              )
-              .animate(onPlay: (c) => c.repeat(reverse: true))
-              .shimmer(
-                duration: 1800.ms,
-                color: Colors.white.withValues(alpha: 0.5),
-              ),
+              ],
+            ),
+          ),
           const SizedBox(height: 26),
           for (final (i, (icon, text)) in points.indexed)
             Padding(

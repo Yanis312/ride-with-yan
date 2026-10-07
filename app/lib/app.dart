@@ -6,6 +6,7 @@ import 'screens/home_screen.dart';
 import 'screens/welcome_screen.dart';
 import 'session/session_controller.dart';
 import 'theme/app_theme.dart';
+import 'widgets/decor_clock.dart';
 import 'theme/appearance_controller.dart';
 
 class RideWithYanApp extends StatefulWidget {
@@ -74,17 +75,24 @@ class _RideWithYanAppState extends State<RideWithYanApp> {
               GlobalWidgetsLocalizations.delegate,
               GlobalCupertinoLocalizations.delegate,
             ],
-            builder: (context, child) => Listener(
-              behavior: HitTestBehavior.translucent,
-              onPointerDown: (_) => _session.registerInteraction(),
-              child: child,
-            ),
+            builder: (context, child) {
+              // Mouvement réduit demandé par l'appareil : les animations
+              // décoratives s'arrêtent toutes d'un coup.
+              DecorClock.enabled = !MediaQuery.disableAnimationsOf(context);
+              return Listener(
+                behavior: HitTestBehavior.translucent,
+                onPointerDown: (_) => _session.registerInteraction(),
+                child: child,
+              );
+            },
             // Tablette de bord : le bouton Retour d'Android ne doit jamais
             // faire quitter l'app depuis l'accueil ou le lounge.
             home: PopScope(
               canPop: false,
               child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 600),
+                // Court : pendant ce fondu, les deux écrans sont
+                // dessinés l'un sur l'autre à chaque image.
+                duration: const Duration(milliseconds: 380),
                 switchInCurve: AppMotion.spring,
                 switchOutCurve: AppMotion.spring,
                 child: _session.isActive

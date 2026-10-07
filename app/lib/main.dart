@@ -5,7 +5,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/date_symbol_data_local.dart';
-import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 
 import 'admin/admin_app.dart';
 import 'app.dart';
@@ -31,7 +30,6 @@ Future<void> main() async {
 
   try {
     await initializeDateFormatting();
-    await LiquidGlassWidgets.initialize(enablePerformanceMonitor: false);
   } catch (error) {
     // L'app démarre quand même, avec les réglages par défaut.
     debugPrint('Initialisation incomplète : $error');
@@ -42,15 +40,7 @@ Future<void> main() async {
   // Prix, stocks et réglages de l'administration, dès le démarrage.
   unawaited(RemoteConfig.instance.refresh());
 
-  runApp(
-    LiquidGlassWidgets.wrap(
-      // Le verre suit le mode clair/sombre de l'app, pas celui du système.
-      brightnessResolver: Theme.maybeBrightnessOf,
-      // Tablette d'entrée de gamme : la qualité s'adapte à l'appareil.
-      adaptiveQuality: true,
-      child: const RideWithYanApp(),
-    ),
-  );
+  runApp(const RideWithYanApp());
 }
 
 /// Tablette de bord : plein écran sans les barres d'Android, et paysage

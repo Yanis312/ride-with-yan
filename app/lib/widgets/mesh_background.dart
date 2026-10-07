@@ -1,13 +1,11 @@
 import 'dart:math' as math;
 
-import '../perf_flags.dart';
-
 import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
-import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
+
+import 'decor_clock.dart';
 
 import '../theme/app_theme.dart';
 
@@ -266,10 +264,9 @@ class MeshBackground extends StatefulWidget {
 }
 
 class _MeshBackgroundState extends State<MeshBackground>
-    with TickerProviderStateMixin {
+    with SingleTickerProviderStateMixin {
   static Future<ui.FragmentProgram?>? _program;
 
-  late final Ticker _ticker = createTicker(_onTick);
   final _time = ValueNotifier<double>(0);
   ui.FragmentShader? _shader;
 
@@ -284,6 +281,9 @@ class _MeshBackgroundState extends State<MeshBackground>
   @override
   void initState() {
     super.initState();
+    // Le fond avance au rythme de l'horloge décorative commune : aucun
+    // minuteur à lui, donc aucun redessin forcé à 60 images/s.
+    DecorClock.instance.addListener(_onTick);
     _program ??= ui.FragmentProgram.fromAsset('shaders/mesh.frag')
         .then<ui.FragmentProgram?>(
           (p) => p,
@@ -304,9 +304,6 @@ class _MeshBackgroundState extends State<MeshBackground>
     super.didChangeDependencies();
     final target = MeshPalette.of(widget.scene, Theme.of(context).brightness);
     _retarget(target);
-    final reduce = MediaQuery.disableAnimationsOf(context);
-    if (reduce && _ticker.isActive) _ticker.stop();
-    if (!reduce && !_ticker.isActive) _ticker.start();
   }
 
   @override
@@ -336,16 +333,8 @@ class _MeshBackgroundState extends State<MeshBackground>
   final _touch = _TouchState();
   double _now = 0;
 
-  // Fond redessiné à 30 images/s au lieu de 60 : invisible pour des vagues
-  // lentes, mais deux fois moins de travail pour la carte graphique.
-  static const _frameInterval = 1 / 30;
-  double _lastFrame = -1;
-
-  void _onTick(Duration elapsed) {
-    if (PerfFlags.off('mesh')) return;
-    _now = elapsed.inMicroseconds / 1e6;
-    if (_now - _lastFrame < _frameInterval) return;
-    _lastFrame = _now;
+  void _onTick() {
+    _now = DecorClock.instance.seconds;
     _touch.update(_now, _rippleLife);
     _time.value = _seed + _now;
   }
@@ -364,7 +353,7 @@ class _MeshBackgroundState extends State<MeshBackground>
 
   @override
   void dispose() {
-    _ticker.dispose();
+    DecorClock.instance.removeListener(_onTick);
     _blend.dispose();
     _time.dispose();
     _shader?.dispose();
@@ -373,7 +362,6 @@ class _MeshBackgroundState extends State<MeshBackground>
 
   @override
   Widget build(BuildContext context) {
-    // Le fond sert de source de réfraction aux éléments Liquid Glass.
     // Listener ne participe pas à l'arène des gestes : les boutons restent
     // pleinement utilisables pendant que le fond réagit au doigt.
     final glow = Theme.of(context).brightness == Brightness.dark
@@ -385,29 +373,24 @@ class _MeshBackgroundState extends State<MeshBackground>
       onPointerMove: _onMove,
       onPointerUp: _onUp,
       onPointerCancel: _onUp,
-      child: LiquidGlassScope(
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            GlassBackgroundSource(
-              enabled: !PerfFlags.off('glass'),
-              child: RepaintBoundary(
-                child: CustomPaint(
-                  painter: _MeshPainter(
-                    shader: _shader,
-                    time: _time,
-                    blend: _blend,
-                    palette: () => _current,
-                    touch: _touch,
-                    now: () => _now,
-                    glow: glow,
-                  ),
-                ),
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          RepaintBoundary(
+            child: CustomPaint(
+              painter: _MeshPainter(
+                shader: _shader,
+                time: _time,
+                blend: _blend,
+                palette: () => _current,
+                touch: _touch,
+                now: () => _now,
+                glow: glow,
               ),
             ),
-            widget.child,
-          ],
-        ),
+          ),
+          widget.child,
+        ],
       ),
     );
   }

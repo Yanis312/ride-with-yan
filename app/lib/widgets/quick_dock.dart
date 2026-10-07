@@ -1,7 +1,5 @@
 import 'dart:math' as math;
 
-import '../perf_flags.dart';
-
 import 'package:flutter/material.dart';
 
 import '../l10n/app_localizations.dart';
@@ -10,7 +8,7 @@ import '../theme/app_icons.dart';
 import '../theme/app_theme.dart';
 import 'glass.dart';
 import 'heartbeat.dart';
-import 'throttled.dart';
+import 'decor_clock.dart';
 
 /// Dock en verre liquide présent sur tous les écrans. Les sections qui
 /// rapportent (LinkedIn, Collaborations, Boutique, Pub) sont mises en avant par une
@@ -35,31 +33,10 @@ class QuickDock extends StatefulWidget {
   State<QuickDock> createState() => _QuickDockState();
 }
 
-class _QuickDockState extends State<QuickDock>
-    with SingleTickerProviderStateMixin {
-  // Une seule horloge pour toutes les bordures lumineuses du dock.
-  late final AnimationController _spin = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 3600),
-  );
-  // Bordures redessinées à 30 images/s au plus (voir Throttled).
-  late final Throttled _slowSpin = Throttled(_spin);
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (MediaQuery.disableAnimationsOf(context)) {
-      _spin.stop();
-    } else if (!_spin.isAnimating && !PerfFlags.off('dock')) {
-      _spin.repeat();
-    }
-  }
-
-  @override
-  void dispose() {
-    _spin.dispose();
-    super.dispose();
-  }
+class _QuickDockState extends State<QuickDock> {
+  // Une seule boucle pour toutes les bordures lumineuses du dock, calée sur
+  // l'horloge décorative commune (30 images/s).
+  final Animation<double> _slowSpin = DecorLoop(3.6);
 
   @override
   Widget build(BuildContext context) {

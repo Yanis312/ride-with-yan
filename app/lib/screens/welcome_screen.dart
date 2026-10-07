@@ -1,10 +1,10 @@
+import 'dart:async';
 import 'dart:math' as math;
-
-import '../perf_flags.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
+import '../data/store_catalog.dart';
 import '../navigation/sections.dart';
 import '../session/session_controller.dart';
 import '../theme/app_icons.dart';
@@ -18,7 +18,7 @@ import '../widgets/quick_dock.dart';
 import '../widgets/road_logo.dart';
 import '../widgets/scene_vignettes.dart';
 import '../widgets/store_showcase.dart';
-import '../widgets/throttled.dart';
+import '../widgets/decor_clock.dart';
 
 /// Une phase de l'écran de veille : une ambiance de couleurs, une
 /// illustration animée et plusieurs phrases bilingues possibles.
@@ -136,22 +136,22 @@ class WelcomeScreen extends StatefulWidget {
   State<WelcomeScreen> createState() => _WelcomeScreenState();
 }
 
-class _WelcomeScreenState extends State<WelcomeScreen>
-    with TickerProviderStateMixin {
-  late final AnimationController _phaseClock = AnimationController(
-    vsync: this,
-    duration: WelcomeScreen.phaseDuration,
-  )..addStatusListener(_onPhaseEnd);
-
-  late final AnimationController _loop = AnimationController(
-    vsync: this,
-    duration: const Duration(seconds: 6),
-  );
+class _WelcomeScreenState extends State<WelcomeScreen> {
+  // Aucun contrôleur d'animation ici : la boucle des illustrations et la
+  // barre de progression suivent l'horloge décorative commune, et le
+  // changement de phase est un simple minuteur.
+  Timer? _phaseTimer;
+  double _phaseStart = 0;
 
   final _random = math.Random();
-  // Illustrations et barre de progression redessinées à 30 images/s au plus.
-  late final Throttled _slowLoop = Throttled(_loop);
-  late final Throttled _slowClock = Throttled(_phaseClock);
+  final Animation<double> _slowLoop = DecorLoop(6);
+  late final Animation<double> _slowClock = DecorValue(
+    (seconds) =>
+        ((seconds - _phaseStart) * 1000 / _phase.duration.inMilliseconds).clamp(
+          0.0,
+          1.0,
+        ),
+  );
   late List<int> _order = _shuffledCycle(_random);
   int _step = 0;
   int _cycle = 0;
@@ -167,21 +167,48 @@ class _WelcomeScreenState extends State<WelcomeScreen>
   @override
   void initState() {
     super.initState();
-    _phaseClock.forward();
+    _startPhase();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _warmUp());
   }
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (MediaQuery.disableAnimationsOf(context)) {
-      _loop.stop();
-    } else if (!_loop.isAnimating && !PerfFlags.off('vignette')) {
-      _loop.repeat();
+  /// Décode à l'avance, une par une, les photos du lounge et de la boutique.
+  static bool _warmed = false;
+  Future<void> _warmUp() async {
+    if (_warmed) return;
+    _warmed = true;
+    const lounge = [
+      'assets/photos/theatre.jpg',
+      'assets/photos/city-paris.jpg',
+      'assets/photos/news-paper.jpg',
+      'assets/photos/city-london.jpg',
+      'assets/showcase/noir-tailor.jpg',
+      'assets/showcase/mokka.jpg',
+      'assets/showcase/vlt-active.jpg',
+    ];
+    final photos = [
+      ...lounge,
+      for (final product in featuredProducts) ...product.photos.take(1),
+    ];
+    for (final photo in photos) {
+      if (!mounted) return;
+      try {
+        await precacheImage(AssetImage(photo), context);
+      } catch (_) {
+        // Une photo manquante n'empêche pas les autres.
+      }
+      // Une petite pause entre deux photos : l'animation reste fluide.
+      await Future<void>.delayed(const Duration(milliseconds: 120));
     }
   }
 
-  void _onPhaseEnd(AnimationStatus status) {
-    if (status != AnimationStatus.completed || !mounted) return;
+  void _startPhase() {
+    _phaseStart = DecorClock.instance.seconds;
+    _phaseTimer?.cancel();
+    _phaseTimer = Timer(_phase.duration, _nextPhase);
+  }
+
+  void _nextPhase() {
+    if (!mounted) return;
     setState(() {
       _step++;
       if (_step == _order.length) {
@@ -192,15 +219,12 @@ class _WelcomeScreenState extends State<WelcomeScreen>
       _variant = _random.nextInt(_phase.lines.length);
       _englishFirst = _random.nextBool();
     });
-    _phaseClock
-      ..duration = _phase.duration
-      ..forward(from: 0);
+    _startPhase();
   }
 
   @override
   void dispose() {
-    _phaseClock.dispose();
-    _loop.dispose();
+    _phaseTimer?.cancel();
     super.dispose();
   }
 
@@ -767,6 +791,7 @@ class _LanguageSheet extends StatelessWidget {
                 padding: const EdgeInsets.all(20),
                 child: LiquidPill(
                   radius: 40,
+                  solid: true,
                   padding: const EdgeInsets.fromLTRB(36, 40, 36, 36),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,

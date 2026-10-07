@@ -42,8 +42,9 @@ Route<void> _sectionRoute(Section section) {
 Route<void> _fadeRoute(String name, Widget page) {
   return PageRouteBuilder<void>(
     settings: RouteSettings(name: name),
-    transitionDuration: const Duration(milliseconds: 650),
-    reverseTransitionDuration: const Duration(milliseconds: 420),
+    // Courte : chaque image d'une transition redessine les deux écrans.
+    transitionDuration: const Duration(milliseconds: 320),
+    reverseTransitionDuration: const Duration(milliseconds: 220),
     pageBuilder: (context, _, _) => page,
     transitionsBuilder: (context, animation, _, child) {
       final curved = CurvedAnimation(
@@ -52,8 +53,11 @@ Route<void> _fadeRoute(String name, Widget page) {
       );
       return FadeTransition(
         opacity: curved,
-        child: ScaleTransition(
-          scale: Tween(begin: 0.96, end: 1.0).animate(curved),
+        child: SlideTransition(
+          position: Tween(
+            begin: const Offset(0, 0.02),
+            end: Offset.zero,
+          ).animate(curved),
           child: child,
         ),
       );

@@ -12,6 +12,7 @@ import '../navigation/sections.dart';
 import '../theme/app_icons.dart';
 import '../theme/app_theme.dart';
 import '../widgets/blueprint_mockup.dart';
+import '../widgets/decor_clock.dart';
 import '../widgets/glass.dart';
 import '../widgets/heartbeat.dart';
 import '../widgets/mesh_background.dart';
@@ -829,6 +830,7 @@ Future<void> showContactSheet(BuildContext context) {
           padding: const EdgeInsets.all(20),
           child: LiquidPill(
             radius: 40,
+            solid: true,
             padding: const EdgeInsets.fromLTRB(40, 36, 40, 36),
             child: SingleChildScrollView(
               child: Column(
@@ -897,24 +899,20 @@ class _KenBurns extends StatelessWidget {
       alignment: Alignment.topCenter,
     );
     if (MediaQuery.disableAnimationsOf(context)) return img;
-    // Isolé : le zoom lent ne fait pas repeindre le reste de l'écran.
-    return RepaintBoundary(child: _moving(img));
-  }
-
-  Widget _moving(Widget img) {
-    return img
-        .animate(onPlay: (c) => c.repeat(reverse: true))
-        .scaleXY(
-          begin: 1,
-          end: phone ? 1.06 : 1.1,
-          duration: 12.seconds,
-          curve: Curves.easeInOutSine,
-        )
-        .moveY(
-          begin: 0,
-          end: phone ? -20 : -40,
-          duration: 12.seconds,
-          curve: Curves.easeInOutSine,
-        );
+    // Zoom et glissement très lents, sur l'horloge décorative commune.
+    final wave = DecorValue((s) => 0.5 - 0.5 * math.cos(s / 24 * 2 * math.pi));
+    return RepaintBoundary(
+      child: AnimatedBuilder(
+        animation: wave,
+        child: img,
+        builder: (context, child) => Transform.translate(
+          offset: Offset(0, -(phone ? 20.0 : 40.0) * wave.value),
+          child: Transform.scale(
+            scale: 1 + (phone ? 0.06 : 0.1) * wave.value,
+            child: child,
+          ),
+        ),
+      ),
+    );
   }
 }

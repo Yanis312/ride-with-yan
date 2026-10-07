@@ -1,9 +1,9 @@
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 
+import 'decor_clock.dart';
 import 'road_logo.dart';
 
 /// Le Y transformé en métal liquide (shader de Paper, voir shaders/NOTICE.md).
@@ -19,13 +19,12 @@ class LiquidMetalLogo extends StatefulWidget {
   State<LiquidMetalLogo> createState() => _LiquidMetalLogoState();
 }
 
-class _LiquidMetalLogoState extends State<LiquidMetalLogo>
-    with SingleTickerProviderStateMixin {
+class _LiquidMetalLogoState extends State<LiquidMetalLogo> {
   static Future<(ui.FragmentProgram, ui.Image)?>? _resources;
 
-  late final Ticker _ticker = createTicker(_onTick);
-  final _time = ValueNotifier<double>(0);
-  Duration _last = Duration.zero;
+  // Même cadence que la démo de Paper (temps en millisecondes x vitesse),
+  // lue sur l'horloge décorative commune.
+  final Animation<double> _time = DecorValue((seconds) => seconds * 300);
   ui.FragmentShader? _shader;
   ui.Image? _mask;
 
@@ -58,25 +57,7 @@ class _LiquidMetalLogoState extends State<LiquidMetalLogo>
   }
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    final reduce = MediaQuery.disableAnimationsOf(context);
-    if (reduce && _ticker.isActive) _ticker.stop();
-    if (!reduce && !_ticker.isActive) _ticker.start();
-  }
-
-  void _onTick(Duration elapsed) {
-    // 30 images/s suffisent pour le métal liquide (voir MeshBackground).
-    if ((elapsed - _last).inMilliseconds < 33) return;
-    // Même cadence que la démo de Paper : temps en millisecondes x vitesse.
-    _time.value += (elapsed - _last).inMilliseconds * 0.3;
-    _last = elapsed;
-  }
-
-  @override
   void dispose() {
-    _ticker.dispose();
-    _time.dispose();
     _shader?.dispose();
     super.dispose();
   }
@@ -118,7 +99,7 @@ class _LiquidPainter extends CustomPainter {
 
   final ui.FragmentShader shader;
   final ui.Image mask;
-  final ValueNotifier<double> time;
+  final Animation<double> time;
 
   @override
   void paint(Canvas canvas, Size size) {

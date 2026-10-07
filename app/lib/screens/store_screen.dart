@@ -381,15 +381,13 @@ class _ProductGrid extends StatelessWidget {
                     width: width,
                     child: _ProductCard(product: product, cart: cart),
                   )
+                  // Glissement seul, et seulement pour les cartes visibles à
+                  // l'ouverture : pas de couche de transparence par carte.
                   .animate()
-                  .fadeIn(
-                    delay: (60 * i).ms,
-                    duration: 600.ms,
-                    curve: AppMotion.spring,
-                  )
                   .slideY(
-                    begin: 0.1,
-                    delay: (60 * i).ms,
+                    begin: i < 6 ? 0.06 : 0,
+                    delay: (40 * (i < 6 ? i : 0)).ms,
+                    duration: 380.ms,
                     curve: AppMotion.spring,
                   ),
           ],

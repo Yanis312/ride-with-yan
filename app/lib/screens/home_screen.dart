@@ -19,6 +19,7 @@ import 'weather_screen.dart';
 import '../theme/app_icons.dart';
 import '../theme/app_theme.dart';
 import '../theme/appearance_controller.dart';
+import '../widgets/decor_clock.dart';
 import '../widgets/glass.dart';
 import '../widgets/gold_spotlight.dart';
 import '../widgets/mesh_background.dart';
@@ -215,14 +216,15 @@ class _BentoLayout extends StatelessWidget {
     const gap = 18.0;
     final tiles = _Tiles.of(context);
 
-    Widget enter(Widget child, int order) => child
-        .animate()
-        .fadeIn(
-          delay: (80 * order).ms,
-          duration: AppMotion.slow,
-          curve: AppMotion.spring,
-        )
-        .slideY(begin: 0.08, delay: (80 * order).ms, curve: AppMotion.spring);
+    // Les cartes glissent en place l'une après l'autre. Pas de fondu par
+    // carte : chaque fondu ajoute une couche de transparence à redessiner
+    // à chaque image, et il y en avait six en même temps.
+    Widget enter(Widget child, int order) => child.animate().slideY(
+      begin: 0.06,
+      delay: (50 * order).ms,
+      duration: 420.ms,
+      curve: AppMotion.spring,
+    );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1042,12 +1044,7 @@ class _PlayOrb extends StatelessWidget {
     );
 
     if (MediaQuery.disableAnimationsOf(context)) return orb;
-    // Isolé : sa respiration ne fait pas repeindre tout le lounge.
-    return RepaintBoundary(
-      child: orb
-          .animate(onPlay: (c) => c.repeat(reverse: true))
-          .scaleXY(end: 1.08, duration: 2400.ms, curve: Curves.easeInOutSine),
-    );
+    return DecorPulse(child: orb);
   }
 }
 

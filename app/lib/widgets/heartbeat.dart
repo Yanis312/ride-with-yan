@@ -2,9 +2,8 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
-import '../perf_flags.dart';
 import '../theme/app_theme.dart';
-import 'throttled.dart';
+import 'decor_clock.dart';
 
 /// Halo doré qui bat comme un cœur (deux battements rapprochés puis une
 /// pause) derrière [child]. Seul le halo s'anime : [child] (souvent du verre
@@ -25,29 +24,9 @@ class Heartbeat extends StatefulWidget {
   State<Heartbeat> createState() => _HeartbeatState();
 }
 
-class _HeartbeatState extends State<Heartbeat>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _beat = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 1700),
-  );
-  late final Throttled _slow = Throttled(_beat);
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (MediaQuery.disableAnimationsOf(context)) {
-      _beat.stop();
-    } else if (!_beat.isAnimating && !PerfFlags.off('dock')) {
-      _beat.repeat();
-    }
-  }
-
-  @override
-  void dispose() {
-    _beat.dispose();
-    super.dispose();
-  }
+class _HeartbeatState extends State<Heartbeat> {
+  // Battement calé sur l'horloge décorative commune.
+  final Animation<double> _slow = DecorLoop(1.7);
 
   /// Intensité 0..1 : un pic fort ("lub") puis un pic plus faible ("dub").
   static double pulse(double t) {

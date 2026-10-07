@@ -2,10 +2,9 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
-import '../perf_flags.dart';
 import '../theme/app_theme.dart';
 import 'heartbeat.dart';
-import 'throttled.dart';
+import 'decor_clock.dart';
 
 /// Met une carte en vedette : halo doré qui bat comme un cœur et filet de
 /// lumière qui tourne sur le bord. Seuls le halo et le filet sont repeints,
@@ -20,29 +19,8 @@ class GoldSpotlight extends StatefulWidget {
   State<GoldSpotlight> createState() => _GoldSpotlightState();
 }
 
-class _GoldSpotlightState extends State<GoldSpotlight>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _spin = AnimationController(
-    vsync: this,
-    duration: const Duration(seconds: 5),
-  );
-  late final Throttled _slow = Throttled(_spin);
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (MediaQuery.disableAnimationsOf(context)) {
-      _spin.stop();
-    } else if (!_spin.isAnimating && !PerfFlags.off('dock')) {
-      _spin.repeat();
-    }
-  }
-
-  @override
-  void dispose() {
-    _spin.dispose();
-    super.dispose();
-  }
+class _GoldSpotlightState extends State<GoldSpotlight> {
+  final Animation<double> _slow = DecorLoop(5);
 
   @override
   Widget build(BuildContext context) {

@@ -1,11 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../perf_flags.dart';
-
-import 'package:flutter_animate/flutter_animate.dart';
-import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
-
 import '../theme/app_theme.dart';
+import 'decor_clock.dart';
 
 /// Carte "double bordure" : une coque translucide qui tient un noyau,
 /// comme une plaque de verre posée dans un cadre en aluminium.
@@ -212,39 +208,52 @@ class PillButton extends StatelessWidget {
   }
 }
 
-/// Surface "Liquid Glass" façon iOS 26 en forme de pilule : elle réfracte
-/// le fond animé placé derrière (voir MeshBackground).
+/// Surface de verre en forme de pilule : translucide, avec un liseré clair.
+/// (La version à réfraction "Liquid Glass" a été retirée : elle obligeait à
+/// recopier l'écran à chaque image et coûtait près de la moitié du temps de
+/// dessin.)
 class LiquidPill extends StatelessWidget {
   const LiquidPill({
     super.key,
     required this.child,
     this.radius = 999,
     this.padding,
+    this.solid = false,
   });
 
   final Widget child;
   final double radius;
   final EdgeInsetsGeometry? padding;
 
+  /// Presque opaque : pour les panneaux posés par-dessus du texte (choix de
+  /// langue, contact), qui doivent rester lisibles.
+  final bool solid;
+
   @override
   Widget build(BuildContext context) {
-    return GlassContainer(
-      shape: LiquidRoundedSuperellipse(borderRadius: radius),
-      padding: padding,
-      settings: LiquidGlassSettings(
-        glassColor: context.isDark
-            ? const Color(0x14FFFFFF)
-            : const Color(0x59FFFFFF),
-        thickness: 22,
-        blur: 8,
-        lightIntensity: 0.6,
+    final p = context.palette;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(radius.clamp(0, 999).toDouble()),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: solid
+              ? (context.isDark
+                    ? const [Color(0xF51C1D23), Color(0xF50F1014)]
+                    : const [Color(0xFAFFFFFF), Color(0xF5F1F2F6)])
+              : (context.isDark
+                    ? const [Color(0x3DFFFFFF), Color(0x1FFFFFFF)]
+                    : const [Color(0xB3FFFFFF), Color(0x80FFFFFF)]),
+        ),
+        border: Border.all(color: p.highlight),
       ),
-      child: child,
+      child: Padding(padding: padding ?? EdgeInsets.zero, child: child),
     );
   }
 }
 
-/// Bouton rond en verre liquide (icône seule).
+/// Bouton rond en verre (icône seule).
 class LiquidIconButton extends StatelessWidget {
   const LiquidIconButton({
     super.key,
@@ -259,17 +268,16 @@ class LiquidIconButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GlassButton(
-      width: size,
-      height: size,
-      onTap: onTap,
-      icon: Icon(icon, color: context.palette.text, size: size * 0.42),
-      settings: LiquidGlassSettings(
-        glassColor: context.isDark
-            ? const Color(0x14FFFFFF)
-            : const Color(0x59FFFFFF),
-        thickness: 24,
-        blur: 8,
+    return Semantics(
+      button: true,
+      child: Pressable(
+        onTap: onTap,
+        child: LiquidPill(
+          child: SizedBox.square(
+            dimension: size,
+            child: Icon(icon, color: context.palette.text, size: size * 0.42),
+          ),
+        ),
       ),
     );
   }
@@ -339,19 +347,9 @@ class GlowButton extends StatelessWidget {
       ),
     );
 
-    if (!reduce && !PerfFlags.off('glow')) {
-      pill = pill
-          .animate(onPlay: (c) => c.repeat())
-          .shimmer(
-            delay: 2600.ms,
-            duration: 1400.ms,
-            color: Colors.white.withValues(alpha: 0.3),
-          );
-    }
+    // Reflet qui passe toutes les 4 s, calé sur l'horloge décorative.
+    if (!reduce) pill = DecorShimmer(child: pill);
 
-    // Animation continue isolée : seul le bouton est redessiné, pas l'écran.
-    return RepaintBoundary(
-      child: Pressable(onTap: onTap, child: pill),
-    );
+    return Pressable(onTap: onTap, child: pill);
   }
 }
