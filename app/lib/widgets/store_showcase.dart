@@ -242,52 +242,75 @@ class _Tile extends StatelessWidget {
                 ),
               ),
             ),
-            Positioned(
-              left: small ? 8 : 12,
-              right: small ? 6 : 10,
-              bottom: small ? 6 : 10,
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Expanded(
-                    child: Text(
-                      product.name.of(context),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: AppText.body(
-                        small ? 11 : 14,
-                        weight: FontWeight.w700,
-                        color: Colors.white,
-                      ).copyWith(height: 1.15),
+            // Petite vitrine (téléphone) : le prix passe en haut à droite pour
+            // laisser toute la largeur au nom.
+            if (small) ...[
+              Positioned(right: 6, top: 6, child: _price(price, small)),
+              Positioned(
+                left: 8,
+                right: 8,
+                bottom: 6,
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    product.name.of(context),
+                    maxLines: 1,
+                    style: AppText.body(
+                      12,
+                      weight: FontWeight.w700,
+                      color: Colors.white,
                     ),
                   ),
-                  const SizedBox(width: 6),
-                  Container(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: small ? 8 : 11,
-                      vertical: small ? 3 : 5,
-                    ),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(99),
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFFFFE08A), Brand.gold],
-                      ),
-                    ),
-                    child: Text(
-                      price,
-                      style: AppText.body(
-                        small ? 11 : 14,
-                        weight: FontWeight.w800,
-                        color: Brand.ink,
-                      ),
-                    ),
-                  ),
-                ],
+                ),
               ),
-            ),
+            ] else
+              Positioned(
+                left: 12,
+                right: 10,
+                bottom: 10,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        product.name.of(context),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppText.body(
+                          14,
+                          weight: FontWeight.w700,
+                          color: Colors.white,
+                        ).copyWith(height: 1.15),
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    _price(price, small),
+                  ],
+                ),
+              ),
           ],
         ),
       ),
     );
   }
+
+  Widget _price(String price, bool small) => Container(
+    padding: EdgeInsets.symmetric(
+      horizontal: small ? 8 : 11,
+      vertical: small ? 3 : 5,
+    ),
+    decoration: BoxDecoration(
+      borderRadius: BorderRadius.circular(99),
+      gradient: const LinearGradient(colors: [Color(0xFFFFE08A), Brand.gold]),
+    ),
+    child: Text(
+      price,
+      style: AppText.body(
+        small ? 11 : 14,
+        weight: FontWeight.w800,
+        color: Brand.ink,
+      ),
+    ),
+  );
 }

@@ -278,39 +278,37 @@ class _ShowroomState extends State<_Showroom> {
           ),
         ),
         const SizedBox(height: 18),
-        Row(
-          children: [
-            Expanded(
-              child: AnimatedSwitcher(
-                duration: AppMotion.medium,
-                transitionBuilder: (child, a) => FadeTransition(
-                  opacity: a,
-                  child: SlideTransition(
-                    position: Tween(
-                      begin: const Offset(0, 0.3),
-                      end: Offset.zero,
-                    ).animate(a),
-                    child: child,
-                  ),
-                ),
-                child: Column(
-                  key: ValueKey(current.title),
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      current.title,
-                      style: AppText.display(32, color: p.text),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '${current.kind.of(context)}  ·  ${l10n.collabDemoBadge}',
-                      style: AppText.body(14, color: p.textMuted),
-                    ),
-                  ],
+        LayoutBuilder(
+          builder: (context, c) {
+            final title = AnimatedSwitcher(
+              duration: AppMotion.medium,
+              transitionBuilder: (child, a) => FadeTransition(
+                opacity: a,
+                child: SlideTransition(
+                  position: Tween(
+                    begin: const Offset(0, 0.3),
+                    end: Offset.zero,
+                  ).animate(a),
+                  child: child,
                 ),
               ),
-            ),
-            if (showcases.length > 1)
+              child: Column(
+                key: ValueKey(current.title),
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    current.title,
+                    style: AppText.display(32, color: p.text),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '${current.kind.of(context)}  ·  ${l10n.collabDemoBadge}',
+                    style: AppText.body(14, color: p.textMuted),
+                  ),
+                ],
+              ),
+            );
+            final thumbs = [
               for (var i = 0; i < showcases.length; i++)
                 Padding(
                   padding: const EdgeInsets.only(left: 10),
@@ -320,7 +318,30 @@ class _ShowroomState extends State<_Showroom> {
                     onTap: () => _select(i),
                   ),
                 ),
-          ],
+            ];
+            if (showcases.length < 2) return title;
+            // Écran étroit : les miniatures passent sous le titre et
+            // défilent, au lieu d'écraser le titre.
+            if (c.maxWidth < 640) {
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  title,
+                  const SizedBox(height: 10),
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(children: thumbs),
+                  ),
+                ],
+              );
+            }
+            return Row(
+              children: [
+                Expanded(child: title),
+                ...thumbs,
+              ],
+            );
+          },
         ),
       ],
     );

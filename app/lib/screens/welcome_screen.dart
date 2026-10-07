@@ -476,18 +476,25 @@ class _CompactStage extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, c) {
-        final vignette = (c.maxWidth * 0.8).clamp(160.0, 320.0);
+        // L'illustration ne prend jamais plus de la moitié de la hauteur, et
+        // le texte rétrécit s'il manque de place : rien ne passe sous le
+        // bouton du bas.
+        final vignette = math
+            .min(c.maxWidth * 0.8, c.maxHeight * 0.5)
+            .clamp(140.0, 320.0);
         return Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             _AnimatedVignette(phase: phase, loop: loop, size: vignette),
-            const SizedBox(height: 28),
-            _PhaseText(
-              key: textKey,
-              phase: phase,
-              line: line,
-              index: index,
-              size: 50,
+            const SizedBox(height: 20),
+            Flexible(
+              child: _PhaseText(
+                key: textKey,
+                phase: phase,
+                line: line,
+                index: index,
+                size: 50,
+              ),
             ),
           ],
         );
