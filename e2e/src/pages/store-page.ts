@@ -1,4 +1,4 @@
-import type { Locator, Page } from '@playwright/test';
+import { expect, type Locator, type Page } from '@playwright/test';
 
 export type Category = 'All' | 'Shoes' | 'Jerseys';
 
@@ -105,8 +105,16 @@ export class StorePage {
    * c'est ce que l'app reçoit réellement d'un clavier de tablette.
    */
   private async type(field: Locator, value: string) {
-    await field.click();
-    await field.pressSequentially(value, { delay: 15 });
+    // Sur une machine lente, l'app peut ne pas être prête à recevoir la
+    // première touche : on vérifie le texte saisi et on recommence au besoin.
+    await expect(async () => {
+      await field.click();
+      await expect(field).toBeFocused();
+      await field.press('ControlOrMeta+A');
+      await field.press('Backspace');
+      await field.pressSequentially(value, { delay: 15 });
+      await expect(field).toHaveValue(value, { timeout: 1000 });
+    }).toPass();
   }
 
   async fillDetails(details: { name?: string; phone?: string; address?: string }) {
