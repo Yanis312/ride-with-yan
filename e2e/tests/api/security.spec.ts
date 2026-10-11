@@ -163,6 +163,21 @@ test.describe('Catalogue et sondage : réservés à l’administrateur', () => {
     expect(await errorCode(response)).toBe(FORBIDDEN);
   });
 
+  const inventedVotes: [string, string, string][] = [
+    ['une question inventée', 'inconnue', 'paris'],
+    ['une réponse inventée', 'ville', 'rome'],
+    ['une réponse d’une autre question', 'ville', 'poutine'],
+  ];
+
+  for (const [label, question, choice] of inventedVotes) {
+    test(`un vote pour ${label} est refusé`, async ({ request }) => {
+      const response = await new SupabaseAnon(request).call('cast_vote', { question, choice });
+
+      expect(response.status()).toBe(400);
+      expect(apiErrorSchema.parse(await response.json()).message).toBe('vote invalide');
+    });
+  }
+
   test('un vote aux identifiants invalides est refusé', async ({ request }) => {
     const response = await new SupabaseAnon(request).call('cast_vote', {
       question: "x'; drop table poll_votes; --",

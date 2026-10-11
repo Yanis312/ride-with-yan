@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
+import '../data/bilingual.dart';
 import '../theme/app_icons.dart';
 import '../theme/app_theme.dart';
 import 'liquid_metal_logo.dart';
@@ -166,12 +167,18 @@ class _Cinema extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'CE SOIR AU SALON',
+                          const Bi(
+                            'CE SOIR AU SALON',
+                            'TONIGHT IN THE LOUNGE',
+                          ).of(context),
                           style: AppText.eyebrow(const Color(0xFFFFB347)),
                         ),
                         const SizedBox(height: 6),
                         Text(
-                          'Grand écran, sièges arrière',
+                          const Bi(
+                            'Grand écran, sièges arrière',
+                            'Big screen, back seats',
+                          ).of(context),
                           style: AppText.display(28, color: Colors.white),
                         ),
                         const SizedBox(height: 10),
@@ -194,7 +201,7 @@ class _Cinema extends StatelessWidget {
                               ),
                               const SizedBox(width: 6),
                               Text(
-                                'Regarder',
+                                const Bi('Regarder', 'Watch').of(context),
                                 style: AppText.body(
                                   13,
                                   weight: FontWeight.w700,
@@ -559,9 +566,9 @@ class _News extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  for (final (i, c) in const [
-                    'Monde',
-                    'Sport',
+                  for (final (i, c) in [
+                    const Bi('Monde', 'World').of(context),
+                    const Bi('Sport', 'Sports').of(context),
                     'Finance',
                     'Tech',
                   ].indexed)
@@ -629,14 +636,17 @@ class _News extends StatelessWidget {
                                 ),
                                 const SizedBox(width: 6),
                                 Text(
-                                  'EN DIRECT',
+                                  const Bi('EN DIRECT', 'LIVE').of(context),
                                   style: AppText.eyebrow(Colors.white),
                                 ),
                               ],
                             ),
                             const SizedBox(height: 6),
                             Text(
-                              'Votre fil d’actualité, en temps réel',
+                              const Bi(
+                                'Votre fil d’actualité, en temps réel',
+                                'Your news feed, in real time',
+                              ).of(context),
                               style: AppText.display(22, color: Colors.white),
                             ),
                           ],
@@ -663,7 +673,12 @@ class _Collab extends StatelessWidget {
   final double t;
   final double size;
 
-  static const _labels = ['Sites web', 'Apps mobiles', 'Automatisation', 'IA'];
+  static const _labels = [
+    Bi('Sites web', 'Websites'),
+    Bi('Apps mobiles', 'Mobile apps'),
+    Bi('Automatisation', 'Automation'),
+    Bi('IA', 'AI'),
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -693,7 +708,7 @@ class _Collab extends StatelessWidget {
                 ),
               ),
               child: Text(
-                _labels[i],
+                _labels[i].of(context),
                 style: AppText.body(14, weight: FontWeight.w600, color: p.text),
               ),
             ),
@@ -828,7 +843,10 @@ class _AdFront extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Restaurant japonais',
+                  const Bi(
+                    'Restaurant japonais',
+                    'Japanese restaurant',
+                  ).of(context),
                   style: AppText.body(14, color: Colors.white70),
                 ),
                 const SizedBox(height: 12),
@@ -1027,7 +1045,10 @@ class _AdBack extends StatelessWidget {
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
-                                    '−10 % avec Ride with Yan',
+                                    const Bi(
+                                      '−10 % avec Ride with Yan',
+                                      '10% off with Ride with Yan',
+                                    ).of(context),
                                     style: AppText.body(
                                       14,
                                       weight: FontWeight.w700,

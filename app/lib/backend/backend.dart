@@ -248,10 +248,6 @@ class AdminSession extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Crée le compte ; Supabase envoie un courriel de confirmation.
-  Future<void> signUp(String email, String password) =>
-      Backend._auth('signup', {'email': email, 'password': password});
-
   /// Vrai seulement pour le compte de Yanis (vérifié par la base).
   Future<bool> isAdmin() async =>
       await Backend.rpc('is_admin', {}, token: await token()) == true;

@@ -307,29 +307,6 @@ class _LoginPageState extends State<_LoginPage> {
                     ),
                     child: Text(_busy ? 'Un instant…' : 'Se connecter'),
                   ),
-                  const SizedBox(height: 10),
-                  TextButton(
-                    onPressed: _busy
-                        ? null
-                        : () {
-                            if (_password.text.length < 8) {
-                              _toast(
-                                context,
-                                'Choisissez un mot de passe d’au moins 8 caractères.',
-                                error: true,
-                              );
-                              return;
-                            }
-                            _run(
-                              () =>
-                                  widget.session.signUp(email, _password.text),
-                              done:
-                                  'Compte créé. Ouvrez le courriel de confirmation, '
-                                  'puis revenez vous connecter.',
-                            );
-                          },
-                    child: const Text('Première fois ? Créer mon accès'),
-                  ),
                 ],
               ),
             ),

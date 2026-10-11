@@ -321,15 +321,20 @@ class GlowButton extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
+          // Sur un petit écran, le texte rétrécit au lieu d'être coupé
+          // (« Comman… ») : le bouton principal doit toujours se lire.
           Flexible(
-            child: Text(
-              label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: AppText.body(
-                20,
-                weight: FontWeight.w600,
-                color: Brand.ink,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Text(
+                label,
+                maxLines: 1,
+                style: AppText.body(
+                  20,
+                  weight: FontWeight.w600,
+                  color: Brand.ink,
+                ),
               ),
             ),
           ),
