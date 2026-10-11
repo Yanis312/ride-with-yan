@@ -1,0 +1,115 @@
+# Azure Pipelines : la même chaîne de tests que GitHub Actions, sur Azure DevOps.
+#
+# Exécution chaque nuit, ou à la main depuis Azure DevOps ("Run pipeline").
+# Les envois de code sont déjà vérifiés par GitHub Actions : on ne double pas.
+
+trigger: none
+pr: none
+
+schedules:
+  # 9 h UTC = 5 h du matin à Montréal
+  - cron: '0 9 * * *'
+    displayName: Tests de nuit
+    branches:
+      include: [main]
+    always: true
+
+pool:
+  vmImage: ubuntu-24.04
+
+variables:
+  CI: 'true'
+  FLUTTER_HOME: $(Agent.ToolsDirectory)/flutter
+
+stages:
+  - stage: App
+    displayName: App Flutter
+    jobs:
+      - job: build
+        displayName: Analyse, tests et build
+        timeoutInMinutes: 30
+        steps:
+          - script: |
+              git clone --depth 1 --branch stable https://github.com/flutter/flutter.git "$(FLUTTER_HOME)"
+              echo "##vso[task.prependpath]$(FLUTTER_HOME)/bin"
+            displayName: Installation de Flutter
+
+          - script: flutter pub get
+            workingDirectory: app
+            displayName: Dépendances
+
+          - script: dart format --output=none --set-exit-if-changed lib test
+            workingDirectory: app
+            displayName: Mise en forme du code
+
+          - script: flutter analyze
+            workingDirectory: app
+            displayName: Analyse statique
+
+          - script: flutter test
+            workingDirectory: app
+            displayName: Tests unitaires et de widgets
+
+          - script: flutter build web --release --wasm
+            workingDirectory: app
+            displayName: Construction de l'app web
+
+          - task: PublishPipelineArtifact@1
+            displayName: Mise à disposition de l'app construite
+            inputs:
+              targetPath: app/build/web
+              artifact: web-build
+
+  - stage: E2E
+    displayName: Tests de bout en bout
+    dependsOn: App
+    jobs:
+      - job: playwright
+        displayName: Playwright (écrans et API)
+        timeoutInMinutes: 40
+        steps:
+          - task: UseNode@1
+            displayName: Node.js 22
+            inputs:
+              version: 22.x
+
+          - task: DownloadPipelineArtifact@2
+            displayName: Récupération de l'app construite
+            inputs:
+              artifact: web-build
+              path: app/build/web
+
+          - script: npm ci
+            workingDirectory: e2e
+            displayName: Dépendances
+
+          - script: npx tsc && npx eslint .
+            workingDirectory: e2e
+            displayName: Types et lint
+
+          - script: npx playwright install --with-deps chromium
+            workingDirectory: e2e
+            displayName: Installation de Chromium
+
+          - script: npx playwright test --reporter=list,junit,html
+            workingDirectory: e2e
+            displayName: Tests Playwright
+            env:
+              PLAYWRIGHT_JUNIT_OUTPUT_NAME: results.xml
+
+          # Les résultats apparaissent dans l'onglet "Tests" d'Azure DevOps.
+          - task: PublishTestResults@2
+            displayName: Publication des résultats
+            condition: succeededOrFailed()
+            inputs:
+              testResultsFormat: JUnit
+              testResultsFiles: e2e/results.xml
+              testRunTitle: Ride with Yan - Playwright
+              failTaskOnFailedTests: true
+
+          - task: PublishPipelineArtifact@1
+            displayName: Rapport HTML
+            condition: succeededOrFailed()
+            inputs:
+              targetPath: e2e/playwright-report
+              artifact: playwright-report

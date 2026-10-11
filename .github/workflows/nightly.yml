@@ -1,0 +1,132 @@
+name: Nightly
+
+# Chaque nuit : toute la suite sur les trois moteurs de navigateur (Chrome,
+# Firefox et WebKit, le moteur de Safari), répartie sur trois machines en
+# parallèle, puis un contrôle rapide du site réellement en ligne.
+
+on:
+  schedule:
+    # 7 h UTC = 3 h du matin à Montréal
+    - cron: '0 7 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Construction de l'app web
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: flutter build web --release --wasm
+      - uses: actions/upload-artifact@v4
+        with:
+          name: web-build
+          path: app/build/web
+          retention-days: 1
+
+  e2e:
+    name: Tous les navigateurs (${{ matrix.shardIndex }}/${{ matrix.shardTotal }})
+    needs: build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        shardIndex: [1, 2, 3]
+        shardTotal: [3]
+    env:
+      ALL_BROWSERS: 'true'
+    defaults:
+      run:
+        working-directory: e2e
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: e2e/package-lock.json
+      - uses: actions/download-artifact@v4
+        with:
+          name: web-build
+          path: app/build/web
+      - run: npm ci
+      - run: npx playwright install --with-deps
+      - name: Tests Playwright (part ${{ matrix.shardIndex }} sur ${{ matrix.shardTotal }})
+        run: npx playwright test --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }} --reporter=list,blob
+      - name: Résultats partiels
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: blob-report-${{ matrix.shardIndex }}
+          path: e2e/blob-report
+          retention-days: 1
+
+  report:
+    name: Rapport complet
+    if: ${{ !cancelled() }}
+    needs: e2e
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: e2e
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: e2e/package-lock.json
+      - run: npm ci
+      - uses: actions/download-artifact@v4
+        with:
+          path: e2e/all-blob-reports
+          pattern: blob-report-*
+          merge-multiple: true
+      - name: Fusion des trois rapports en un seul
+        run: npx playwright merge-reports --reporter html,github ./all-blob-reports
+      # GitHub Pages héberge déjà l'app elle-même : le rapport est donc
+      # proposé en téléchargement dans la page de l'exécution.
+      - uses: actions/upload-artifact@v4
+        with:
+          name: nightly-report
+          path: e2e/playwright-report
+          retention-days: 14
+
+  production:
+    name: Contrôle du site en ligne
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      # Les mêmes tests d'écran, mais sur l'app publiée que voient les passagers.
+      APP_URL: https://yanis312.github.io/ride-with-yan/
+    defaults:
+      run:
+        working-directory: e2e
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: e2e/package-lock.json
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npx playwright test --project=ui-chromium
+      - if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-report
+          path: e2e/playwright-report
+          retention-days: 14

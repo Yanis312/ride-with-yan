@@ -1,0 +1,83 @@
+name: Tests
+
+# À chaque envoi de code : l'app est analysée, testée, construite, puis
+# pilotée dans un vrai navigateur comme le ferait un passager.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  app:
+    name: App Flutter (analyse, tests, build)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - name: Mise en forme du code
+        run: dart format --output=none --set-exit-if-changed lib test
+      - name: Analyse statique
+        run: flutter analyze
+      - name: Tests unitaires et de widgets
+        run: flutter test
+      - name: Construction de l'app web
+        run: flutter build web --release --wasm
+      - uses: actions/upload-artifact@v4
+        with:
+          name: web-build
+          path: app/build/web
+          retention-days: 1
+
+  e2e:
+    name: Tests de bout en bout et d'API (Playwright)
+    needs: app
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: e2e
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: e2e/package-lock.json
+      - uses: actions/download-artifact@v4
+        with:
+          name: web-build
+          path: app/build/web
+      - run: npm ci
+      - name: Vérification des types
+        run: npx tsc
+      - name: Lint
+        run: npx eslint .
+      - name: Installation de Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Tests Playwright
+        run: npx playwright test
+      - name: Rapport des tests
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: e2e/playwright-report
+          retention-days: 14

@@ -3,6 +3,7 @@ import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
@@ -41,6 +42,13 @@ Future<void> main() async {
   unawaited(RemoteConfig.instance.refresh());
 
   runApp(const RideWithYanApp());
+
+  // Tests de bout en bout (?e2e dans l'adresse) : l'arbre d'accessibilité est
+  // activé d'office, pour que les outils de test trouvent boutons et textes
+  // comme le ferait un lecteur d'écran.
+  if (kIsWeb && Uri.base.queryParameters.containsKey('e2e')) {
+    SemanticsBinding.instance.ensureSemantics();
+  }
 }
 
 /// Tablette de bord : plein écran sans les barres d'Android, et paysage

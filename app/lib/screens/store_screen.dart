@@ -1455,6 +1455,24 @@ class _CartView extends StatelessWidget {
             icon: AppIcons.arrowRight,
             onTap: onCheckout,
           ),
+          const SizedBox(height: 10),
+          // On annonce la suite : le paiement Interac vient après les
+          // coordonnées, il n'a pas disparu.
+          Text(
+            cart.payNow > 0
+                ? const Bi(
+                    'Étape suivante : vos coordonnées, puis le paiement par '
+                        'virement Interac.',
+                    'Next: your details, then payment by Interac e-Transfer.',
+                  ).of(context)
+                : const Bi(
+                    'Étape suivante : vos coordonnées. Vous payez à la '
+                        'livraison.',
+                    'Next: your details. You pay on delivery.',
+                  ).of(context),
+            textAlign: TextAlign.center,
+            style: AppText.body(13, color: p.textMuted),
+          ),
         ],
       ],
     );
