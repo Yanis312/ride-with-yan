@@ -1,4 +1,4 @@
-import { expect, type Locator, type Page } from '@playwright/test';
+import type { Locator, Page } from '@playwright/test';
 
 /** Accueil du passager : les cartes vers chaque section. */
 export class LoungePage {
@@ -25,12 +25,7 @@ export class LoungePage {
 
   /** Geste discret du conducteur entre deux courses : appui long sur le logo. */
   async returnToWelcome() {
-    // L'appui est répété tant que le lounge est affiché : sur une machine
-    // lente, un premier appui long peut ne pas être reconnu.
-    await expect(async () => {
-      await this.backToWelcome.click({ delay: 1500, timeout: 5000 });
-      await expect(this.backToWelcome).toBeHidden({ timeout: 5000 });
-    }).toPass();
+    await this.backToWelcome.click({ delay: 1500 });
   }
 
   async openStore() {

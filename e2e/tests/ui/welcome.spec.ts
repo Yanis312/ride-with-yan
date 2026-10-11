@@ -7,7 +7,6 @@ test.describe('Écran de veille', () => {
 
   test('fait défiler ses dix présentations et invite à commencer', async ({ welcome }) => {
     await expect(welcome.slide).toHaveAccessibleName(/Ride with Yan \d{2} \/ 10/);
-    await expect(welcome.startButton).toBeVisible();
     await expect(welcome.discoverButton).toBeVisible();
   });
 
@@ -45,6 +44,9 @@ test.describe('Écran de veille', () => {
     await welcome.start('en');
     await lounge.returnToWelcome();
 
-    await expect(welcome.startButton).toBeVisible();
+    // Le bouton rouge reste affiché sur les dix présentations, alors que
+    // « Tap to start » laisse sa place à « Shop now » pendant la vitrine.
+    await expect(welcome.discoverButton).toBeVisible();
+    await expect(lounge.backToWelcome).toBeHidden();
   });
 });
