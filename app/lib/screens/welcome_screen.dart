@@ -59,8 +59,8 @@ const _phases = [
       ('Jetez un œil à ma boutique.', 'Take a look at my shop.'),
     ],
     note: (
-      'Chaussures et maillots de foot, neufs. Payez par Interac.',
-      'Shoes and football jerseys, brand new. Pay with Interac.',
+      'Chaussures 100 \$, maillots 50 \$, combo 140 \$. Livrés chez vous.',
+      'Shoes \$100, jerseys \$50, combo \$140. Delivered to your door.',
     ),
     duration: WelcomeScreen.storeDuration,
   ),

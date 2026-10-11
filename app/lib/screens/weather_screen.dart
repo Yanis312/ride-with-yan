@@ -351,8 +351,8 @@ class _NowCard extends StatelessWidget {
                             Expanded(
                               child: Text(
                                 Bi(
-                                  '$rain % de risque de pluie. Un parapluie est en vente à bord.',
-                                  '$rain% chance of rain. An umbrella is for sale on board.',
+                                  '$rain % de risque de pluie. Pensez au parapluie.',
+                                  '$rain% chance of rain. Remember your umbrella.',
                                 ).of(context),
                                 style: AppText.body(
                                   14,

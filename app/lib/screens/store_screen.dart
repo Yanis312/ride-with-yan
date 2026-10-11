@@ -28,8 +28,8 @@ String _money(BuildContext context, double amount) => NumberFormat.currency(
   decimalDigits: amount == amount.roundToDouble() ? 0 : 2,
 ).format(amount);
 
-/// Boutique à bord : sneakers et maillots revendus (neufs, authentiques),
-/// petits essentiels, panier et paiement par virement Interac (confirmé à la
+/// Boutique à bord : chaussures et maillots neufs, sur commande ou en stock,
+/// panier et paiement par virement Interac (confirmé à la
 /// main par Yanis, pas d'API Interac pour les particuliers).
 class StoreScreen extends StatefulWidget {
   const StoreScreen({super.key});
@@ -138,7 +138,7 @@ class _StoreScreenState extends State<StoreScreen> {
 class _Subtitle extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Text(
-    AppLocalizations.of(context).storeSubtitle,
+    storePitch.of(context),
     style: AppText.body(17, color: context.palette.textMuted),
   );
 }
@@ -495,15 +495,14 @@ class _ProductCard extends StatelessWidget {
                         ),
                       ),
                     ),
-                    if (product.isResale)
-                      Positioned(
-                        left: 10,
-                        top: 10,
-                        child: _Tag(
-                          label: _newTag.of(context),
-                          icon: AppIcons.sealCheck,
-                        ),
+                    Positioned(
+                      left: 10,
+                      top: 10,
+                      child: _Tag(
+                        label: _newTag.of(context),
+                        icon: AppIcons.sealCheck,
                       ),
+                    ),
                     Positioned(
                       right: 10,
                       bottom: 10,
@@ -874,15 +873,11 @@ class _Gallery extends StatelessWidget {
                 padding: const EdgeInsets.fromLTRB(36, 56, 36, 48),
               ),
             ),
-            if (product.isResale)
-              Positioned(
-                left: 16,
-                top: 16,
-                child: _Tag(
-                  label: _newTag.of(context),
-                  icon: AppIcons.sealCheck,
-                ),
-              ),
+            Positioned(
+              left: 16,
+              top: 16,
+              child: _Tag(label: _newTag.of(context), icon: AppIcons.sealCheck),
+            ),
             if (count > 1)
               Positioned(
                 left: 0,
@@ -1375,6 +1370,10 @@ class _CartView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final onDelivery = const Bi(
+      'À la livraison ($deliveryDays jours)',
+      'On delivery ($deliveryDays days)',
+    ).of(context);
     final p = context.palette;
 
     return Column(
@@ -1409,32 +1408,61 @@ class _CartView extends StatelessWidget {
           ),
           Divider(color: p.hairline),
           const SizedBox(height: 8),
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  cart.hasOnOrder
-                      ? const Bi('À payer maintenant', 'To pay now').of(context)
-                      : l10n.total,
-                  style: AppText.body(18, color: p.textMuted),
-                ),
-              ),
-              Text(
-                _money(context, cart.payNow),
-                style: AppText.display(36, color: p.text),
-              ),
-            ],
-          ),
-          if (cart.hasOnOrder) ...[
+          // Le rabais d'abord, puis le montant principal en gros : ce qui se
+          // paie tout de suite, ou le total à la livraison si rien n'est à bord.
+          if (cart.comboDiscount > 0) ...[
             const SizedBox(height: 4),
             Row(
               children: [
                 Expanded(
                   child: Text(
                     const Bi(
-                      'À la livraison (20 à 30 jours)',
-                      'On delivery (20 to 30 days)',
+                      'Combo paire + maillot',
+                      'Pair + jersey combo',
                     ).of(context),
+                    style: AppText.body(14, color: p.accentText),
+                  ),
+                ),
+                Text(
+                  '− ${_money(context, cart.comboDiscount)}',
+                  style: AppText.body(
+                    16,
+                    weight: FontWeight.w600,
+                    color: p.accentText,
+                  ),
+                ),
+              ],
+            ),
+          ],
+          if (cart.comboDiscount > 0) const SizedBox(height: 4),
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  cart.payNow > 0
+                      ? (cart.hasOnOrder
+                            ? const Bi(
+                                'À payer maintenant',
+                                'To pay now',
+                              ).of(context)
+                            : l10n.total)
+                      : onDelivery,
+                  style: AppText.body(18, color: p.textMuted),
+                ),
+              ),
+              Text(
+                _money(context, cart.payNow > 0 ? cart.payNow : cart.payLater),
+                style: AppText.display(36, color: p.text),
+              ),
+            ],
+          ),
+          if (cart.payNow > 0 && cart.hasOnOrder) ...[
+            const SizedBox(height: 4),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    onDelivery,
                     style: AppText.body(14, color: p.textMuted),
                   ),
                 ),
@@ -1751,10 +1779,10 @@ class _DetailsViewState extends State<_DetailsView> {
                   child: Text(
                     const Bi(
                       'Les articles sur commande sont livrés chez vous en '
-                          '20 à 30 jours. Je vous contacte sur WhatsApp, et '
+                          '$deliveryDays jours. Je vous contacte sur WhatsApp, et '
                           'vous payez à la réception.',
-                      'Items on order are delivered to your door in 20 to '
-                          '30 days. I will message you on WhatsApp, and you '
+                      'Items on order are delivered to your door in '
+                          '$deliveryDays days. I will message you on WhatsApp, and you '
                           'pay when they arrive.',
                     ).of(context),
                     style: AppText.body(13, color: p.textMuted),

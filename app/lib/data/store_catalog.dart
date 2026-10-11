@@ -6,8 +6,7 @@ import 'bilingual.dart';
 
 enum ProductCategory {
   sneakers(Bi('Chaussures', 'Shoes'), AppIcons.sneaker),
-  jerseys(Bi('Maillots', 'Jerseys'), AppIcons.tShirt),
-  essentials(Bi('Essentiels', 'Essentials'), AppIcons.batteryCharging);
+  jerseys(Bi('Maillots', 'Jerseys'), AppIcons.tShirt);
 
   const ProductCategory(this.label, this.icon);
 
@@ -134,9 +133,6 @@ class Product {
   static int? _count(Object? v) =>
       v is num && v.isFinite && v >= 0 ? v.toInt() : null;
 
-  /// Article revendu (neuf), par opposition aux essentiels.
-  bool get isResale => category != ProductCategory.essentials;
-
   List<String> get photos => [
     for (var i = 1; i <= photoCount; i++)
       'assets/products/$id-$i.${framed ? 'jpg' : 'png'}',
@@ -160,28 +156,52 @@ const resellerNotice = Bi(
   'Independent reseller · new items. Not affiliated with any brand.',
 );
 
+/// Délai de livraison d'un article sur commande, en jours.
+const deliveryDays = 30;
+
 const _sneakerDetails = [
   Bi('Neuves, jamais portées', 'New, never worn'),
-  Bi('Paiement par virement Interac', 'Pay by Interac e-Transfer'),
-  Bi('Remise en main propre, ici même', 'Handed to you right here'),
+  Bi(
+    'Livrées chez vous en $deliveryDays jours',
+    'Delivered to your door in $deliveryDays days',
+  ),
+  Bi('Vous payez à la réception', 'You pay when it arrives'),
+  Bi(
+    'Combo : 1 paire + 1 maillot = 140 \$',
+    'Combo: 1 pair + 1 jersey = \$140',
+  ),
 ];
 
 const _jerseyDetails = [
   Bi('Neuf, jamais porté', 'New, never worn'),
-  Bi('À bord : remis en main propre', 'On board: handed to you right here'),
   Bi(
-    'Sur commande : livré chez vous en 20 à 30 jours',
-    'On order: delivered to your door in 20 to 30 days',
+    'Livré chez vous en $deliveryDays jours',
+    'Delivered to your door in $deliveryDays days',
   ),
-  Bi('Commande : vous payez à la réception', 'Orders: you pay when it arrives'),
+  Bi('Vous payez à la réception', 'You pay when it arrives'),
+  Bi(
+    'Combo : 1 paire + 1 maillot = 140 \$',
+    'Combo: 1 pair + 1 jersey = \$140',
+  ),
 ];
 
 /// Délai et paiement d'une commande, affichés sous les tailles.
 const preorderNotice = Bi(
-  'Votre taille n’est pas à bord ? Commandez-la : je vous la livre chez vous '
-      'en 20 à 30 jours, et vous payez à la réception.',
-  'Your size is not on board? Order it: I deliver it to your door in 20 to '
-      '30 days, and you pay when it arrives.',
+  'Sur commande : je vous le livre chez vous en $deliveryDays jours, et vous '
+      'payez à la réception.',
+  'On order: I deliver it to your door in $deliveryDays days, and you pay '
+      'when it arrives.',
+);
+
+/// Prix d'un combo : une paire de chaussures et un maillot ensemble.
+const comboPrice = 140.0;
+
+/// Rappel des prix affiché en haut de la boutique.
+const storePitch = Bi(
+  'Chaussures 100 \$ · Maillots 50 \$ · Combo paire + maillot 140 \$ · '
+      'Livraison chez vous en $deliveryDays jours.',
+  'Shoes \$100 · Jerseys \$50 · Pair + jersey combo \$140 · Delivered to '
+      'your door in $deliveryDays days.',
 );
 
 /// Tailles des maillots. Zéro partout par défaut : tout est sur commande
@@ -196,8 +216,9 @@ const _shoeBlurb = Bi('Chaussures basses · neuves', 'Low-top shoes · new');
 /// Couleurs du fond de studio des photos (texte sombre par-dessus).
 const _studio = [Color(0xFFD5D9E0), Color(0xFF9AA2AE)];
 
-/// Tailles et quantités provisoires : à remplacer par le vrai stock.
-const _shoeSizes = {'US 7': 1, 'US 8': 1, 'US 9': 1, 'US 10': 1, 'US 11': 1};
+/// Tailles des chaussures. Zéro partout : tout est sur commande tant que le
+/// stock réel n'est pas saisi dans le panneau d'administration.
+const _shoeSizes = {'US 7': 0, 'US 8': 0, 'US 9': 0, 'US 10': 0, 'US 11': 0};
 
 /// Catalogue. Aucun nom de marque : les chaussures sont désignées par leur
 /// couleur. Tailles, quantités et prix sont à ajuster au vrai stock.
@@ -213,6 +234,7 @@ const baseCatalog = [
     sizes: _shoeSizes,
     photoCount: 1,
     framed: true,
+    preorder: true,
     details: _sneakerDetails,
   ),
   Product(
@@ -226,6 +248,7 @@ const baseCatalog = [
     sizes: _shoeSizes,
     photoCount: 1,
     framed: true,
+    preorder: true,
     details: _sneakerDetails,
   ),
   Product(
@@ -239,6 +262,7 @@ const baseCatalog = [
     sizes: _shoeSizes,
     photoCount: 1,
     framed: true,
+    preorder: true,
     details: _sneakerDetails,
   ),
   Product(
@@ -252,6 +276,7 @@ const baseCatalog = [
     sizes: _shoeSizes,
     photoCount: 1,
     framed: true,
+    preorder: true,
     details: _sneakerDetails,
   ),
   Product(
@@ -265,6 +290,7 @@ const baseCatalog = [
     sizes: _shoeSizes,
     photoCount: 1,
     framed: true,
+    preorder: true,
     details: _sneakerDetails,
   ),
   Product(
@@ -278,6 +304,7 @@ const baseCatalog = [
     sizes: _shoeSizes,
     photoCount: 1,
     framed: true,
+    preorder: true,
     details: _sneakerDetails,
   ),
   Product(
@@ -291,6 +318,7 @@ const baseCatalog = [
     sizes: _shoeSizes,
     photoCount: 1,
     framed: true,
+    preorder: true,
     details: _sneakerDetails,
   ),
   Product(
@@ -304,6 +332,7 @@ const baseCatalog = [
     sizes: _shoeSizes,
     photoCount: 1,
     framed: true,
+    preorder: true,
     details: _sneakerDetails,
   ),
   Product(
@@ -317,6 +346,7 @@ const baseCatalog = [
     sizes: _shoeSizes,
     photoCount: 1,
     framed: true,
+    preorder: true,
     details: _sneakerDetails,
   ),
   Product(
@@ -330,6 +360,7 @@ const baseCatalog = [
     sizes: _shoeSizes,
     photoCount: 1,
     framed: true,
+    preorder: true,
     details: _sneakerDetails,
   ),
   Product(
@@ -343,6 +374,7 @@ const baseCatalog = [
     sizes: _shoeSizes,
     photoCount: 1,
     framed: true,
+    preorder: true,
     details: _sneakerDetails,
   ),
   Product(
@@ -404,51 +436,6 @@ const baseCatalog = [
     preorder: true,
     details: _jerseyDetails,
   ),
-  Product(
-    id: 'charger',
-    name: Bi('Câble de recharge 3 en 1', '3-in-1 charging cable'),
-    blurb: Bi(
-      'USB-C, Lightning et micro-USB',
-      'USB-C, Lightning and micro-USB',
-    ),
-    price: 12,
-    category: ProductCategory.essentials,
-    icon: AppIcons.batteryCharging,
-    colors: [Color(0xFF5B8CFF), Color(0xFF1B2A6B)],
-  ),
-  Product(
-    id: 'earbuds',
-    name: Bi('Écouteurs sans fil', 'Wireless earbuds'),
-    blurb: Bi(
-      'Boîtier de recharge, 20 h d’autonomie',
-      'Charging case, 20 h battery',
-    ),
-    price: 29,
-    category: ProductCategory.essentials,
-    icon: AppIcons.headphones,
-    colors: [Color(0xFFB57BFF), Color(0xFF3B1A6B)],
-    stock: 3,
-  ),
-  Product(
-    id: 'water',
-    name: Bi('Eau de source', 'Spring water'),
-    blurb: Bi('Bouteille fraîche 500 ml', 'Cold 500 ml bottle'),
-    price: 2,
-    category: ProductCategory.essentials,
-    icon: AppIcons.drop,
-    colors: [Color(0xFF3AA6FF), Color(0xFF0B3A6E)],
-    stock: 12,
-  ),
-  Product(
-    id: 'umbrella',
-    name: Bi('Parapluie compact', 'Compact umbrella'),
-    blurb: Bi('Pour les jours de pluie à Montréal', 'For rainy Montréal days'),
-    price: 15,
-    category: ProductCategory.essentials,
-    icon: AppIcons.umbrella,
-    colors: [Color(0xFF18C2C9), Color(0xFF0E4E52)],
-    stock: 2,
-  ),
 ];
 
 List<Product>? _catalog;
@@ -477,7 +464,7 @@ List<Product> get catalog {
 /// Articles mis en avant dans la vitrine de l'écran de veille.
 List<Product> get featuredProducts => [
   for (final p in catalog)
-    if (p.isResale && (p.stockOf() > 0 || p.preorder)) p,
+    if (p.stockOf() > 0 || p.preorder) p,
 ];
 
 /// Fenêtre de [size] articles contenant l'article n° [index], chacun avec
@@ -527,15 +514,53 @@ class Cart extends ChangeNotifier {
 
   bool get isEmpty => _lines.isEmpty;
   int get count => _lines.values.fold(0, (a, b) => a + b);
-  double get total => lines.fold(0, (sum, l) => sum + l.subtotal);
+  double get total => payNow + payLater;
+
+  int _quantityIn(ProductCategory category) => lines
+      .where((l) => l.product.category == category)
+      .fold(0, (sum, l) => sum + l.quantity);
+
+  /// Nombre de combos dans le panier : une paire avec un maillot.
+  int get combos {
+    final shoes = _quantityIn(ProductCategory.sneakers);
+    final jerseys = _quantityIn(ProductCategory.jerseys);
+    return shoes < jerseys ? shoes : jerseys;
+  }
+
+  /// Rabais des combos : chaque paire prise avec un maillot revient à
+  /// [comboPrice] au lieu du prix des deux articles séparés.
+  double get comboDiscount {
+    if (combos == 0) return 0;
+    double cheapest(ProductCategory category) => lines
+        .where((l) => l.product.category == category)
+        .map((l) => l.product.price)
+        .reduce((a, b) => a < b ? a : b);
+    final saving =
+        cheapest(ProductCategory.sneakers) +
+        cheapest(ProductCategory.jerseys) -
+        comboPrice;
+    return saving > 0 ? saving * combos : 0;
+  }
+
+  double _subtotal({required bool onOrder}) => lines
+      .where((l) => l.onOrder == onOrder)
+      .fold(0, (sum, l) => sum + l.subtotal);
+
+  // Le rabais s'applique d'abord à ce qui se paie à la livraison ; s'il
+  // dépasse ce montant, le reste est retiré de ce qui se paie tout de suite.
+  double get _discountLater {
+    final later = _subtotal(onOrder: true);
+    return comboDiscount < later ? comboDiscount : later;
+  }
 
   /// Ce qui se paie tout de suite par Interac (articles à bord).
-  double get payNow =>
-      lines.where((l) => !l.onOrder).fold(0, (sum, l) => sum + l.subtotal);
+  double get payNow {
+    final now = _subtotal(onOrder: false) - (comboDiscount - _discountLater);
+    return now > 0 ? now : 0;
+  }
 
   /// Ce qui se paiera à la livraison (articles sur commande).
-  double get payLater =>
-      lines.where((l) => l.onOrder).fold(0, (sum, l) => sum + l.subtotal);
+  double get payLater => _subtotal(onOrder: true) - _discountLater;
 
   bool get hasOnOrder => lines.any((l) => l.onOrder);
 

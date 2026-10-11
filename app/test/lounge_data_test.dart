@@ -110,8 +110,8 @@ void main() {
           'price': 85,
           'sizes': {'US 9': 4, 'US 99': 7},
         },
-        'water': {'hidden': true},
-        'umbrella': {'stock': 9},
+        'maillot-olise': {'hidden': true},
+        'maillot-yamal': {'price': 45},
       },
       settings: {'poll_question': 'plat'},
     );
@@ -123,12 +123,12 @@ void main() {
       shoes.sizes.containsKey('US 99'),
       isFalse,
     ); // taille inconnue ignorée
-    expect(shoes.stockOf('US 8'), 1); // taille non modifiée
-    expect(catalog.any((p) => p.id == 'water'), isFalse);
-    expect(catalog.firstWhere((p) => p.id == 'umbrella').stock, 9);
+    expect(shoes.stockOf('US 8'), 0); // taille non modifiée
+    expect(catalog.any((p) => p.id == 'maillot-olise'), isFalse);
+    expect(catalog.firstWhere((p) => p.id == 'maillot-yamal').price, 45);
     expect(questionOfTheDay().id, 'plat');
 
     remote.setForTest();
-    expect(catalog.any((p) => p.id == 'water'), isTrue);
+    expect(catalog.any((p) => p.id == 'maillot-olise'), isTrue);
   });
 }

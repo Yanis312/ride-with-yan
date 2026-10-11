@@ -1,10 +1,14 @@
 import type { Locator, Page } from '@playwright/test';
 
-export type Category = 'All' | 'Shoes' | 'Jerseys' | 'Essentials';
+export type Category = 'All' | 'Shoes' | 'Jerseys';
 
 /** Boutique : catalogue, panier, coordonnées, paiement Interac. */
 export class StorePage {
   readonly emptyCart: Locator;
+  /** Rappel des prix et du délai, en haut de la boutique. */
+  readonly pitch: Locator;
+  readonly comboLine: Locator;
+  readonly onDelivery: Locator;
   readonly orderButton: Locator;
   readonly nextStepHint: Locator;
   readonly whatsAppButton: Locator;
@@ -19,6 +23,8 @@ export class StorePage {
   readonly nameError: Locator;
   readonly phoneError: Locator;
   readonly networkError: Locator;
+  readonly addressError: Locator;
+  readonly orderReceived: Locator;
 
   // Paiement
   readonly interacTitle: Locator;
@@ -28,6 +34,9 @@ export class StorePage {
 
   constructor(private readonly page: Page) {
     this.emptyCart = page.getByText('Your cart is empty.');
+    this.pitch = page.getByText(/^Shoes \$\d+ · Jerseys/);
+    this.comboLine = page.getByText('Pair + jersey combo', { exact: true });
+    this.onDelivery = page.getByText(/^On delivery \(\d+ days\)$/);
     this.orderButton = page.getByRole('button', { name: 'Order', exact: true });
     this.nextStepHint = page.getByText(/^Next: your details/);
     this.whatsAppButton = page.getByRole('button', { name: 'Contact me on WhatsApp' });
@@ -41,6 +50,8 @@ export class StorePage {
     this.nameError = page.getByText('Enter your name');
     this.phoneError = page.getByText('10-digit phone number');
     this.networkError = page.getByText(/No network right now/);
+    this.addressError = page.getByText('Needed to deliver to you');
+    this.orderReceived = page.getByText(/^Order received!/);
 
     this.interacTitle = page.getByText('Interac', { exact: true });
     this.interacAmount = page.getByText(/^Send \$[\d.,]+ by Interac e-Transfer to/);
@@ -48,8 +59,12 @@ export class StorePage {
     this.transferSentButton = page.getByRole('button', { name: 'Transfer sent' });
   }
 
+  category(category: Category) {
+    return this.page.getByRole('button', { name: category, exact: true });
+  }
+
   async showCategory(category: Category) {
-    await this.page.getByRole('button', { name: category, exact: true }).click();
+    await this.category(category).click();
   }
 
   /** Carte d'un produit, retrouvée par son nom. */
@@ -62,9 +77,18 @@ export class StorePage {
     return this.page.getByRole('group', { name: /\$\d/ });
   }
 
-  /** Ajoute au panier un article sans taille (les "essentiels"). */
-  async addToCart(name: string) {
-    await this.product(name).getByRole('button', { name: 'Add' }).click();
+  /** Ouvre la fiche d'un article, choisit la taille et l'ajoute au panier. */
+  async addSized(name: string, size: string) {
+    await this.product(name).getByRole('button', { name: 'View' }).click();
+    await this.page.getByRole('button', { name: size, exact: true }).click();
+    // « Add » pour un article en stock, « Order » pour un article sur commande.
+    await this.page.getByRole('button', { name: /^(Add|Order) · \$/ }).click();
+    await this.cartLine(name).waitFor();
+  }
+
+  /** Montant affiché dans le panier. */
+  amount(text: string) {
+    return this.page.getByText(text, { exact: true });
   }
 
   cartLine(name: string) {

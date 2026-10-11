@@ -77,14 +77,18 @@ void main() {
       await tester.pump();
       expect(find.byType(StoreScreen), findsOneWidget);
 
-      // Un essentiel au panier : le compteur - / + doit tenir dans la carte.
-      await tester.tap(find.text('Essentiels'));
+      // Un maillot au panier : fiche, taille, puis commande.
+      await tester.tap(find.text('Maillots'));
       await tester.pump(const Duration(seconds: 2));
-      final plus = find.byIcon(AppIcons.plus).first;
-      await tester.ensureVisible(plus);
+      final view = find.byIcon(AppIcons.arrowRight).first;
+      await tester.ensureVisible(view);
       await tester.pump(const Duration(seconds: 1));
-      await tester.tap(plus);
+      await tester.tap(view);
+      await tester.pump(const Duration(seconds: 2));
+      await tester.tap(find.text('M').last);
       await tester.pump(const Duration(seconds: 1));
+      await tester.tap(find.textContaining('Commander ·'));
+      await tester.pump(const Duration(seconds: 2));
       expect(session.cart.count, 1);
 
       session.reset();
@@ -146,7 +150,7 @@ void main() {
           'price': 'cent dollars',
           'sizes': {'US 9': -3, 'US 8': 'deux'},
         },
-        'umbrella': {'price': -5, 'stock': 'beaucoup'},
+        'maillot-yamal': {'price': -5, 'stock': 'beaucoup'},
       },
     );
 
@@ -156,8 +160,8 @@ void main() {
     expect(shoes.stockOf('US 9'), base.stockOf('US 9'));
     expect(shoes.stockOf('US 8'), base.stockOf('US 8'));
 
-    final umbrella = catalog.firstWhere((p) => p.id == 'umbrella');
-    expect(umbrella.price, 15);
-    expect(umbrella.stock, 2);
+    final jersey = catalog.firstWhere((p) => p.id == 'maillot-yamal');
+    expect(jersey.price, 50);
+    expect(jersey.stock, 5);
   });
 }
