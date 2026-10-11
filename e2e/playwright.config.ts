@@ -27,7 +27,10 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   // Les machines d'intégration continue n'ont que deux processeurs.
   workers: process.env.CI ? 2 : undefined,
-  reporter: [['list'], ['html', { open: 'never' }]],
+  // Sur GitHub, chaque échec est aussi annoté directement dans la page de l'exécution.
+  reporter: process.env.GITHUB_ACTIONS
+    ? [['list'], ['html', { open: 'never' }], ['github']]
+    : [['list'], ['html', { open: 'never' }]],
   // L'app Flutter met quelques secondes à démarrer dans un navigateur neuf.
   timeout: 60_000,
   expect: { timeout: 15_000 },
