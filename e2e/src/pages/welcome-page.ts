@@ -30,6 +30,8 @@ export class WelcomePage {
   }
 
   async start(language: Language = 'en') {
+    // « Tap to start » laisse sa place à « Shop now » pendant les 15 s de la
+    // vitrine : sur une machine lente, ce clic peut donc attendre un moment.
     await this.startButton.click();
     await (language === 'fr' ? this.frenchChoice : this.englishChoice).click();
   }

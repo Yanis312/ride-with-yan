@@ -4,11 +4,16 @@ import { config } from './src/config.js';
 // Firefox et WebKit (le moteur de Safari) ne tournent que la nuit : ALL_BROWSERS.
 const extraBrowsers = process.env.ALL_BROWSERS
   ? [
-      { name: 'ui-firefox', testDir: './tests/ui', use: { ...devices['Desktop Firefox'], ...tablet() } },
+      {
+        name: 'ui-firefox',
+        testDir: './tests/ui',
+        // Firefox et WebKit sans carte graphique dessinent l'app lentement.
+        timeout: 180_000,
+        use: { ...devices['Desktop Firefox'], ...tablet() },
+      },
       {
         name: 'ui-webkit',
         testDir: './tests/ui',
-        // WebKit sans carte graphique dessine l'app lentement : on lui laisse du temps.
         timeout: 180_000,
         use: { ...devices['Desktop Safari'], ...tablet() },
       },
@@ -31,8 +36,9 @@ export default defineConfig({
   reporter: process.env.GITHUB_ACTIONS
     ? [['list'], ['html', { open: 'never' }], ['github']]
     : [['list'], ['html', { open: 'never' }]],
-  // L'app Flutter met quelques secondes à démarrer dans un navigateur neuf.
-  timeout: 60_000,
+  // L'app Flutter met quelques secondes à démarrer dans un navigateur neuf,
+  // davantage sur les machines partagées de GitHub et d'Azure.
+  timeout: process.env.CI ? 120_000 : 60_000,
   expect: { timeout: 15_000 },
   use: {
     baseURL: config.appUrl,
