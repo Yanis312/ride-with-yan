@@ -1,5 +1,7 @@
 # Dependabot ouvre une pull request quand une dépendance a une mise à jour
-# ou une faille connue. On relit, les tests tournent, on fusionne.
+# ou une faille connue. On relit, les tests tournent, on fusionne seulement
+# si tout est vert. Les failles de sécurité passent même pour une version
+# majeure (alertes de sécurité de GitHub).
 version: 2
 updates:
   - package-ecosystem: npm
@@ -9,6 +11,13 @@ updates:
     groups:
       outils-de-test:
         patterns: ['*']
+        # Les petites mises à jour arrivent ensemble ; une version majeure
+        # (TypeScript 7, ESLint 10…) casse souvent le code : on la fait à la
+        # main, dans sa propre pull request.
+        update-types: [minor, patch]
+    ignore:
+      - dependency-name: '*'
+        update-types: ['version-update:semver-major']
 
   - package-ecosystem: pub
     directory: /app
