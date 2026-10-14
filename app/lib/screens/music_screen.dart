@@ -247,6 +247,10 @@ class _PlayerPanel extends StatelessWidget {
           children: [
             LiquidIconButton(
               icon: AppIcons.previous,
+              label: const Bi(
+                'Chanson précédente',
+                'Previous song',
+              ).of(context),
               size: 52,
               onTap: onPrevious,
             ),
@@ -276,7 +280,12 @@ class _PlayerPanel extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 12),
-            LiquidIconButton(icon: AppIcons.next, size: 52, onTap: onNext),
+            LiquidIconButton(
+              icon: AppIcons.next,
+              label: const Bi('Chanson suivante', 'Next song').of(context),
+              size: 52,
+              onTap: onNext,
+            ),
             const Spacer(),
             _VolumeControl(volume: volume, onChange: onVolume),
           ],
@@ -640,6 +649,8 @@ class _TrackRow extends StatelessWidget {
                 width: 76,
                 height: 48,
                 child: Image.network(
+                  excludeFromSemantics: true,
+
                   track.thumbnail,
                   fit: BoxFit.cover,
                   // Sans réseau (ou sans accès à l'image), une vignette neutre.

@@ -259,6 +259,8 @@ class _Picture extends StatelessWidget {
     );
     if (url == null) return placeholder;
     return Image.network(
+      excludeFromSemantics: true,
+
       url!,
       fit: BoxFit.cover,
       // Image inaccessible (réseau, ou refusée par le navigateur) : neutre.

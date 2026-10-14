@@ -433,7 +433,11 @@ class _DeviceFrame extends StatelessWidget {
                   offset: Offset(parallax * 60, 0),
                   child: active
                       ? _LoopingVideo(asset: reel, poster: poster)
-                      : Image.asset(poster, fit: BoxFit.cover),
+                      : Image.asset(
+                          excludeFromSemantics: true,
+                          poster,
+                          fit: BoxFit.cover,
+                        ),
                 ),
               ),
             ),
@@ -608,6 +612,8 @@ class _LoopingVideoState extends State<_LoopingVideo> {
       fit: StackFit.expand,
       children: [
         Image.asset(
+          excludeFromSemantics: true,
+
           widget.poster,
           fit: BoxFit.fitWidth,
           alignment: Alignment.topCenter,
@@ -897,6 +903,8 @@ class _KenBurns extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final img = Image.asset(
+      excludeFromSemantics: true,
+
       image,
       fit: BoxFit.cover,
       alignment: Alignment.topCenter,

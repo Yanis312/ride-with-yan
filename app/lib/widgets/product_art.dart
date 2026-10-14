@@ -30,6 +30,8 @@ class ProductVisual extends StatelessWidget {
           ? ClipRRect(
               borderRadius: BorderRadius.circular(8),
               child: Image.asset(
+                excludeFromSemantics: true,
+
                 photos[photo % photos.length],
                 fit: BoxFit.cover,
                 width: double.infinity,
@@ -38,6 +40,8 @@ class ProductVisual extends StatelessWidget {
               ),
             )
           : Image.asset(
+              excludeFromSemantics: true,
+
               photos[photo % photos.length],
               fit: BoxFit.contain,
               filterQuality: FilterQuality.medium,
@@ -84,6 +88,8 @@ class ProductFigure extends StatelessWidget {
     final photos = product.photos;
     if (product.framed && photos.isNotEmpty) {
       return Image.asset(
+        excludeFromSemantics: true,
+
         photos[photo % photos.length],
         fit: BoxFit.cover,
         // Cadre un peu vers le haut : les deux chaussures restent visibles.

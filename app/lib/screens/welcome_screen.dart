@@ -7,6 +7,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../data/store_catalog.dart';
 import '../navigation/sections.dart';
 import '../session/session_controller.dart';
+import '../data/bilingual.dart';
 import '../theme/app_icons.dart';
 import '../theme/app_theme.dart';
 import '../theme/appearance_controller.dart';
@@ -332,6 +333,10 @@ class _Header extends StatelessWidget {
       const SizedBox(width: 12),
       LiquidIconButton(
         icon: context.isDark ? AppIcons.sun : AppIcons.moon,
+        label: const Bi(
+          'Mode clair ou sombre',
+          'Light or dark mode',
+        ).of(context),
         onTap: appearance.toggle,
       ),
     ];

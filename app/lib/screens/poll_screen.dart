@@ -204,7 +204,7 @@ class _OptionCard extends StatelessWidget {
           fit: StackFit.expand,
           children: [
             if (photo != null)
-              Image.asset(photo, fit: BoxFit.cover)
+              Image.asset(excludeFromSemantics: true, photo, fit: BoxFit.cover)
             else
               DecoratedBox(
                 decoration: BoxDecoration(

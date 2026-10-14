@@ -104,6 +104,10 @@ class _TopBar extends StatelessWidget {
       const SizedBox(width: 12),
       LiquidIconButton(
         icon: context.isDark ? AppIcons.sun : AppIcons.moon,
+        label: const Bi(
+          'Mode clair ou sombre',
+          'Light or dark mode',
+        ).of(context),
         onTap: appearance.toggle,
         size: 48,
       ),
@@ -443,7 +447,7 @@ class _PhotoBackdrop extends StatelessWidget {
     return Stack(
       fit: StackFit.expand,
       children: [
-        Image.asset(photo, fit: BoxFit.cover),
+        Image.asset(excludeFromSemantics: true, photo, fit: BoxFit.cover),
         DecoratedBox(
           decoration: BoxDecoration(
             gradient: LinearGradient(
@@ -833,6 +837,8 @@ class _AboutTile extends StatelessWidget {
                                     ],
                                   ),
                                   child: Image.asset(
+                                    excludeFromSemantics: true,
+
                                     shot,
                                     fit: BoxFit.cover,
                                     alignment: Alignment.topCenter,

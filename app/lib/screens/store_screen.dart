@@ -968,6 +968,7 @@ class _SheetInfo extends StatelessWidget {
               ),
               LiquidIconButton(
                 icon: AppIcons.close,
+                label: const Bi('Fermer', 'Close').of(context),
                 size: 44,
                 onTap: () => Navigator.of(context).pop(),
               ),
@@ -1704,6 +1705,7 @@ class _DetailsViewState extends State<_DetailsView> {
             children: [
               LiquidIconButton(
                 icon: AppIcons.arrowLeft,
+                label: const Bi('Retour', 'Back').of(context),
                 size: 40,
                 onTap: widget.onBack,
               ),
@@ -1887,6 +1889,7 @@ class _PayView extends StatelessWidget {
             children: [
               LiquidIconButton(
                 icon: AppIcons.arrowLeft,
+                label: const Bi('Retour', 'Back').of(context),
                 size: 40,
                 onTap: onBack,
               ),
