@@ -147,12 +147,14 @@ class _EntertainmentScreenState extends State<EntertainmentScreen> {
             const SizedBox(width: 12),
             LiquidIconButton(
               icon: AppIcons.volumeDown,
+              label: const Bi('Baisser le son', 'Volume down').of(context),
               size: 48,
               onTap: () => _changeVolume(-10),
             ),
             const SizedBox(width: 8),
             LiquidIconButton(
               icon: AppIcons.volumeUp,
+              label: const Bi('Monter le son', 'Volume up').of(context),
               size: 48,
               onTap: () => _changeVolume(10),
             ),
@@ -165,7 +167,12 @@ class _EntertainmentScreenState extends State<EntertainmentScreen> {
               trailing: Icon(_playing ? AppIcons.pause : AppIcons.play),
             ),
             const SizedBox(width: 8),
-            LiquidIconButton(icon: AppIcons.next, size: 48, onTap: _next),
+            LiquidIconButton(
+              icon: AppIcons.next,
+              label: const Bi('Vidéo suivante', 'Next video').of(context),
+              size: 48,
+              onTap: _next,
+            ),
           ],
         ),
       ],
@@ -316,6 +323,8 @@ class _VideoRow extends StatelessWidget {
                     fit: StackFit.expand,
                     children: [
                       Image.network(
+                        excludeFromSemantics: true,
+
                         video.thumbnail,
                         fit: BoxFit.cover,
                         // Sans réseau, une vignette neutre.

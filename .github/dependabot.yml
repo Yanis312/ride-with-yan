@@ -1,0 +1,24 @@
+# Dependabot ouvre une pull request quand une dépendance a une mise à jour
+# ou une faille connue. On relit, les tests tournent, on fusionne.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /e2e
+    schedule:
+      interval: weekly
+    groups:
+      outils-de-test:
+        patterns: ['*']
+
+  - package-ecosystem: pub
+    directory: /app
+    schedule:
+      interval: weekly
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns: ['*']

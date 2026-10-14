@@ -1,0 +1,38 @@
+name: Docker
+
+# Vérifie que la suite de tests tourne aussi dans Docker (docker compose),
+# quand les tests ou les fichiers Docker changent.
+
+on:
+  pull_request:
+    paths: ['e2e/**', 'docker-compose.yml', '.github/workflows/docker.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  compose:
+    name: Tests dans Docker
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - name: Construction de l'app web
+        working-directory: app
+        run: |
+          flutter pub get
+          flutter build web --release --wasm
+      - name: Tests Playwright dans les conteneurs
+        run: docker compose run --rm e2e
+      - name: Rapport des tests
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: docker-playwright-report
+          path: e2e/playwright-report
+          retention-days: 14

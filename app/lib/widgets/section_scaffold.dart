@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
 import '../navigation/sections.dart';
+import '../data/bilingual.dart';
 import '../theme/app_icons.dart';
 import '../theme/app_theme.dart';
 import '../theme/appearance_controller.dart';
@@ -55,6 +56,7 @@ class SectionScaffold extends StatelessWidget {
                   children: [
                     LiquidIconButton(
                       icon: AppIcons.arrowLeft,
+                      label: const Bi('Retour', 'Back').of(context),
                       size: 48,
                       onTap: () => Navigator.of(context).maybePop(),
                     ),
@@ -76,6 +78,10 @@ class SectionScaffold extends StatelessWidget {
                     ],
                     LiquidIconButton(
                       icon: context.isDark ? AppIcons.sun : AppIcons.moon,
+                      label: const Bi(
+                        'Mode clair ou sombre',
+                        'Light or dark mode',
+                      ).of(context),
                       size: 48,
                       onTap: appearance.toggle,
                     ),

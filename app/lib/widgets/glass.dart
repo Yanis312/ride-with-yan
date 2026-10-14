@@ -258,11 +258,15 @@ class LiquidIconButton extends StatelessWidget {
   const LiquidIconButton({
     super.key,
     required this.icon,
+    required this.label,
     required this.onTap,
     this.size = 52,
   });
 
   final IconData icon;
+
+  /// Nom lu par les lecteurs d'écran (le bouton n'affiche qu'une icône).
+  final String label;
   final VoidCallback onTap;
   final double size;
 
@@ -270,6 +274,7 @@ class LiquidIconButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Semantics(
       button: true,
+      label: label,
       child: Pressable(
         onTap: onTap,
         child: LiquidPill(

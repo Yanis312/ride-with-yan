@@ -145,6 +145,8 @@ class _Cinema extends StatelessWidget {
                   Transform.scale(
                     scale: 1.08 + 0.05 * _wave(t, 0.1),
                     child: Image.asset(
+                      excludeFromSemantics: true,
+
                       'assets/photos/theatre.jpg',
                       fit: BoxFit.cover,
                     ),
@@ -432,7 +434,11 @@ class _Poll extends StatelessWidget {
             child: Stack(
               fit: StackFit.expand,
               children: [
-                Image.asset(_cities[i].$1, fit: BoxFit.cover),
+                Image.asset(
+                  excludeFromSemantics: true,
+                  _cities[i].$1,
+                  fit: BoxFit.cover,
+                ),
                 const DecoratedBox(
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
@@ -532,7 +538,13 @@ class _News extends StatelessWidget {
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(12),
-            child: Image.asset(img, width: 74, height: 56, fit: BoxFit.cover),
+            child: Image.asset(
+              excludeFromSemantics: true,
+              img,
+              width: 74,
+              height: 56,
+              fit: BoxFit.cover,
+            ),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -603,6 +615,8 @@ class _News extends StatelessWidget {
                       Transform.scale(
                         scale: 1.06 + 0.04 * _wave(t),
                         child: Image.asset(
+                          excludeFromSemantics: true,
+
                           'assets/photos/city-montreal.jpg',
                           fit: BoxFit.cover,
                         ),
@@ -809,7 +823,11 @@ class _AdFront extends StatelessWidget {
       child: Stack(
         fit: StackFit.expand,
         children: [
-          Image.asset('assets/photos/ad-sushi.jpg', fit: BoxFit.cover),
+          Image.asset(
+            excludeFromSemantics: true,
+            'assets/photos/ad-sushi.jpg',
+            fit: BoxFit.cover,
+          ),
           const DecoratedBox(
             decoration: BoxDecoration(
               gradient: LinearGradient(
@@ -1224,6 +1242,8 @@ class _Vinyl extends StatelessWidget {
             ),
             child: ClipOval(
               child: Image.asset(
+                excludeFromSemantics: true,
+
                 'assets/photos/metallica-live.jpg',
                 fit: BoxFit.cover,
               ),
