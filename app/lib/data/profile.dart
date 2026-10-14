@@ -11,7 +11,7 @@ abstract final class Profile {
     'Développeur Full Stack .NET, React et Flutter',
     'Full Stack Developer .NET, React and Flutter',
   );
-  static const location = Bi('Montréal, Québec', 'Montréal, Quebec');
+  static const location = Bi('Ottawa–Gatineau', 'Ottawa–Gatineau');
   static const about = Bi(
     'Développeur ERP et professeur à temps partiel, je conçois des sites, des applications et des automatisations pour les entreprises. Cette tablette, c’est moi qui l’ai programmée.',
     'ERP developer and part-time teacher, I build websites, apps and automations for businesses. I programmed this very tablet.',

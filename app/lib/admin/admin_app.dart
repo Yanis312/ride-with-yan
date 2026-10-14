@@ -437,7 +437,7 @@ class AdminHomeState extends State<AdminHome> {
             tabs: [
               Tab(icon: Icon(AppIcons.package), text: 'Commandes'),
               Tab(icon: Icon(AppIcons.shoppingBag), text: 'Articles'),
-              Tab(icon: Icon(AppIcons.chartBar), text: 'Sondage'),
+              Tab(icon: Icon(AppIcons.chartBar), text: 'Sondage et message'),
             ],
           ),
         ),
@@ -1243,6 +1243,8 @@ class _PollTabState extends State<_PollTab> {
       builder: (context, _) => ListView(
         padding: const EdgeInsets.fromLTRB(14, 14, 14, 40),
         children: [
+          _PassengerMessageCard(session: widget.session),
+          const SizedBox(height: 20),
           DropdownButtonFormField<String?>(
             initialValue: _forced,
             isExpanded: true,
@@ -1347,6 +1349,152 @@ class _PollTabState extends State<_PollTab> {
               ),
             ),
         ],
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Message aux passagers : affiché en haut du lounge jusqu'à la date choisie.
+
+class _PassengerMessageCard extends StatefulWidget {
+  const _PassengerMessageCard({required this.session});
+
+  final AdminSession session;
+
+  @override
+  State<_PassengerMessageCard> createState() => _PassengerMessageCardState();
+}
+
+class _PassengerMessageCardState extends State<_PassengerMessageCard> {
+  static const _key = 'passenger_alert';
+
+  late final Map<dynamic, dynamic> _current =
+      RemoteConfig.instance.setting(_key) is Map
+      ? RemoteConfig.instance.setting(_key) as Map
+      : const {};
+  late final _fr = TextEditingController(text: '${_current['fr'] ?? ''}');
+  late final _en = TextEditingController(text: '${_current['en'] ?? ''}');
+  late DateTime _until =
+      DateTime.tryParse('${_current['until']}') ??
+      DateTime.now().add(const Duration(days: 1));
+  bool _busy = false;
+
+  @override
+  void dispose() {
+    _fr.dispose();
+    _en.dispose();
+    super.dispose();
+  }
+
+  Future<void> _save({required bool remove}) async {
+    setState(() => _busy = true);
+    try {
+      final token = await widget.session.token();
+      if (remove) {
+        await Backend.delete('settings', 'key', _key, token: token);
+        _fr.clear();
+        _en.clear();
+      } else {
+        await Backend.upsert('settings', {
+          'key': _key,
+          'value': {
+            'fr': _fr.text.trim(),
+            'en': _en.text.trim(),
+            'until': _until.toIso8601String(),
+          },
+          'updated_at': DateTime.now().toUtc().toIso8601String(),
+        }, token: token);
+      }
+      await RemoteConfig.instance.refresh();
+      if (mounted) {
+        _toast(context, remove ? 'Message retiré.' : 'Message publié.');
+      }
+    } catch (e) {
+      if (mounted) _toast(context, 'Échec : $e', error: true);
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _pickDate() async {
+    final now = DateTime.now();
+    final day = await showDatePicker(
+      context: context,
+      initialDate: _until.isBefore(now) ? now : _until,
+      firstDate: now,
+      lastDate: now.add(const Duration(days: 60)),
+    );
+    if (day != null) {
+      // Le message reste affiché toute la journée choisie.
+      setState(() => _until = DateTime(day.year, day.month, day.day, 23, 59));
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final date =
+        '${_until.day.toString().padLeft(2, '0')}/'
+        '${_until.month.toString().padLeft(2, '0')}/${_until.year}';
+    return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              'Message aux passagers',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Affiché en haut du lounge, avec les alertes météo. '
+              'Exemple : « Route fermée sur le pont Champlain, détour prévu ».',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _fr,
+              maxLength: 160,
+              decoration: const InputDecoration(
+                labelText: 'En français',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 8),
+            TextField(
+              controller: _en,
+              maxLength: 160,
+              decoration: const InputDecoration(
+                labelText: 'In English',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 4),
+            OutlinedButton.icon(
+              onPressed: _busy ? null : _pickDate,
+              icon: const Icon(Icons.event),
+              label: Text('Affiché jusqu’au $date inclus'),
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: FilledButton(
+                    onPressed: _busy ? null : () => _save(remove: false),
+                    child: const Text('Publier'),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                TextButton(
+                  onPressed: _busy ? null : () => _save(remove: true),
+                  child: const Text('Retirer'),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

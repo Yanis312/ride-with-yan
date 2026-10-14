@@ -79,8 +79,8 @@ const pollQuestions = [
   PollQuestion(
     'saison',
     Bi(
-      'Votre saison préférée à Montréal ?',
-      'Your favourite season in Montréal?',
+      'Votre saison préférée dans la région ?',
+      'Your favourite season in the region?',
     ),
     [
       PollOption('hiver', Bi('Hiver', 'Winter'), colors: _cool),

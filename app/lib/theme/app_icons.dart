@@ -48,6 +48,7 @@ abstract final class AppIcons {
   static const umbrella = IconData(0xe684, fontFamily: _family);
   static const whatsapp = IconData(0xe5d0, fontFamily: _family);
   static const megaphone = IconData(0xe324, fontFamily: _family);
+  static const warning = IconData(0xe4e0, fontFamily: _family);
   static const instagram = IconData(0xe2d0, fontFamily: _family);
   static const tiktok = IconData(0xeaf2, fontFamily: _family);
   static const facebook = IconData(0xe226, fontFamily: _family);

@@ -16,13 +16,15 @@ class Place {
   final double longitude;
 }
 
+/// La région du chauffeur, Ottawa–Gatineau, puis les destinations courantes.
+/// Le premier lieu est celui de la carte météo du lounge et des alertes.
 const places = [
-  Place(Bi('Montréal', 'Montréal'), 45.5019, -73.5674),
-  Place(Bi('Aéroport YUL', 'YUL Airport'), 45.4706, -73.7408),
-  Place(Bi('Laval', 'Laval'), 45.6066, -73.7124),
-  Place(Bi('Longueuil', 'Longueuil'), 45.5312, -73.5181),
-  Place(Bi('Québec', 'Québec City'), 46.8139, -71.2080),
   Place(Bi('Ottawa', 'Ottawa'), 45.4215, -75.6972),
+  Place(Bi('Gatineau', 'Gatineau'), 45.4765, -75.7013),
+  Place(Bi('Aéroport YOW', 'YOW Airport'), 45.3225, -75.6692),
+  Place(Bi('Kanata', 'Kanata'), 45.3088, -75.8987),
+  Place(Bi('Orléans', 'Orléans'), 45.4699, -75.5163),
+  Place(Bi('Montréal', 'Montréal'), 45.5019, -73.5674),
 ];
 
 @immutable
@@ -37,13 +39,31 @@ class HourForecast {
 
 @immutable
 class DayForecast {
-  const DayForecast(this.date, this.code, this.max, this.min, this.rainChance);
+  const DayForecast(
+    this.date,
+    this.code,
+    this.max,
+    this.min,
+    this.rainChance, {
+    this.feelsMin = 0,
+    this.snow = 0,
+    this.gusts = 0,
+  });
 
   final DateTime date;
   final int code;
   final double max;
   final double min;
   final int rainChance;
+
+  /// Température ressentie la plus basse (°C), avec le vent.
+  final double feelsMin;
+
+  /// Neige sur la journée (cm).
+  final double snow;
+
+  /// Rafales les plus fortes (km/h).
+  final double gusts;
 }
 
 @immutable
@@ -131,7 +151,8 @@ abstract final class WeatherService {
       'hourly': 'temperature_2m,weather_code,precipitation_probability',
       'daily':
           'weather_code,temperature_2m_max,temperature_2m_min,'
-          'precipitation_probability_max',
+          'precipitation_probability_max,apparent_temperature_min,'
+          'snowfall_sum,wind_gusts_10m_max',
       'timezone': 'America/Toronto',
       'forecast_days': '6',
       'forecast_hours': '12',
@@ -154,7 +175,7 @@ Weather parseWeather(Map<String, dynamic> json) {
   final hourly = json['hourly'] as Map<String, dynamic>;
   final daily = json['daily'] as Map<String, dynamic>;
   num at(Map<String, dynamic> m, String key, int i) =>
-      ((m[key] as List)[i] as num?) ?? 0;
+      ((m[key] as List?)?[i] as num?) ?? 0;
 
   return Weather(
     temperature: (current['temperature_2m'] as num).toDouble(),
@@ -180,6 +201,9 @@ Weather parseWeather(Map<String, dynamic> json) {
           at(daily, 'temperature_2m_max', i).toDouble(),
           at(daily, 'temperature_2m_min', i).toDouble(),
           at(daily, 'precipitation_probability_max', i).toInt(),
+          feelsMin: at(daily, 'apparent_temperature_min', i).toDouble(),
+          snow: at(daily, 'snowfall_sum', i).toDouble(),
+          gusts: at(daily, 'wind_gusts_10m_max', i).toDouble(),
         ),
     ],
   );
