@@ -1,13 +1,15 @@
 name: Nightly
 
-# Chaque nuit : toute la suite sur les trois moteurs de navigateur (Chrome,
+# Chaque semaine : toute la suite sur les trois moteurs de navigateur (Chrome,
 # Firefox et WebKit, le moteur de Safari), répartie sur trois machines en
 # parallèle, puis un contrôle rapide du site réellement en ligne.
 
 on:
   schedule:
-    # 7 h UTC = 3 h du matin à Montréal
-    - cron: '0 7 * * *'
+    # Le dimanche à 7 h UTC (3 h du matin à Montréal). Une exécution coûte
+    # environ 60 minutes de machine : chaque nuit, elle dépasserait à elle
+    # seule les 2000 minutes gratuites par mois d'un dépôt privé.
+    - cron: '0 7 * * 0'
   workflow_dispatch:
 
 permissions:

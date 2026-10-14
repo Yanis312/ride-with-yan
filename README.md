@@ -76,7 +76,7 @@ Variables utiles : `ALL_BROWSERS=1` ajoute Firefox et WebKit (le moteur de Safar
 | Pipeline | Quand | Ce qu'il fait |
 |---|---|---|
 | **Tests** (GitHub Actions) | À chaque envoi de code et à chaque demande de fusion | Mise en forme, analyse statique, tests Flutter, construction de l'app web, puis types, lint et tests Playwright sur Chromium. Le rapport est joint à l'exécution. |
-| **Nightly** (GitHub Actions) | Chaque nuit | Toute la suite sur Chromium, Firefox et WebKit, répartie sur trois machines en parallèle, rapports fusionnés en un seul. Un contrôle passe aussi sur le site réellement en ligne. |
+| **Nightly** (GitHub Actions) | Chaque dimanche | Toute la suite sur Chromium, Firefox et WebKit, répartie sur trois machines en parallèle, rapports fusionnés en un seul. Un contrôle passe aussi sur le site réellement en ligne. |
 | **Azure Pipelines** | Chaque nuit | La même chaîne sur Azure DevOps ; les résultats sont publiés au format JUnit dans l'onglet « Tests ». |
 | **Web preview** (GitHub Actions) | À chaque envoi sur `main` | Publie l'app web sur GitHub Pages. |
 | **Android APK** (GitHub Actions) | À chaque envoi sur `main` | Construit l'APK et le publie dans les *Releases*. |
