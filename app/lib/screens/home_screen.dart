@@ -20,6 +20,7 @@ import '../theme/app_icons.dart';
 import '../theme/app_theme.dart';
 import '../theme/appearance_controller.dart';
 import '../widgets/decor_clock.dart';
+import '../widgets/alert_banner.dart';
 import '../widgets/glass.dart';
 import '../widgets/gold_spotlight.dart';
 import '../widgets/mesh_background.dart';
@@ -67,6 +68,9 @@ class _HomeScreenState extends State<HomeScreen> {
               children: [
                 const _TopBar(),
                 SizedBox(height: compact ? 24 : 32),
+                // Alertes météo, grand froid, message du chauffeur, nouvelle
+                // de la région : rien ne s'affiche s'il n'y a rien à dire.
+                AlertBanner(bottomGap: compact ? 16 : 20),
                 Expanded(
                   child: compact
                       ? const _CompactLayout()
@@ -1145,7 +1149,7 @@ class _MiniBars extends StatelessWidget {
   }
 }
 
-/// Carte météo : la température de Montréal en direct, dès qu'elle arrive.
+/// Carte météo : la température d'Ottawa en direct, dès qu'elle arrive.
 class _WeatherTile extends StatefulWidget {
   const _WeatherTile();
 

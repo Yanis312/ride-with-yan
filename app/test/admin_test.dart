@@ -44,9 +44,13 @@ void main() {
       );
       expect(save.onPressed, isNotNull);
 
-      await tester.tap(find.text('Sondage'));
+      await tester.tap(find.text('Sondage et message'));
       await tester.pumpAndSettle();
+      expect(find.text('Message aux passagers'), findsOneWidget);
       expect(find.text('Question du jour'), findsOneWidget);
+      // Les résultats du sondage sont sous le message : on fait défiler.
+      await tester.drag(find.byType(ListView).last, const Offset(0, -700));
+      await tester.pumpAndSettle();
       expect(find.text('Poutine ou smoked meat ?'), findsWidgets);
     },
   );

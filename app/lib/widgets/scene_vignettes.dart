@@ -860,7 +860,7 @@ class _AdFront extends StatelessWidget {
                     const SizedBox(width: 6),
                     Expanded(
                       child: Text(
-                        '123, rue Exemple, Montréal',
+                        '123, rue Exemple, Ottawa',
                         style: AppText.body(
                           13,
                           weight: FontWeight.w600,
@@ -1007,7 +1007,7 @@ class _AdBack extends StatelessWidget {
                         style: AppText.display(26, color: Colors.white),
                       ),
                       const SizedBox(height: 10),
-                      line(AppIcons.mapPin, '123, rue Exemple, Montréal'),
+                      line(AppIcons.mapPin, '123, rue Exemple, Ottawa'),
                       line(AppIcons.clock, '11 h – 23 h  ·  11 am – 11 pm'),
                       line(AppIcons.phone, '514 000-0000'),
                       const SizedBox(height: 6),
@@ -1099,7 +1099,7 @@ class _MiniMapPainter extends CustomPainter {
       Paint()..color = const Color(0xFF16222B),
     );
 
-    // Îlots : grille légèrement penchée, comme les rues de Montréal.
+    // Îlots : grille légèrement penchée, comme les rues du centre-ville.
     canvas.save();
     canvas.translate(w / 2, h / 2);
     canvas.rotate(-0.28);

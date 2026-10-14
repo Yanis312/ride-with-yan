@@ -34,10 +34,10 @@ const newsTopics = [
     'https://www.cbc.ca/webfeed/rss/rss-topstories',
   ),
   NewsTopic(
-    Bi('Montréal', 'Montréal'),
+    Bi('Ottawa-Gatineau', 'Ottawa-Gatineau'),
     AppIcons.buildings,
-    'https://ici.radio-canada.ca/rss/4201',
-    'https://www.cbc.ca/webfeed/rss/rss-canada-montreal',
+    'https://ici.radio-canada.ca/info/rss/ottawa-gatineau/en-continu',
+    'https://www.cbc.ca/webfeed/rss/rss-canada-ottawa',
   ),
   NewsTopic(
     Bi('Sport', 'Sports'),

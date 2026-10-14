@@ -13,7 +13,7 @@ import '../widgets/mesh_background.dart';
 import '../widgets/section_scaffold.dart';
 
 /// Météo en direct : conditions actuelles, prochaines heures et 6 jours,
-/// pour Montréal et quelques destinations courantes.
+/// pour Ottawa, Gatineau et quelques destinations courantes.
 class WeatherScreen extends StatefulWidget {
   const WeatherScreen({super.key});
 

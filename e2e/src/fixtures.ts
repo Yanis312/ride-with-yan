@@ -14,6 +14,9 @@ export class FakeBackend {
   /** Réglages de produits renvoyés à l'app (prix, stock), vides par défaut. */
   overrides: Record<string, unknown>[] = [];
 
+  /** Alertes officielles d'Environnement Canada, aucune par défaut. */
+  weatherAlerts: Record<string, unknown>[] = [];
+
   async install(page: Page) {
     // Toutes les requêtes vers la base sont interceptées : les tests d'écran
     // n'écrivent jamais dans la vraie base et donnent toujours le même résultat.
@@ -31,6 +34,11 @@ export class FakeBackend {
       }
       return route.fulfill({ status: 200, json: null });
     });
+    await page.route('**/api.weather.gc.ca/**', (route) =>
+      route.fulfill({
+        json: { features: this.weatherAlerts.map((properties) => ({ properties })) },
+      }),
+    );
     // Météo, nouvelles et vidéos : pas de dépendance à Internet dans ces tests.
     await page.route(/open-meteo\.com|rss2json\.com|radio-canada\.ca|cbc\.ca|youtube/, (route) =>
       route.abort(),
