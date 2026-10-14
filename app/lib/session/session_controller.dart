@@ -3,6 +3,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/widgets.dart';
 
+import '../backend/usage.dart';
 import '../data/store_catalog.dart';
 
 /// État de la course en cours : langue choisie et retour automatique
@@ -37,7 +38,7 @@ class SessionController extends ChangeNotifier {
   Locale? get locale => _locale;
 
   // Langue affichée avant le choix du passager : anglais par défaut
-  // (beaucoup d'anglophones à Montréal), modifiable par le bouton de l'accueil.
+  // (Ottawa est surtout anglophone), modifiable par le bouton de l'accueil.
   Locale _preferred = const Locale('en');
 
   /// Langue de l'interface : celle du passager, sinon la langue préférée.
@@ -55,6 +56,7 @@ class SessionController extends ChangeNotifier {
 
   void start(Locale locale) {
     _greeting = _random.nextInt(greetingCount);
+    Usage.instance.sessionStarted(locale.languageCode);
     _setLocale(locale);
   }
 
@@ -67,9 +69,12 @@ class SessionController extends ChangeNotifier {
   void switchLanguage() {
     if (_locale == null) return;
     // Même passager : on garde sa formule d'accueil.
-    _setLocale(
-      _locale!.languageCode == 'fr' ? const Locale('en') : const Locale('fr'),
-    );
+    final next = _locale!.languageCode == 'fr'
+        ? const Locale('en')
+        : const Locale('fr');
+    Usage.instance.languageChanged(next.languageCode);
+    Usage.instance.tap('language.${next.languageCode}');
+    _setLocale(next);
   }
 
   /// À appeler à chaque toucher de l'écran.
@@ -84,6 +89,7 @@ class SessionController extends ChangeNotifier {
     _mediaPlaying = false;
     _paying = false;
     if (_locale == null) return;
+    Usage.instance.sessionEnded();
     // Le passager suivant retrouve la langue d'accueil par défaut.
     _preferred = const Locale('en');
     _locale = null;

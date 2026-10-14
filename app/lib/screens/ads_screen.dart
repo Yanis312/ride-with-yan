@@ -17,6 +17,7 @@ import '../widgets/mesh_background.dart';
 import '../widgets/qr_card.dart';
 import '../widgets/section_scaffold.dart';
 import 'collaboration_screen.dart' show showContactSheet;
+import '../backend/usage.dart';
 
 /// Publicité à bord : les commerces partenaires défilent en cartes qui se
 /// retournent (adresse, carte, réseaux), et l'offre pour en devenir un.
@@ -413,7 +414,10 @@ class _AdBack extends StatelessWidget {
                   child: PillButton(
                     label: label,
                     filled: false,
-                    onTap: () => _showSocialQr(context, icon, label, url),
+                    onTap: () {
+                      Usage.instance.tap('ads.social:${a.name}');
+                      _showSocialQr(context, icon, label, url);
+                    },
                     trailing: Icon(icon),
                   ),
                 ),

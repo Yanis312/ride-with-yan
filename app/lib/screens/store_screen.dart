@@ -19,6 +19,7 @@ import '../widgets/mesh_background.dart';
 import '../widgets/product_art.dart';
 import '../widgets/qr_card.dart';
 import '../widgets/section_scaffold.dart';
+import '../backend/usage.dart';
 
 String _money(BuildContext context, double amount) => NumberFormat.currency(
   locale: Localizations.localeOf(context).languageCode == 'en'
@@ -211,6 +212,7 @@ class _WhatsAppButton extends StatelessWidget {
       child: Pressable(
         onTap: () {
           // Le passager sort son téléphone : la session patiente.
+          Usage.instance.tap('store.whatsapp');
           session.setPaying(true);
           showStoreContactSheet(context)
               .whenComplete(() => session.setPaying(false));
@@ -468,7 +470,10 @@ class _ProductCard extends StatelessWidget {
     final sizes = product.availableSizes;
     final soldOut = product.stockOf() == 0;
     final open = product.hasSizes
-        ? () => showProductSheet(context, product, cart)
+        ? () {
+            Usage.instance.tap('store.view:${product.id}');
+            showProductSheet(context, product, cart);
+          }
         : null;
 
     return Pressable(
@@ -753,6 +758,7 @@ class _ProductSheetState extends State<_ProductSheet> {
     // À bord ou sur commande : dans les deux cas l'article va au panier, et
     // le panier demande ensuite les coordonnées du client.
     widget.cart.add(product, size);
+    Usage.instance.tap('store.add:${product.id}');
     Navigator.of(context).pop();
   }
 
@@ -1334,7 +1340,10 @@ class _CartPanelState extends State<_CartPanel> {
             _Step.cart => _CartView(
               key: const ValueKey('cart'),
               cart: widget.cart,
-              onCheckout: () => _setStep(_Step.details),
+              onCheckout: () {
+                Usage.instance.tap('store.checkout');
+                _setStep(_Step.details);
+              },
             ),
             _Step.details => _DetailsView(
               key: const ValueKey('details'),
@@ -1639,6 +1648,7 @@ class _DetailsViewState extends State<_DetailsView> {
         cart: widget.cart,
         language: Localizations.localeOf(context).languageCode,
       );
+      Usage.instance.tap('store.order_sent');
       if (mounted) widget.onPlaced(order);
     } catch (_) {
       // Pas de réseau : on le dit, et on propose WhatsApp à la place.

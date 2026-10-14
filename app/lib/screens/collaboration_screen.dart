@@ -19,6 +19,7 @@ import '../widgets/mesh_background.dart';
 import '../widgets/qr_card.dart';
 import '../widgets/section_scaffold.dart';
 import '../widgets/touch_tilt.dart';
+import '../backend/usage.dart';
 
 /// Section Collaborations : un onglet par service, une vitrine animée de
 /// démos (photos et vidéos) et un appel à l'action vers Yanis.
@@ -806,6 +807,8 @@ class _Steps extends StatelessWidget {
 
 /// Panneau "Parlons de votre projet" : QR LinkedIn et WhatsApp.
 Future<void> showContactSheet(BuildContext context) {
+  // Un passager qui veut me contacter : la mesure qui compte le plus.
+  Usage.instance.tap('contact.open');
   final l10n = AppLocalizations.of(context);
   return showGeneralDialog(
     context: context,

@@ -16,6 +16,7 @@ import '../widgets/decor_clock.dart';
 import '../widgets/glass.dart';
 import '../widgets/mesh_background.dart';
 import '../widgets/section_scaffold.dart';
+import '../backend/usage.dart';
 
 /// Coin musique : le lecteur officiel YouTube intégré (gratuit, légal),
 /// la chanson de Yanis en vedette, et une sélection par ambiance.
@@ -102,6 +103,7 @@ class _MusicScreenState extends State<MusicScreen> {
     final list = _visible;
     final i = list.indexOf(_current);
     // En Dart, % renvoie toujours un reste positif : -1 % n == n - 1.
+    Usage.instance.tap('music.change');
     _play(list[(i + delta) % list.length]);
   }
 

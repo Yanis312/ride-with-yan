@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
+import 'backend/usage.dart';
 import 'l10n/app_localizations.dart';
 import 'screens/home_screen.dart';
 import 'screens/welcome_screen.dart';
@@ -24,6 +25,7 @@ class _RideWithYanAppState extends State<RideWithYanApp> {
   late final SessionController _session = widget.session ?? SessionController();
   late final AppearanceController _appearance =
       widget.appearance ?? AppearanceController();
+  final _usageObserver = UsageObserver();
   final _navigatorKey = GlobalKey<NavigatorState>();
 
   @override
@@ -60,6 +62,8 @@ class _RideWithYanAppState extends State<RideWithYanApp> {
             title: 'Ride with Yan',
             debugShowCheckedModeBanner: false,
             navigatorKey: _navigatorKey,
+            // Mesure anonyme : chaque écran ouvert est compté.
+            navigatorObservers: [_usageObserver],
             theme: buildAppTheme(Brightness.light),
             darkTheme: buildAppTheme(Brightness.dark),
             themeMode: _appearance.brightness == Brightness.dark

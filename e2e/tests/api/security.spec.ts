@@ -128,6 +128,45 @@ test.describe('Commandes : données personnelles des clients', () => {
   });
 });
 
+test.describe('Mesure d’usage : anonyme et en écriture seule', () => {
+  test('un visiteur ne peut pas relire les évènements', async ({ request }) => {
+    const response = await new SupabaseAnon(request).read('usage_events');
+
+    expect(response.status()).toBe(200);
+    expect(await response.json()).toEqual([]);
+  });
+
+  test('un visiteur ne peut pas obtenir le résumé', async ({ request }) => {
+    const response = await new SupabaseAnon(request).call('usage_summary', {
+      since: '2026-01-01T00:00:00Z',
+    });
+
+    expect(response.ok()).toBe(false);
+  });
+
+  test('la base refuse un évènement inventé', async ({ request }) => {
+    const response = await new SupabaseAnon(request).insert(
+      'usage_events',
+      { session_id: randomUUID(), kind: 'hack', name: 'x' },
+      { silent: true },
+    );
+
+    expect(response.status()).toBe(400);
+    expect(await errorCode(response)).toBe(INVALID);
+  });
+
+  test('la base refuse un nom qui pourrait contenir du code', async ({ request }) => {
+    const response = await new SupabaseAnon(request).insert(
+      'usage_events',
+      { session_id: randomUUID(), kind: 'tap', name: '<script>alert(1)</script>' },
+      { silent: true },
+    );
+
+    expect(response.status()).toBe(400);
+    expect(await errorCode(response)).toBe(INVALID);
+  });
+});
+
 test.describe('Catalogue et sondage : réservés à l’administrateur', () => {
   // Un identifiant qui n'est celui d'aucun produit réel.
   const probe = 'e2e-security-probe';
