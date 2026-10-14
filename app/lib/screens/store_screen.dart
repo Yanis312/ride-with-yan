@@ -15,6 +15,7 @@ import '../session/session_controller.dart';
 import '../theme/app_icons.dart';
 import '../theme/app_theme.dart';
 import '../widgets/glass.dart';
+import '../widgets/privacy_sheet.dart';
 import '../widgets/mesh_background.dart';
 import '../widgets/product_art.dart';
 import '../widgets/qr_card.dart';
@@ -157,9 +158,15 @@ class _Notice extends StatelessWidget {
         Icon(AppIcons.sealCheck, size: 16, color: p.textMuted),
         const SizedBox(width: 8),
         Expanded(
-          child: Text(
-            resellerNotice.of(context),
-            style: AppText.body(12, color: p.textMuted),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                resellerNotice.of(context),
+                style: AppText.body(12, color: p.textMuted),
+              ),
+              const PrivacyLink(),
+            ],
           ),
         ),
       ],
@@ -1835,6 +1842,7 @@ class _DetailsViewState extends State<_DetailsView> {
             ).of(context),
             style: AppText.body(12, color: p.textMuted),
           ),
+          const PrivacyLink(),
         ],
       ),
     );
