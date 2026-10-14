@@ -8,6 +8,9 @@ export class FakeBackend {
   readonly orders: Record<string, unknown>[] = [];
   readonly calls: string[] = [];
 
+  /** Évènements de mesure d'usage envoyés par la tablette. */
+  readonly usage: Record<string, unknown>[] = [];
+
   /** Mettre à `true` pour simuler une panne de réseau à l'envoi d'une commande. */
   failOrders = false;
 
@@ -26,6 +29,10 @@ export class FakeBackend {
       if (request.method() === 'GET') {
         const body = request.url().includes('/product_overrides') ? this.overrides : [];
         return route.fulfill({ json: body });
+      }
+      if (request.method() === 'POST' && request.url().includes('/rest/v1/usage_events')) {
+        this.usage.push(...(request.postDataJSON() as Record<string, unknown>[]));
+        return route.fulfill({ status: 201, body: '' });
       }
       if (isOrder(request)) {
         if (this.failOrders) return route.abort('internetdisconnected');

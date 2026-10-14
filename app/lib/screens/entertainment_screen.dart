@@ -14,6 +14,7 @@ import '../theme/app_theme.dart';
 import '../widgets/glass.dart';
 import '../widgets/mesh_background.dart';
 import '../widgets/section_scaffold.dart';
+import '../backend/usage.dart';
 
 /// Divertissement : vidéos courtes par thème, dans le lecteur officiel
 /// YouTube intégré. Le volume reste plafonné pour ne pas gêner la conduite.
@@ -77,6 +78,7 @@ class _EntertainmentScreenState extends State<EntertainmentScreen> {
   }
 
   Future<void> _play(Video video) async {
+    Usage.instance.tap('video.play:${video.id}');
     setState(() => _current = video);
     await _player.loadVideoById(videoId: video.id);
     if (!mounted) return;

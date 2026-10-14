@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../backend/backend.dart';
 import '../backend/remote_config.dart';
 import 'bilingual.dart';
+import '../backend/usage.dart';
 
 @immutable
 class PollOption {
@@ -225,6 +226,7 @@ class PollStore extends ChangeNotifier {
   /// Un vote par passager et par question.
   Future<void> vote(PollQuestion q, PollOption o, int passenger) async {
     if (hasVoted(q, passenger)) return;
+    Usage.instance.tap('poll.vote:${q.id}');
     _votedBy[q.id] = passenger;
     final answers = _votes.putIfAbsent(q.id, () => {});
     answers[o.id] = (answers[o.id] ?? 0) + 1;

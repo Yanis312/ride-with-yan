@@ -8,6 +8,7 @@ import '../data/news.dart';
 import '../theme/app_icons.dart';
 import '../theme/app_theme.dart';
 import 'glass.dart';
+import '../backend/usage.dart';
 
 /// Bandeau d'informations importantes pour les passagers : alertes météo
 /// officielles, grand froid ou tempête annoncés, message du chauffeur, puis
@@ -105,7 +106,10 @@ class _AlertBannerState extends State<AlertBanner> {
         label: '${alert.title.of(context)}. ${alert.body.of(context)}',
         excludeSemantics: true,
         child: Pressable(
-          onTap: () => showAlertsSheet(context, items),
+          onTap: () {
+            Usage.instance.tap('alerts.open');
+            showAlertsSheet(context, items);
+          },
           child: LiquidPill(
             radius: 22,
             padding: EdgeInsets.fromLTRB(10, slim ? 5 : 10, 18, slim ? 5 : 10),

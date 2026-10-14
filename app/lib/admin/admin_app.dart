@@ -413,7 +413,7 @@ class AdminHomeState extends State<AdminHome> {
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
-      length: 3,
+      length: 4,
       child: Scaffold(
         appBar: AppBar(
           title: Text(
@@ -434,10 +434,14 @@ class AdminHomeState extends State<AdminHome> {
             ),
           ],
           bottom: const TabBar(
+            // Quatre onglets : sur téléphone, ils défilent au lieu de se serrer.
+            isScrollable: true,
+            tabAlignment: TabAlignment.start,
             tabs: [
               Tab(icon: Icon(AppIcons.package), text: 'Commandes'),
               Tab(icon: Icon(AppIcons.shoppingBag), text: 'Articles'),
               Tab(icon: Icon(AppIcons.chartBar), text: 'Sondage et message'),
+              Tab(icon: Icon(AppIcons.chartLineUp), text: 'Statistiques'),
             ],
           ),
         ),
@@ -454,6 +458,7 @@ class AdminHomeState extends State<AdminHome> {
                 _OrdersTab(session: widget.session),
                 _ProductsTab(session: widget.session),
                 _PollTab(session: widget.session),
+                _UsageTab(session: widget.session),
               ],
             );
           },
@@ -1493,6 +1498,287 @@ class _PassengerMessageCardState extends State<_PassengerMessageCard> {
                 ),
               ],
             ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Statistiques : ce que les passagers regardent et touchent (mesure anonyme).
+
+const _screenLabels = {
+  'store': 'Boutique',
+  'collaboration': 'Services et collaborations',
+  'ads': 'Publicité',
+  'music': 'Musique',
+  'linkedin': 'LinkedIn',
+  'entertainment': 'Vidéos',
+  'news': 'Actualités',
+  'poll': 'Question du jour',
+  'weather': 'Météo',
+};
+
+const _tapLabels = {
+  'contact.open': 'Demande de contact (services)',
+  'store.whatsapp': 'WhatsApp de la boutique',
+  'store.checkout': 'Panier → Commander',
+  'store.order_sent': 'Commande envoyée',
+  'alerts.open': 'Bandeau d’alertes ouvert',
+  'music.change': 'Changement de chanson',
+  'language.fr': 'Passage en français',
+  'language.en': 'Passage en anglais',
+};
+
+/// Nom lisible d'un bouton mesuré (`store.add:chaussures-noir` →
+/// « Ajout au panier : Noir intégral »).
+String usageLabel(String name) {
+  final known = _screenLabels[name] ?? _tapLabels[name];
+  if (known != null) return known;
+  final i = name.indexOf(':');
+  if (i < 0) return name;
+  final kind = name.substring(0, i);
+  final id = name.substring(i + 1);
+  String product() {
+    for (final p in baseCatalog) {
+      if (p.id == id) return p.name.fr;
+    }
+    return id;
+  }
+
+  return switch (kind) {
+    'store.view' => 'Fiche ouverte : ${product()}',
+    'store.add' => 'Ajout au panier : ${product()}',
+    'poll.vote' => 'Vote : $id',
+    'video.play' => 'Vidéo lancée',
+    'ads.social' => 'Réseaux de $id',
+    _ => name,
+  };
+}
+
+class _UsageTab extends StatefulWidget {
+  const _UsageTab({required this.session});
+
+  final AdminSession session;
+
+  @override
+  State<_UsageTab> createState() => _UsageTabState();
+}
+
+class _UsageTabState extends State<_UsageTab>
+    with AutomaticKeepAliveClientMixin {
+  int _days = 7;
+  late Future<Map<String, dynamic>> _summary = _load();
+
+  @override
+  bool get wantKeepAlive => true;
+
+  Future<Map<String, dynamic>> _load() async {
+    final since = DateTime.now().subtract(Duration(days: _days)).toUtc();
+    final result = await Backend.rpc('usage_summary', {
+      'since': since.toIso8601String(),
+    }, token: await widget.session.token());
+    return (result as Map).cast<String, dynamic>();
+  }
+
+  void _setDays(int days) => setState(() {
+    _days = days;
+    _summary = _load();
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
+    return RefreshIndicator(
+      onRefresh: () async {
+        setState(() => _summary = _load());
+        await _summary;
+      },
+      child: ListView(
+        padding: const EdgeInsets.fromLTRB(14, 14, 14, 40),
+        children: [
+          SegmentedButton<int>(
+            segments: const [
+              ButtonSegment(value: 1, label: Text('24 h')),
+              ButtonSegment(value: 7, label: Text('7 jours')),
+              ButtonSegment(value: 30, label: Text('30 jours')),
+            ],
+            selected: {_days},
+            onSelectionChanged: (v) => _setDays(v.first),
+          ),
+          const SizedBox(height: 16),
+          FutureBuilder<Map<String, dynamic>>(
+            future: _summary,
+            builder: (context, snapshot) {
+              if (snapshot.hasError) {
+                return Text('Échec : ${snapshot.error}');
+              }
+              final data = snapshot.data;
+              if (data == null) {
+                return const Padding(
+                  padding: EdgeInsets.all(40),
+                  child: Center(
+                    child: CircularProgressIndicator(color: Brand.gold),
+                  ),
+                );
+              }
+              return _UsageReport(data: data);
+            },
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'Mesure anonyme : aucun nom, aucun appareil. Chaque passager '
+            'reçoit un numéro au hasard, oublié à la fin de sa course.',
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _UsageReport extends StatelessWidget {
+  const _UsageReport({required this.data});
+
+  final Map<String, dynamic> data;
+
+  List<(String, int)> _rows(String key) => [
+    for (final r in (data[key] as List? ?? const []).cast<Map>())
+      (usageLabel('${r['name']}'), (r['count'] as num).toInt()),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    final sessions = (data['sessions'] as num? ?? 0).toInt();
+    if (sessions == 0) {
+      return const Card(
+        child: Padding(
+          padding: EdgeInsets.all(24),
+          child: Text(
+            'Pas encore de passager sur cette période. Les chiffres '
+            'apparaîtront dès les premières courses.',
+          ),
+        ),
+      );
+    }
+    final seconds = (data['average_seconds'] as num? ?? 0).toInt();
+    final french = (data['french_sessions'] as num? ?? 0).toInt();
+    final hours = {
+      for (final r in (data['hours'] as List? ?? const []).cast<Map>())
+        (r['hour'] as num).toInt(): (r['count'] as num).toInt(),
+    };
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Wrap(
+          spacing: 10,
+          runSpacing: 10,
+          children: [
+            _Kpi('Passagers', '$sessions'),
+            _Kpi(
+              'Durée moyenne',
+              '${seconds ~/ 60} min ${(seconds % 60).toString().padLeft(2, '0')} s',
+            ),
+            _Kpi('En français', '${(100 * french / sessions).round()} %'),
+          ],
+        ),
+        const SizedBox(height: 18),
+        _BarList(title: 'Écrans les plus ouverts', rows: _rows('screens')),
+        const SizedBox(height: 18),
+        _BarList(title: 'Boutons les plus touchés', rows: _rows('taps')),
+        const SizedBox(height: 18),
+        _BarList(
+          title: 'Heures des courses',
+          rows: [
+            for (final h in hours.keys.toList()..sort())
+              ('${h.toString().padLeft(2, '0')} h', hours[h]!),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _Kpi extends StatelessWidget {
+  const _Kpi(this.label, this.value);
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return SizedBox(
+      width: 160,
+      child: Card(
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(label, style: theme.textTheme.bodySmall),
+              const SizedBox(height: 4),
+              Text(value, style: theme.textTheme.headlineSmall),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _BarList extends StatelessWidget {
+  const _BarList({required this.title, required this.rows});
+
+  final String title;
+  final List<(String, int)> rows;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final max = rows.fold(1, (m, r) => r.$2 > m ? r.$2 : m);
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(title, style: theme.textTheme.titleMedium),
+            const SizedBox(height: 10),
+            if (rows.isEmpty) const Text('Rien pour l’instant.'),
+            for (final (label, count) in rows)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 5),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            label,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        Text('$count'),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(4),
+                      child: LinearProgressIndicator(
+                        value: count / max,
+                        minHeight: 8,
+                        color: Brand.gold,
+                        backgroundColor: Brand.gold.withValues(alpha: 0.15),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
           ],
         ),
       ),

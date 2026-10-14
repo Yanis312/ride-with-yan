@@ -44,6 +44,9 @@ void main() {
       );
       expect(save.onPressed, isNotNull);
 
+      // Sur téléphone, les onglets défilent : on amène le bon à l'écran.
+      await tester.ensureVisible(find.text('Sondage et message'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Sondage et message'));
       await tester.pumpAndSettle();
       expect(find.text('Message aux passagers'), findsOneWidget);

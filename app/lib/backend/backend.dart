@@ -81,6 +81,22 @@ abstract final class Backend {
     _read(response);
   }
 
+  /// Ajoute plusieurs lignes en une seule requête, sans les relire.
+  static Future<void> insertMany(
+    String table,
+    List<Map<String, dynamic>> rows,
+  ) async {
+    if (!enabled) throw BackendException('Base indisponible');
+    final response = await http
+        .post(
+          Uri.parse('$_url/rest/v1/$table'),
+          headers: {..._headers(null), 'Prefer': 'return=minimal'},
+          body: jsonEncode(rows),
+        )
+        .timeout(_timeout);
+    _read(response);
+  }
+
   /// Modifie les lignes dont [column] vaut [value].
   static Future<void> update(
     String table,
