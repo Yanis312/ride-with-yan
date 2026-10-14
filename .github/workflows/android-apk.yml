@@ -3,6 +3,9 @@ name: Android APK
 on:
   push:
     branches: [main]
+    # L'APK ne change que si l'app change : pas de build (6 minutes) pour
+    # une modification des tests ou de la documentation.
+    paths: ['app/**', '.github/workflows/android-apk.yml']
   workflow_dispatch:
 
 permissions:
