@@ -7,7 +7,7 @@ trigger: none
 pr: none
 
 schedules:
-  # 9 h UTC = 5 h du matin à Montréal
+  # 9 h UTC = 5 h du matin à Ottawa
   - cron: '0 9 * * *'
     displayName: Tests de nuit
     branches:
