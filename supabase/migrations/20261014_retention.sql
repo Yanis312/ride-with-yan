@@ -7,7 +7,7 @@
 -- - les commandes de plus de 6 ans sont supprimées ;
 -- - les évènements de mesure d'usage de plus de 13 mois sont supprimés.
 --
--- À APPLIQUER SEULEMENT APRÈS ACCORD DE YANIS (effacement automatique).
+-- Appliqué le 2026-10-14 avec l'accord de Yanis (tâche pg_cron active).
 
 create extension if not exists pg_cron;
 
