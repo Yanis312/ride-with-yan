@@ -11,8 +11,8 @@ import 'bilingual.dart';
 /// relire si l'activité grandit.
 
 const privacyUpdated = Bi(
-  'Mise à jour : octobre 2026',
-  'Updated: October 2026',
+  'Mise à jour : 17 octobre 2026',
+  'Updated: October 17, 2026',
 );
 
 const privacyIntro = Bi(
@@ -80,6 +80,24 @@ const privacySections = <(Bi, Bi)>[
           'cart contents (no phone or address) go through the ntfy.sh '
           'notification service, hosted outside Canada. If you write on '
           'WhatsApp, Meta handles that message under its own rules.',
+    ),
+  ),
+  (
+    Bi('L’assistant', 'The assistant'),
+    Bi(
+      'Les questions posées à l’assistant sont envoyées au service Azure '
+          'OpenAI de Microsoft, dans un centre de données au Canada, pour '
+          'produire la réponse. Nous ne les enregistrons pas ; seul un '
+          'compteur anonyme limite le nombre de questions. Microsoft ne s’en '
+          'sert pas pour entraîner ses modèles, mais peut les garder jusqu’à '
+          '30 jours pour détecter les abus. N’y écrivez pas de renseignements '
+          'personnels.',
+      'Questions asked to the assistant are sent to Microsoft’s Azure OpenAI '
+          'service, in a data centre in Canada, to produce the answer. We do '
+          'not store them; only an anonymous counter limits the number of '
+          'questions. Microsoft does not use them to train its models, but '
+          'may keep them up to 30 days to detect abuse. Do not include '
+          'personal information.',
     ),
   ),
   (

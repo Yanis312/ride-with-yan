@@ -20,6 +20,13 @@ export class FakeBackend {
   /** Alertes officielles d'Environnement Canada, aucune par défaut. */
   weatherAlerts: Record<string, unknown>[] = [];
 
+  /** Conversations envoyées à l'assistant, et sa réponse simulée. */
+  readonly chats: Record<string, unknown>[] = [];
+  chatReply: { status: number; body: Record<string, unknown> } = {
+    status: 200,
+    body: { reply: 'Le combo, c’est une paire et un maillot pour 140 $.' },
+  };
+
   async install(page: Page) {
     // Toutes les requêtes vers la base sont interceptées : les tests d'écran
     // n'écrivent jamais dans la vraie base et donnent toujours le même résultat.
@@ -29,6 +36,10 @@ export class FakeBackend {
       if (request.method() === 'GET') {
         const body = request.url().includes('/product_overrides') ? this.overrides : [];
         return route.fulfill({ json: body });
+      }
+      if (request.url().includes('/functions/v1/chat')) {
+        this.chats.push(request.postDataJSON() as Record<string, unknown>);
+        return route.fulfill({ status: this.chatReply.status, json: this.chatReply.body });
       }
       if (request.method() === 'POST' && request.url().includes('/rest/v1/usage_events')) {
         this.usage.push(...(request.postDataJSON() as Record<string, unknown>[]));

@@ -1518,6 +1518,7 @@ const _screenLabels = {
   'news': 'Actualités',
   'poll': 'Question du jour',
   'weather': 'Météo',
+  'assistant': 'Assistant',
 };
 
 const _tapLabels = {
@@ -1526,6 +1527,7 @@ const _tapLabels = {
   'store.checkout': 'Panier → Commander',
   'store.order_sent': 'Commande envoyée',
   'alerts.open': 'Bandeau d’alertes ouvert',
+  'assistant.ask': 'Question à l’assistant',
   'music.change': 'Changement de chanson',
   'language.fr': 'Passage en français',
   'language.en': 'Passage en anglais',

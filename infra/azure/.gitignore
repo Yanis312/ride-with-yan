@@ -1,0 +1,6 @@
+# État de Terraform : il contient la clé du service d'IA. Jamais dans Git.
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+crash.log
