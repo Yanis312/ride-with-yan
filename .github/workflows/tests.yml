@@ -46,6 +46,21 @@ jobs:
           path: app/build/web
           retention-days: 1
 
+  assistant:
+    name: Serveur de l'assistant (Deno)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Vérification des types et tests
+        working-directory: supabase/functions/chat
+        run: |
+          deno check index.ts
+          deno test
+
   e2e:
     name: Tests de bout en bout et d'API (Playwright)
     needs: app

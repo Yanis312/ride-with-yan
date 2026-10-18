@@ -32,7 +32,7 @@ variable "deployment_sku" {
 }
 
 variable "capacity" {
-  description = "Débit maximal, en milliers de jetons par minute. Plafonne aussi la dépense."
+  description = "Débit maximal, en milliers de jetons par minute. Une question en coûte ~1,3 k : 30 laisse passer une vingtaine de questions par minute. On paie à l'usage, pas au débit."
   type        = number
-  default     = 10
+  default     = 30
 }
