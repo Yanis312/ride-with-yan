@@ -22,7 +22,7 @@ void _stockShoes() {
 
 void main() {
   test(
-    'tout le catalogue est sur commande : chaussures 100 \$, maillots 50 \$',
+    'tout le catalogue est sur commande : chaussures 80 \$, maillots 50 \$',
     () {
       expect(catalog, hasLength(15));
       for (final p in catalog) {
@@ -30,7 +30,7 @@ void main() {
         expect(p.preorder, isTrue, reason: p.id);
         expect(
           p.price,
-          p.category == ProductCategory.sneakers ? 100 : 50,
+          p.category == ProductCategory.sneakers ? 80 : 50,
           reason: p.id,
         );
       }
@@ -46,10 +46,10 @@ void main() {
 
     expect(cart.count, 3);
     expect(cart.lines, hasLength(2));
-    expect(cart.total, 300);
+    expect(cart.total, 240);
     // Rien à bord : tout se paie à la livraison.
     expect(cart.payNow, 0);
-    expect(cart.payLater, 300);
+    expect(cart.payLater, 240);
   });
 
   test('retirer le dernier exemplaire enlève la ligne', () {
@@ -69,8 +69,8 @@ void main() {
     expect(cart.quantityOf(jersey, 'S'), Cart.maxOnOrder);
   });
 
-  group('combo paire + maillot à 140 \$', () {
-    test('une paire et un maillot reviennent à 140 \$', () {
+  group('combo paire + maillot à 120 \$', () {
+    test('une paire et un maillot reviennent à 120 \$', () {
       final cart = Cart()
         ..add(_find('chaussures-blanc'), 'US 9')
         ..add(_find('maillot-yamal'), 'M');
@@ -82,7 +82,7 @@ void main() {
     });
 
     test('pas de rabais sans maillot, ou sans chaussures', () {
-      expect((Cart()..add(_find('chaussures-noir'), 'US 8')).total, 100);
+      expect((Cart()..add(_find('chaussures-noir'), 'US 8')).total, 80);
       expect((Cart()..add(_find('maillot-olise'), 'S')).total, 50);
       final twoJerseys = Cart()
         ..add(_find('maillot-olise'), 'S')
@@ -99,9 +99,9 @@ void main() {
         ..add(_find('maillot-yamal'), 'M')
         ..add(_find('maillot-mbappe'), 'L');
 
-      // Deux combos (280 \$) et un maillot seul (50 \$).
+      // Deux combos (240 \$) et un maillot seul (50 \$).
       expect(cart.combos, 2);
-      expect(cart.total, 330);
+      expect(cart.total, 290);
     });
 
     test('retirer le maillot annule le rabais', () {
@@ -110,7 +110,7 @@ void main() {
         ..add(_find('chaussures-blanc'), 'US 9')
         ..add(jersey, 'M');
       cart.remove(jersey, 'M');
-      expect(cart.total, 100);
+      expect(cart.total, 80);
     });
   });
 
@@ -135,8 +135,8 @@ void main() {
 
         expect(cart.lines.first.onOrder, isFalse);
         expect(cart.lines.last.onOrder, isTrue);
-        expect(cart.payNow, 100);
-        expect(cart.payLater, 100);
+        expect(cart.payNow, 80);
+        expect(cart.payLater, 80);
       },
     );
 
@@ -146,7 +146,7 @@ void main() {
         ..add(_find('chaussures-blanc'), 'US 9')
         ..add(_find('maillot-yamal'), 'M');
 
-      expect(cart.payNow, 100);
+      expect(cart.payNow, 80);
       expect(cart.payLater, 40);
       expect(cart.total, comboPrice);
     });

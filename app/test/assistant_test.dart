@@ -66,7 +66,7 @@ void main() {
     test('envoie toute la conversation et garde la réponse', () async {
       final assistant = controllerReplying(
         () =>
-            http.Response(jsonEncode({'reply': 'Le combo vaut 140 \$.'}), 200),
+            http.Response(jsonEncode({'reply': 'Le combo vaut 120 \$.'}), 200),
       );
 
       await assistant.ask('C’est quoi le combo ?', language: 'fr');

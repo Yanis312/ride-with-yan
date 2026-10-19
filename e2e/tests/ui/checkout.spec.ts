@@ -77,7 +77,7 @@ test.describe('Commande livrée à domicile', () => {
 });
 
 test.describe('Combo paire + maillot', () => {
-  test('la commande enregistrée vaut 140 $', async ({ welcome, lounge, store, backend }) => {
+  test('la commande enregistrée vaut 120 $', async ({ welcome, lounge, store, backend }) => {
     await welcome.open();
     await welcome.start('en');
     await lounge.openStore();
@@ -92,7 +92,7 @@ test.describe('Combo paire + maillot', () => {
     await expect(store.orderReceived).toBeVisible();
     const order = orderSchema.parse(backend.orders[0]);
     expect(order.lines).toHaveLength(2);
-    expect(order).toMatchObject({ pay_now: 0, pay_later: 140 });
+    expect(order).toMatchObject({ pay_now: 0, pay_later: 120 });
   });
 });
 
@@ -120,11 +120,11 @@ test.describe('Article en stock : paiement Interac', () => {
     await store.confirm();
 
     await expect(store.interacTitle).toBeVisible();
-    await expect(store.interacAmount).toContainText('$100');
+    await expect(store.interacAmount).toContainText('$80');
     await expect(store.transferSentButton).toBeVisible();
 
     const order = orderSchema.parse(backend.orders[0]);
-    expect(order).toMatchObject({ address: null, pay_now: 100, pay_later: 0 });
+    expect(order).toMatchObject({ address: null, pay_now: 80, pay_later: 0 });
     expect(order.lines[0]).toMatchObject({ id: 'chaussures-noir', size: 'US 9', on_order: false });
     // Le code affiché au client est bien celui enregistré avec la commande.
     await expect(page.getByText(order.reference, { exact: true })).toBeVisible();

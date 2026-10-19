@@ -167,8 +167,8 @@ const _sneakerDetails = [
   ),
   Bi('Vous payez à la réception', 'You pay when it arrives'),
   Bi(
-    'Combo : 1 paire + 1 maillot = 140 \$',
-    'Combo: 1 pair + 1 jersey = \$140',
+    'Combo : 1 paire + 1 maillot = 120 \$',
+    'Combo: 1 pair + 1 jersey = \$120',
   ),
 ];
 
@@ -180,8 +180,8 @@ const _jerseyDetails = [
   ),
   Bi('Vous payez à la réception', 'You pay when it arrives'),
   Bi(
-    'Combo : 1 paire + 1 maillot = 140 \$',
-    'Combo: 1 pair + 1 jersey = \$140',
+    'Combo : 1 paire + 1 maillot = 120 \$',
+    'Combo: 1 pair + 1 jersey = \$120',
   ),
 ];
 
@@ -194,13 +194,13 @@ const preorderNotice = Bi(
 );
 
 /// Prix d'un combo : une paire de chaussures et un maillot ensemble.
-const comboPrice = 140.0;
+const comboPrice = 120.0;
 
 /// Rappel des prix affiché en haut de la boutique.
 const storePitch = Bi(
-  'Chaussures 100 \$ · Maillots 50 \$ · Combo paire + maillot 140 \$ · '
+  'Chaussures 80 \$ · Maillots 50 \$ · Combo paire + maillot 120 \$ · '
       'Livraison chez vous en $deliveryDays jours.',
-  'Shoes \$100 · Jerseys \$50 · Pair + jersey combo \$140 · Delivered to '
+  'Shoes \$80 · Jerseys \$50 · Pair + jersey combo \$120 · Delivered to '
       'your door in $deliveryDays days.',
 );
 
@@ -227,7 +227,7 @@ const baseCatalog = [
     id: 'chaussures-blanc',
     name: Bi('Blanc intégral', 'All white'),
     blurb: _shoeBlurb,
-    price: 100,
+    price: 80,
     category: ProductCategory.sneakers,
     icon: AppIcons.sneaker,
     colors: _studio,
@@ -241,7 +241,7 @@ const baseCatalog = [
     id: 'chaussures-blanc-noir',
     name: Bi('Blanc et noir', 'White and black'),
     blurb: _shoeBlurb,
-    price: 100,
+    price: 80,
     category: ProductCategory.sneakers,
     icon: AppIcons.sneaker,
     colors: _studio,
@@ -255,7 +255,7 @@ const baseCatalog = [
     id: 'chaussures-blanc-noir-or',
     name: Bi('Blanc, noir et or', 'White, black and gold'),
     blurb: _shoeBlurb,
-    price: 100,
+    price: 80,
     category: ProductCategory.sneakers,
     icon: AppIcons.sneaker,
     colors: _studio,
@@ -269,7 +269,7 @@ const baseCatalog = [
     id: 'chaussures-blanc-gris',
     name: Bi('Blanc et gris', 'White and grey'),
     blurb: _shoeBlurb,
-    price: 100,
+    price: 80,
     category: ProductCategory.sneakers,
     icon: AppIcons.sneaker,
     colors: _studio,
@@ -283,7 +283,7 @@ const baseCatalog = [
     id: 'chaussures-camel',
     name: Bi('Camel', 'Wheat'),
     blurb: _shoeBlurb,
-    price: 100,
+    price: 80,
     category: ProductCategory.sneakers,
     icon: AppIcons.sneaker,
     colors: _studio,
@@ -297,7 +297,7 @@ const baseCatalog = [
     id: 'chaussures-blanc-lacets-noirs',
     name: Bi('Blanc, lacets noirs', 'White, black laces'),
     blurb: _shoeBlurb,
-    price: 100,
+    price: 80,
     category: ProductCategory.sneakers,
     icon: AppIcons.sneaker,
     colors: _studio,
@@ -311,7 +311,7 @@ const baseCatalog = [
     id: 'chaussures-noir-blanc',
     name: Bi('Noir et blanc', 'Black and white'),
     blurb: _shoeBlurb,
-    price: 100,
+    price: 80,
     category: ProductCategory.sneakers,
     icon: AppIcons.sneaker,
     colors: _studio,
@@ -325,7 +325,7 @@ const baseCatalog = [
     id: 'chaussures-noir',
     name: Bi('Noir intégral', 'All black'),
     blurb: _shoeBlurb,
-    price: 100,
+    price: 80,
     category: ProductCategory.sneakers,
     icon: AppIcons.sneaker,
     colors: _studio,
@@ -339,7 +339,7 @@ const baseCatalog = [
     id: 'chaussures-blanc-vert',
     name: Bi('Blanc et vert, nœud rouge', 'White and green, red knot'),
     blurb: _shoeBlurb,
-    price: 100,
+    price: 80,
     category: ProductCategory.sneakers,
     icon: AppIcons.sneaker,
     colors: _studio,
@@ -353,7 +353,7 @@ const baseCatalog = [
     id: 'chaussures-blanc-rouge',
     name: Bi('Blanc, semelle rouge', 'White, red sole'),
     blurb: _shoeBlurb,
-    price: 100,
+    price: 80,
     category: ProductCategory.sneakers,
     icon: AppIcons.sneaker,
     colors: _studio,
@@ -367,7 +367,7 @@ const baseCatalog = [
     id: 'chaussures-creme-menthe',
     name: Bi('Crème et menthe', 'Cream and mint'),
     blurb: _shoeBlurb,
-    price: 100,
+    price: 80,
     category: ProductCategory.sneakers,
     icon: AppIcons.sneaker,
     colors: _studio,

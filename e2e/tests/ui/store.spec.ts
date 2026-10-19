@@ -9,8 +9,8 @@ test.describe('Boutique', () => {
 
   test('s’ouvre avec un panier vide, les prix et la mention de revendeur', async ({ store }) => {
     await expect(store.emptyCart).toBeVisible();
-    await expect(store.pitch).toContainText('Shoes $100 · Jerseys $50');
-    await expect(store.pitch).toContainText('combo $140');
+    await expect(store.pitch).toContainText('Shoes $80 · Jerseys $50');
+    await expect(store.pitch).toContainText('combo $120');
     await expect(store.pitch).toContainText('30 days');
     await expect(store.resellerNotice).toBeVisible();
     await expect(store.whatsAppButton).toBeVisible();
@@ -22,11 +22,11 @@ test.describe('Boutique', () => {
     await expect(page.getByRole('button', { name: 'Essentials' })).toHaveCount(0);
   });
 
-  test('toutes les chaussures sont sur commande à 100 $', async ({ store }) => {
+  test('toutes les chaussures sont sur commande à 80 $', async ({ store }) => {
     await store.showCategory('Shoes');
 
-    await expect(store.product('All white')).toHaveAccessibleName(/On order.*\$100$/);
-    await expect(store.product('All black')).toHaveAccessibleName(/On order.*\$100$/);
+    await expect(store.product('All white')).toHaveAccessibleName(/On order.*\$80$/);
+    await expect(store.product('All black')).toHaveAccessibleName(/On order.*\$80$/);
     await expect(store.products().filter({ hasText: /in stock/ })).toHaveCount(0);
   });
 
@@ -39,18 +39,18 @@ test.describe('Boutique', () => {
     }
   });
 
-  test('une paire seule se paie 100 $ à la livraison', async ({ store }) => {
+  test('une paire seule se paie 80 $ à la livraison', async ({ store }) => {
     await store.showCategory('Shoes');
     await store.addSized('All white', 'US 9');
 
     await expect(store.cartLine('All white')).toBeVisible();
     await expect(store.onDelivery).toBeVisible();
-    await expect(store.amount('$100')).toBeVisible();
+    await expect(store.amount('$80')).toBeVisible();
     await expect(store.comboLine).toBeHidden();
     await expect(store.nextStepHint).toContainText('You pay on delivery');
   });
 
-  test('une paire avec un maillot revient à 140 $ (combo)', async ({ store }) => {
+  test('une paire avec un maillot revient à 120 $ (combo)', async ({ store }) => {
     await store.showCategory('Shoes');
     await store.addSized('All white', 'US 9');
     await store.showCategory('Jerseys');
@@ -58,7 +58,7 @@ test.describe('Boutique', () => {
 
     await expect(store.comboLine).toBeVisible();
     await expect(store.amount('− $10')).toBeVisible();
-    await expect(store.amount('$140')).toBeVisible();
+    await expect(store.amount('$120')).toBeVisible();
   });
 
   test('applique un prix modifié depuis le panneau d’administration', async ({
