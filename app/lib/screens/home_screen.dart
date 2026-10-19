@@ -20,6 +20,7 @@ import '../theme/app_icons.dart';
 import '../theme/app_theme.dart';
 import '../theme/appearance_controller.dart';
 import '../widgets/decor_clock.dart';
+import 'assistant_screen.dart';
 import '../widgets/alert_banner.dart';
 import '../widgets/glass.dart';
 import '../widgets/gold_spotlight.dart';
@@ -242,7 +243,12 @@ class _BentoLayout extends StatelessWidget {
           children: [
             Expanded(child: _Greeting()),
             SizedBox(width: 16),
-            _Clock(),
+            // L'assistant sous l'horloge : la phrase d'accueil garde sa
+            // largeur et ne passe pas sur une ligne de plus.
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [_Clock(), SizedBox(height: 10), _AskButton()],
+            ),
           ],
         ),
         const SizedBox(height: 28),
@@ -317,6 +323,8 @@ class _CompactLayout extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 4),
       children: [
         const _Greeting(),
+        const SizedBox(height: 16),
+        const Align(alignment: Alignment.centerLeft, child: _AskButton()),
         const SizedBox(height: 24),
         for (final (height, tile) in items)
           Padding(
@@ -1289,6 +1297,23 @@ class _PhotoTile extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// Bouton qui ouvre l'assistant de bord.
+class _AskButton extends StatelessWidget {
+  const _AskButton();
+
+  @override
+  Widget build(BuildContext context) {
+    return DecorShimmer(
+      child: PillButton(
+        label: const Bi('Demandez à Yan', 'Ask Yan').of(context),
+        onTap: () =>
+            openPage(context, const AssistantScreen(), name: 'assistant'),
+        trailing: const Icon(AppIcons.sparkle),
       ),
     );
   }

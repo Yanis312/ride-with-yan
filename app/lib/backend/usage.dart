@@ -35,6 +35,10 @@ class Usage {
 
   bool get _active => _session != null;
 
+  /// Numéro de la course en cours (aussi utilisé par l'assistant pour ses
+  /// plafonds de questions), ou `null` sur l'écran d'accueil.
+  String? get sessionId => _session;
+
   void sessionStarted(String language) {
     if (_active) sessionEnded();
     _session = _uuid();
