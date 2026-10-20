@@ -1,0 +1,10 @@
+build
+.dart_tool
+android
+ios
+linux
+macos
+windows
+test
+coverage
+*.iml

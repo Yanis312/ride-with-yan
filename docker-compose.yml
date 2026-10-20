@@ -1,20 +1,15 @@
-# Lance l'app web construite et la suite de tests dans des conteneurs :
-# le même résultat sur n'importe quelle machine, sans rien installer.
+# Tout le projet dans des conteneurs : il suffit de Git et de Docker.
 #
-#   cd app && flutter build web --release --wasm && cd ..
 #   docker compose run --rm e2e
 #
+# 1. « web » construit l'app avec Flutter puis la sert avec nginx ;
+# 2. « e2e » lance les tests Playwright contre elle.
 # Le rapport HTML arrive dans e2e/playwright-report.
 services:
   web:
-    image: node:22-alpine
-    working_dir: /srv
-    volumes:
-      - ./e2e/serve.mjs:/srv/serve.mjs:ro
-      - ./app/build/web:/srv/web:ro
-    command: node serve.mjs web 8080
+    build: ./app
     healthcheck:
-      test: ['CMD', 'wget', '-qO-', 'http://localhost:8080/']
+      test: ['CMD', 'wget', '-qO-', 'http://127.0.0.1/']
       interval: 2s
       retries: 30
 
@@ -24,6 +19,6 @@ services:
       web:
         condition: service_healthy
     environment:
-      APP_URL: http://web:8080/
+      APP_URL: http://web/
     volumes:
       - ./e2e/playwright-report:/e2e/playwright-report
