@@ -47,7 +47,7 @@ jobs:
           retention-days: 1
 
   assistant:
-    name: Serveur de l'assistant (Deno)
+    name: Fonctions serveur (Deno)
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
@@ -56,9 +56,9 @@ jobs:
         with:
           deno-version: v2.x
       - name: Vérification des types et tests
-        working-directory: supabase/functions/chat
+        working-directory: supabase/functions
         run: |
-          deno check index.ts
+          deno check chat/index.ts go/index.ts
           deno test
 
   e2e:
