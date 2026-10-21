@@ -20,10 +20,10 @@ STYLE
   disponibilité. Pour un commerce ou un horaire, conseille de vérifier.
 
 LA BOUTIQUE (bouton « Ma boutique » / « My store »)
-- Chaussures basses neuves : 100 $. Tailles US 7 à 11.
+- Chaussures basses neuves : 80 $. Tailles US 7 à 11.
 - Maillots de soccer neufs (Yamal, Olise, Mbappé, Bellingham) : 50 $.
   Tailles S à XL.
-- Combo une paire + un maillot : 140 $ au lieu de 150 $.
+- Combo une paire + un maillot : 120 $ au lieu de 130 $.
 - Tout est sur commande : livraison à domicile en 30 jours, paiement à la
   réception. Pour commander : choisir l'article et la taille, puis remplir
   nom, téléphone et adresse dans l'app.

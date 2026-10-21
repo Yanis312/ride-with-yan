@@ -12,12 +12,12 @@ test.describe('Assistant de bord', () => {
 
     await page.getByRole('button', { name: /C’est quoi le combo/ }).click();
 
-    await expect(page.getByText(/une paire et un maillot pour 140/)).toBeVisible();
+    await expect(page.getByText(/une paire et un maillot pour 120/)).toBeVisible();
     // Ce que reçoit le serveur : la question, la langue, le numéro de course.
     expect(backend.chats).toHaveLength(1);
     expect(backend.chats[0]).toMatchObject({
       language: 'fr',
-      messages: [{ role: 'user', content: 'C’est quoi le combo à 140 $ ?' }],
+      messages: [{ role: 'user', content: 'C’est quoi le combo à 120 $ ?' }],
     });
     expect(String(backend.chats[0].session_id)).toMatch(/^[0-9a-f-]{36}$/);
   });

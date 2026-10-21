@@ -60,8 +60,8 @@ const _phases = [
       ('Jetez un œil à ma boutique.', 'Take a look at my shop.'),
     ],
     note: (
-      'Chaussures 100 \$, maillots 50 \$, combo 140 \$. Livrés chez vous.',
-      'Shoes \$100, jerseys \$50, combo \$140. Delivered to your door.',
+      'Chaussures 80 \$, maillots 50 \$, combo 120 \$. Livrés chez vous.',
+      'Shoes \$80, jerseys \$50, combo \$120. Delivered to your door.',
     ),
     duration: WelcomeScreen.storeDuration,
   ),
