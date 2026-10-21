@@ -7,7 +7,9 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
-import 'admin/admin_app.dart';
+// Chargé seulement à l'ouverture du panneau : les passagers ne téléchargent
+// jamais le code de l'administration.
+import 'admin/admin_app.dart' deferred as admin;
 import 'app.dart';
 import 'backend/remote_config.dart';
 
@@ -21,7 +23,8 @@ Future<void> main() async {
     } catch (_) {
       // Les dates s'afficheront au format par défaut.
     }
-    runApp(const AdminApp());
+    await admin.loadLibrary();
+    runApp(admin.AdminApp());
     return;
   }
 
