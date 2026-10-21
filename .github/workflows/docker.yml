@@ -1,11 +1,12 @@
 name: Docker
 
-# Vérifie que la suite de tests tourne aussi dans Docker (docker compose),
-# quand les tests ou les fichiers Docker changent.
+# Vérifie que tout tourne dans Docker (docker compose) : construction de
+# l'app avec Flutter, serveur nginx et tests Playwright. Aucun outil installé
+# sur la machine à part Docker.
 
 on:
   pull_request:
-    paths: ['e2e/**', 'docker-compose.yml', '.github/workflows/docker.yml']
+    paths: ['e2e/**', 'app/Dockerfile', 'app/nginx.conf', 'docker-compose.yml', '.github/workflows/docker.yml']
   workflow_dispatch:
 
 permissions:
@@ -18,15 +19,6 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v7
-      - uses: subosito/flutter-action@v2
-        with:
-          channel: stable
-          cache: true
-      - name: Construction de l'app web
-        working-directory: app
-        run: |
-          flutter pub get
-          flutter build web --release --wasm
       - name: Tests Playwright dans les conteneurs
         run: docker compose run --rm e2e
       - name: Rapport des tests
