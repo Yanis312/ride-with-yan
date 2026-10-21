@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../backend/backend.dart';
+import '../data/advertisers.dart';
 import '../backend/remote_config.dart';
 import '../config.dart';
 import '../data/poll.dart';
@@ -413,7 +414,7 @@ class AdminHomeState extends State<AdminHome> {
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
-      length: 4,
+      length: 5,
       child: Scaffold(
         appBar: AppBar(
           title: Text(
@@ -441,6 +442,7 @@ class AdminHomeState extends State<AdminHome> {
               Tab(icon: Icon(AppIcons.package), text: 'Commandes'),
               Tab(icon: Icon(AppIcons.shoppingBag), text: 'Articles'),
               Tab(icon: Icon(AppIcons.chartBar), text: 'Sondage et message'),
+              Tab(icon: Icon(AppIcons.storefront), text: 'Annonceurs'),
               Tab(icon: Icon(AppIcons.chartLineUp), text: 'Statistiques'),
             ],
           ),
@@ -458,6 +460,7 @@ class AdminHomeState extends State<AdminHome> {
                 _OrdersTab(session: widget.session),
                 _ProductsTab(session: widget.session),
                 _PollTab(session: widget.session),
+                _AdvertisersTab(session: widget.session),
                 _UsageTab(session: widget.session),
               ],
             );
@@ -1554,7 +1557,8 @@ String usageLabel(String name) {
     'store.add' => 'Ajout au panier : ${product()}',
     'poll.vote' => 'Vote : $id',
     'video.play' => 'Vidéo lancée',
-    'ads.social' => 'Réseaux de $id',
+    'ads.social' => 'QR affiché : ${id.replaceAll(':', ' · ')}',
+    'ads.scan' => 'QR scanné : ${id.replaceAll(':', ' · ')}',
     _ => name,
   };
 }
@@ -1784,6 +1788,356 @@ class _BarList extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Annonceurs : les commerces partenaires de la section publicité.
+
+/// Champs d'une fiche, dans l'ordre du formulaire : (colonne, libellé, lignes).
+const _adFields = [
+  ('name', 'Nom du commerce', 1),
+  ('category_fr', 'Catégorie (français)', 1),
+  ('category_en', 'Catégorie (anglais)', 1),
+  ('description_fr', 'Description (français)', 3),
+  ('description_en', 'Description (anglais)', 3),
+  ('offer_fr', 'Offre passagers (français), ex. −10 % avec Ride with Yan', 1),
+  ('offer_en', 'Offre passagers (anglais)', 1),
+  ('address', 'Adresse', 1),
+  ('phone', 'Téléphone', 1),
+  ('hours_fr', 'Heures (français)', 1),
+  ('hours_en', 'Heures (anglais)', 1),
+  ('lat', 'Latitude (ex. 45.4250)', 1),
+  ('lng', 'Longitude (ex. -75.6950)', 1),
+  ('color', 'Couleur (hexadécimal, ex. E8A23A)', 1),
+  ('photo_url', 'Photo (adresse https://…)', 1),
+  ('website', 'Site web (https://…)', 1),
+  ('instagram', 'Instagram (https://…)', 1),
+  ('tiktok', 'TikTok (https://…)', 1),
+  ('facebook', 'Facebook (https://…)', 1),
+  ('sort', 'Ordre d’affichage (0, 1, 2…)', 1),
+];
+
+/// Identifiant à partir du nom : « Café Atlas » → « cafe-atlas ».
+String advertiserSlug(String name) {
+  const accents = {
+    'à': 'a',
+    'â': 'a',
+    'ä': 'a',
+    'é': 'e',
+    'è': 'e',
+    'ê': 'e',
+    'ë': 'e',
+    'î': 'i',
+    'ï': 'i',
+    'ô': 'o',
+    'ö': 'o',
+    'ù': 'u',
+    'û': 'u',
+    'ü': 'u',
+    'ç': 'c',
+  };
+  final plain = name.toLowerCase().split('').map((c) => accents[c] ?? c).join();
+  final slug = plain
+      .replaceAll(RegExp(r'[^a-z0-9]+'), '-')
+      .replaceAll(RegExp(r'^-+|-+$'), '');
+  return slug.length > 40 ? slug.substring(0, 40) : slug;
+}
+
+class _AdvertisersTab extends StatefulWidget {
+  const _AdvertisersTab({required this.session});
+
+  final AdminSession session;
+
+  @override
+  State<_AdvertisersTab> createState() => _AdvertisersTabState();
+}
+
+class _AdvertisersTabState extends State<_AdvertisersTab>
+    with AutomaticKeepAliveClientMixin {
+  late Future<List<Map<String, dynamic>>> _rows = _load();
+
+  @override
+  bool get wantKeepAlive => true;
+
+  Future<List<Map<String, dynamic>>> _load() async => Backend.select(
+    'advertisers',
+    order: 'sort.asc,name.asc',
+    token: await widget.session.token(),
+  );
+
+  void _reload() => setState(() => _rows = _load());
+
+  Future<void> _edit([Map<String, dynamic>? row]) async {
+    final saved = await showDialog<bool>(
+      context: context,
+      builder: (_) => _AdvertiserEditor(session: widget.session, row: row),
+    );
+    if (saved == true) {
+      _reload();
+      await AdvertiserStore.instance.load();
+    }
+  }
+
+  Future<void> _toggle(Map<String, dynamic> row) async {
+    try {
+      await Backend.update('advertisers', 'id', '${row['id']}', {
+        'active': row['active'] != true,
+      }, token: await widget.session.token());
+      _reload();
+    } catch (e) {
+      if (mounted) _toast(context, 'Échec : $e', error: true);
+    }
+  }
+
+  Future<void> _delete(Map<String, dynamic> row) async {
+    final sure = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Supprimer « ${row['name']} » ?'),
+        content: const Text('La fiche disparaît de la tablette.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Annuler'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Supprimer'),
+          ),
+        ],
+      ),
+    );
+    if (sure != true) return;
+    try {
+      await Backend.delete(
+        'advertisers',
+        'id',
+        '${row['id']}',
+        token: await widget.session.token(),
+      );
+      _reload();
+    } catch (e) {
+      if (mounted) _toast(context, 'Échec : $e', error: true);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
+    return FutureBuilder<List<Map<String, dynamic>>>(
+      future: _rows,
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return Center(child: Text('Échec : ${snapshot.error}'));
+        }
+        final rows = snapshot.data;
+        if (rows == null) {
+          return const Center(
+            child: CircularProgressIndicator(color: Brand.gold),
+          );
+        }
+        return ListView(
+          padding: const EdgeInsets.fromLTRB(14, 14, 14, 40),
+          children: [
+            FilledButton.icon(
+              onPressed: () => _edit(),
+              icon: const Icon(AppIcons.plus),
+              label: const Text('Ajouter un annonceur'),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              rows.isEmpty
+                  ? 'Aucun annonceur : la tablette montre les deux fiches '
+                        '« Exemple ».'
+                  : 'Les QR codes des fiches comptent chaque scan dans '
+                        'l’onglet Statistiques.',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+            const SizedBox(height: 12),
+            for (final row in rows)
+              Card(
+                child: ListTile(
+                  title: Text('${row['name']}'),
+                  subtitle: Text(
+                    [
+                      '${row['category_fr'] ?? ''}',
+                      if (row['active'] != true) 'masqué',
+                    ].where((t) => t.isNotEmpty).join(' · '),
+                  ),
+                  onTap: () => _edit(row),
+                  trailing: Wrap(
+                    children: [
+                      IconButton(
+                        tooltip: row['active'] == true ? 'Masquer' : 'Afficher',
+                        onPressed: () => _toggle(row),
+                        icon: Icon(
+                          row['active'] == true
+                              ? Icons.visibility
+                              : Icons.visibility_off,
+                        ),
+                      ),
+                      IconButton(
+                        tooltip: 'Supprimer',
+                        onPressed: () => _delete(row),
+                        icon: const Icon(AppIcons.trash),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _AdvertiserEditor extends StatefulWidget {
+  const _AdvertiserEditor({required this.session, this.row});
+
+  final AdminSession session;
+  final Map<String, dynamic>? row;
+
+  @override
+  State<_AdvertiserEditor> createState() => _AdvertiserEditorState();
+}
+
+class _AdvertiserEditorState extends State<_AdvertiserEditor> {
+  late final Map<String, TextEditingController> _fields = {
+    for (final (key, _, _) in _adFields)
+      key: TextEditingController(
+        text: widget.row?[key] == null ? '' : '${widget.row![key]}',
+      ),
+  };
+  bool _busy = false;
+  String? _error;
+
+  @override
+  void dispose() {
+    for (final c in _fields.values) {
+      c.dispose();
+    }
+    super.dispose();
+  }
+
+  /// Ligne à enregistrer, ou un message d'erreur lisible.
+  (Map<String, dynamic>?, String?) _row() {
+    String text(String key) => _fields[key]!.text.trim();
+    final name = text('name');
+    if (name.isEmpty) return (null, 'Le nom est obligatoire.');
+    final id = widget.row?['id'] as String? ?? advertiserSlug(name);
+    if (id.length < 2) return (null, 'Nom trop court.');
+
+    double? number(String key) =>
+        double.tryParse(text(key).replaceAll(',', '.'));
+    final row = <String, dynamic>{
+      'id': id,
+      'updated_at': DateTime.now().toUtc().toIso8601String(),
+    };
+    for (final (key, _, _) in _adFields) {
+      final value = text(key);
+      switch (key) {
+        case 'lat' || 'lng':
+          if (value.isNotEmpty && number(key) == null) {
+            return (null, 'Latitude et longitude : des nombres.');
+          }
+          row[key] = number(key);
+        case 'sort':
+          row[key] = int.tryParse(value) ?? 0;
+        case 'color':
+          final hex = value.replaceAll('#', '');
+          if (!RegExp(r'^[0-9A-Fa-f]{6}$').hasMatch(hex)) {
+            return (null, 'Couleur : 6 caractères, ex. E8A23A.');
+          }
+          row[key] = hex;
+        case 'photo_url' || 'website' || 'instagram' || 'tiktok' || 'facebook':
+          if (value.isNotEmpty && !value.startsWith('https://')) {
+            return (null, 'Les liens doivent commencer par https://');
+          }
+          row[key] = value.isEmpty ? null : value;
+        default:
+          row[key] = value;
+      }
+    }
+    return (row, null);
+  }
+
+  Future<void> _save() async {
+    final (row, error) = _row();
+    if (row == null) {
+      setState(() => _error = error);
+      return;
+    }
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+    try {
+      await Backend.upsert(
+        'advertisers',
+        row,
+        token: await widget.session.token(),
+      );
+      if (mounted) Navigator.pop(context, true);
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _busy = false;
+          _error = 'Échec : $e';
+        });
+      }
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.row == null) _fields['color']!.text = 'E8A23A';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text(widget.row == null ? 'Nouvel annonceur' : 'Modifier'),
+      content: SizedBox(
+        width: 520,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              for (final (key, label, lines) in _adFields)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: TextField(
+                    controller: _fields[key],
+                    maxLines: lines,
+                    decoration: InputDecoration(
+                      labelText: label,
+                      border: const OutlineInputBorder(),
+                    ),
+                  ),
+                ),
+              if (_error != null)
+                Text(
+                  _error!,
+                  style: TextStyle(color: Theme.of(context).colorScheme.error),
+                ),
+            ],
+          ),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: _busy ? null : () => Navigator.pop(context, false),
+          child: const Text('Annuler'),
+        ),
+        FilledButton(
+          onPressed: _busy ? null : _save,
+          child: Text(_busy ? 'Un instant…' : 'Enregistrer'),
+        ),
+      ],
     );
   }
 }

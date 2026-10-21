@@ -1,15 +1,18 @@
 import 'package:flutter/widgets.dart';
 import 'package:latlong2/latlong.dart';
 
+import '../backend/backend.dart';
+import '../config.dart';
 import '../theme/app_icons.dart';
 import 'bilingual.dart';
 
 /// Commerce partenaire affiché dans la section publicité.
 /// [example] : fiche de démonstration, clairement marquée comme telle,
-/// à remplacer par les vrais partenaires (plus tard depuis l'admin).
+/// affichée tant qu'aucun vrai partenaire n'est saisi dans l'admin.
 @immutable
 class Advertiser {
   const Advertiser({
+    this.id,
     required this.name,
     required this.category,
     required this.description,
@@ -23,8 +26,54 @@ class Advertiser {
     this.tiktok,
     this.facebook,
     this.photo,
+    this.photoUrl,
+    this.website,
+    this.offer,
     this.example = false,
   });
+
+  /// Fiche saisie dans l'admin (ligne de la table `advertisers`).
+  factory Advertiser.fromRow(Map<String, dynamic> r) {
+    String text(String key) => '${r[key] ?? ''}'.trim();
+    String? link(String key) {
+      final v = text(key);
+      return v.startsWith('https://') ? v : null;
+    }
+
+    Bi bi(String key) {
+      final fr = text('${key}_fr');
+      final en = text('${key}_en');
+      return Bi(fr.isEmpty ? en : fr, en.isEmpty ? fr : en);
+    }
+
+    final color = int.tryParse(text('color'), radix: 16) ?? 0xE8A23A;
+    final base = Color(0xFF000000 | color);
+    final offer = bi('offer');
+    return Advertiser(
+      id: text('id'),
+      name: text('name'),
+      category: bi('category'),
+      description: bi('description'),
+      address: text('address'),
+      phone: text('phone'),
+      hours: bi('hours'),
+      location: LatLng(
+        (r['lat'] as num?)?.toDouble() ?? 45.4215,
+        (r['lng'] as num?)?.toDouble() ?? -75.6972,
+      ),
+      icon: AppIcons.storefront,
+      colors: [base, Color.lerp(base, const Color(0xFF000000), 0.7)!],
+      photoUrl: link('photo_url'),
+      website: link('website'),
+      instagram: link('instagram'),
+      tiktok: link('tiktok'),
+      facebook: link('facebook'),
+      offer: offer.fr.isEmpty ? null : offer,
+    );
+  }
+
+  /// Identifiant dans la base ; `null` pour les fiches d'exemple.
+  final String? id;
 
   final String name;
   final Bi category;
@@ -41,10 +90,61 @@ class Advertiser {
 
   /// Photo du commerce (asset). Sans photo, un visuel dégradé est utilisé.
   final String? photo;
+
+  /// Photo en ligne, saisie dans l'admin.
+  final String? photoUrl;
+  final String? website;
+
+  /// Offre réservée aux passagers (ex. « −10 % avec Ride with Yan »).
+  final Bi? offer;
   final bool example;
+
+  ImageProvider? get image => photoUrl != null
+      ? NetworkImage(photoUrl!)
+      : (photo != null ? AssetImage(photo!) : null);
+
+  /// Adresse mise dans un QR code : pour un vrai partenaire, elle passe par
+  /// la fonction `go`, qui compte le scan avant de rediriger.
+  String qrLink(String target, String url) => id == null
+      ? url
+      : '${AppConfig.supabaseUrl}/functions/v1/go?ad=$id&to=$target';
 }
 
-const advertisers = [
+/// Partenaires saisis dans l'admin ; les exemples tant qu'il n'y en a aucun.
+class AdvertiserStore extends ChangeNotifier {
+  AdvertiserStore._();
+
+  static final instance = AdvertiserStore._();
+
+  List<Advertiser> _real = const [];
+
+  List<Advertiser> get list => _real.isEmpty ? exampleAdvertisers : _real;
+
+  Future<void> load() async {
+    if (!Backend.enabled) return;
+    try {
+      final rows = await Backend.select(
+        'advertisers',
+        order: 'sort.asc,name.asc',
+      );
+      _real = [
+        for (final r in rows)
+          if (r['active'] != false) Advertiser.fromRow(r),
+      ];
+      notifyListeners();
+    } catch (_) {
+      // Pas de réseau : on garde ce qu'on avait (ou les exemples).
+    }
+  }
+
+  @visibleForTesting
+  void setForTest(List<Advertiser> real) {
+    _real = real;
+    notifyListeners();
+  }
+}
+
+const exampleAdvertisers = [
   Advertiser(
     name: 'Sushi Kumo',
     category: Bi('Restaurant japonais', 'Japanese restaurant'),

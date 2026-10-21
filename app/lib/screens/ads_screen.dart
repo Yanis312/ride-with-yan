@@ -7,6 +7,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 
 import '../data/advertisers.dart';
+import '../data/bilingual.dart';
 import '../l10n/app_localizations.dart';
 import '../navigation/sections.dart';
 import '../theme/app_icons.dart';
@@ -64,11 +65,14 @@ class _Carousel extends StatefulWidget {
 }
 
 class _CarouselState extends State<_Carousel> {
+  final _store = AdvertiserStore.instance;
+  List<Advertiser> get _ads => _store.list;
+
   // Les partenaires puis la place libre ; départ au hasard parmi les partenaires.
-  late final int _count = advertisers.length + 1;
+  int get _count => _ads.length + 1;
   late final PageController _pages = PageController(
     viewportFraction: 0.88,
-    initialPage: math.Random().nextInt(advertisers.length),
+    initialPage: math.Random().nextInt(_ads.length),
   );
   Timer? _timer;
   bool _flipped = false;
@@ -78,6 +82,9 @@ class _CarouselState extends State<_Carousel> {
   void initState() {
     super.initState();
     _page = _pages.initialPage;
+    // Les vrais partenaires remplacent les exemples dès qu'ils arrivent.
+    _store.addListener(_refresh);
+    _store.load();
     _timer = Timer.periodic(const Duration(seconds: 8), (_) {
       // On ne fait pas défiler une carte que le passager est en train de lire.
       if (_flipped || !_pages.hasClients) return;
@@ -89,8 +96,15 @@ class _CarouselState extends State<_Carousel> {
     });
   }
 
+  void _refresh() {
+    if (!mounted) return;
+    setState(() {});
+    if (_pages.hasClients && _page >= _count) _pages.jumpToPage(0);
+  }
+
   @override
   void dispose() {
+    _store.removeListener(_refresh);
     _timer?.cancel();
     _pages.dispose();
     super.dispose();
@@ -113,10 +127,10 @@ class _CarouselState extends State<_Carousel> {
             }),
             itemBuilder: (context, i) => Padding(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              child: i < advertisers.length
+              child: i < _ads.length
                   ? _FlipCard(
-                      key: ValueKey(i),
-                      advertiser: advertisers[i],
+                      key: ValueKey(_ads[i].id ?? i),
+                      advertiser: _ads[i],
                       onFlip: (flipped) => setState(() => _flipped = flipped),
                     )
                   : const _FreeSpotCard(),
@@ -246,10 +260,10 @@ class _AdFront extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(34),
-        image: a.photo == null
+        image: a.image == null
             ? null
-            : DecorationImage(image: AssetImage(a.photo!), fit: BoxFit.cover),
-        gradient: a.photo == null
+            : DecorationImage(image: a.image!, fit: BoxFit.cover),
+        gradient: a.image == null
             ? RadialGradient(
                 center: const Alignment(-0.4, -0.6),
                 radius: 1.3,
@@ -290,7 +304,7 @@ class _AdFront extends StatelessWidget {
               ],
             ),
             const Spacer(),
-            if (a.photo == null)
+            if (a.image == null)
               Icon(
                 a.icon,
                 size: 72,
@@ -373,10 +387,20 @@ class _AdBack extends StatelessWidget {
       ),
     );
 
+    // (icône, nom, cible suivie, adresse)
     final socials = [
-      if (a.instagram != null) (AppIcons.instagram, 'Instagram', a.instagram!),
-      if (a.tiktok != null) (AppIcons.tiktok, 'TikTok', a.tiktok!),
-      if (a.facebook != null) (AppIcons.facebook, 'Facebook', a.facebook!),
+      if (a.website != null)
+        (
+          AppIcons.globe,
+          const Bi('Site web', 'Website').of(context),
+          'website',
+          a.website!,
+        ),
+      if (a.instagram != null)
+        (AppIcons.instagram, 'Instagram', 'instagram', a.instagram!),
+      if (a.tiktok != null) (AppIcons.tiktok, 'TikTok', 'tiktok', a.tiktok!),
+      if (a.facebook != null)
+        (AppIcons.facebook, 'Facebook', 'facebook', a.facebook!),
     ];
 
     return BezelCard(
@@ -401,22 +425,45 @@ class _AdBack extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
             style: AppText.body(15, color: p.textMuted),
           ),
+          if (a.offer != null) ...[
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              decoration: BoxDecoration(
+                color: Brand.gold.withValues(alpha: 0.18),
+                borderRadius: BorderRadius.circular(999),
+                border: Border.all(color: Brand.gold),
+              ),
+              child: Text(
+                a.offer!.of(context),
+                style: AppText.body(15, weight: FontWeight.w600, color: p.text),
+              ),
+            ),
+          ],
           const SizedBox(height: 16),
           info(AppIcons.mapPin, a.address),
           info(AppIcons.phone, a.phone),
           info(AppIcons.clock, a.hours.of(context)),
           const SizedBox(height: 4),
-          Row(
+          Wrap(
+            runSpacing: 8,
             children: [
-              for (final (icon, label, url) in socials)
+              for (final (icon, label, target, url) in socials)
                 Padding(
                   padding: const EdgeInsets.only(right: 10),
                   child: PillButton(
                     label: label,
                     filled: false,
                     onTap: () {
-                      Usage.instance.tap('ads.social:${a.name}');
-                      _showSocialQr(context, icon, label, url);
+                      Usage.instance.tap(
+                        'ads.social:${a.id ?? a.name}:$target',
+                      );
+                      _showSocialQr(
+                        context,
+                        icon,
+                        label,
+                        a.qrLink(target, url),
+                      );
                     },
                     trailing: Icon(icon),
                   ),
