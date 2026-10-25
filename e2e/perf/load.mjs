@@ -29,7 +29,7 @@ for (let i = 0; i < runs; i++) {
   const byType = {};
   cdp.on('Network.loadingFinished', (e) => (bytes += e.encodedDataLength));
   cdp.on('Network.responseReceived', (e) => {
-    const ext = (new URL(e.response.url).pathname.match(/\.(\w+)$/) ?? [, 'autre'])[1];
+    const ext = new URL(e.response.url).pathname.match(/\.(\w+)$/)?.[1] ?? 'autre';
     byType[ext] = (byType[ext] ?? 0) + 1;
   });
 

@@ -1,0 +1,13 @@
+// Hébergement de l'app web sur Cloudflare (Workers, fichiers statiques).
+// Cloudflare lance « bash tools/cloudflare-pages-build.sh », puis
+// « npx wrangler deploy », qui lit ce fichier.
+{
+  "name": "ride-with-yan",
+  "compatibility_date": "2026-10-01",
+  "assets": {
+    // L'app construite par Flutter (et les sites de démonstration).
+    "directory": "./app/build/web",
+    // Une adresse inconnue renvoie l'app, comme sur GitHub Pages.
+    "not_found_handling": "single-page-application"
+  }
+}

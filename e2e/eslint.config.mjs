@@ -11,7 +11,7 @@ export default tseslint.config(
     ...playwright.configs['flat/recommended'],
   },
   {
-    files: ['serve.mjs'],
+    files: ['serve.mjs', 'perf/**/*.mjs'],
     languageOptions: { globals: { process: 'readonly', console: 'readonly', URL: 'readonly' } },
   },
 );
