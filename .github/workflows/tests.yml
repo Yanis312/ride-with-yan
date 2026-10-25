@@ -40,6 +40,14 @@ jobs:
         run: flutter test
       - name: Construction de l'app web
         run: flutter build web --release --wasm
+      # Budget de performance : le code de l'app pèse aujourd'hui 3,4 Mo
+      # (2,7 Mo téléchargés une fois compressés, 3,9 s en 4G). Une PR qui le
+      # fait dépasser 4 Mo est bloquée : on regarde d'abord pourquoi.
+      - name: Budget de performance
+        run: |
+          size=$(stat -c%s build/web/main.dart.wasm)
+          echo "main.dart.wasm : $((size / 1024)) Ko (budget : 4096 Ko)"
+          test "$size" -le 4194304
       - uses: actions/upload-artifact@v7
         with:
           name: web-build
