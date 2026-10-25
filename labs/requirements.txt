@@ -1,0 +1,9 @@
+# Paquets Python de l'examen (mêmes noms qu'à l'examen AI-901 / AI-103).
+azure-cognitiveservices-speech
+azure-ai-translation-text
+azure-ai-textanalytics
+azure-ai-vision-imageanalysis
+azure-ai-documentintelligence
+azure-ai-contentsafety
+azure-search-documents
+python-dotenv

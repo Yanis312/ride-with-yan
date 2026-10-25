@@ -36,3 +36,9 @@ variable "capacity" {
   type        = number
   default     = 30
 }
+
+variable "lab_location" {
+  description = "Région des services gratuits du laboratoire (Canada Centre : tous y sont proposés)."
+  type        = string
+  default     = "canadacentral"
+}
