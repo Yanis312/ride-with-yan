@@ -1,11 +1,11 @@
-# En-têtes ajoutés par Cloudflare Pages (GitHub Pages les ignore).
+# En-têtes ajoutés par Cloudflare (GitHub Pages les ignore).
 #
-# COOP + COEP isolent la page : Flutter peut alors dessiner sur plusieurs
-# cœurs du processeur (SharedArrayBuffer). « credentialless » laisse charger
-# les ressources d'autres sites (photos, nouvelles) sans cookies.
+# Essai du 2026-10-25 : l'isolation (Cross-Origin-Opener-Policy et
+# Cross-Origin-Embedder-Policy) bloquait le lecteur YouTube (vidéos et
+# musique), sans gain de fluidité mesurable (58 → 60 images/s). Elle est
+# retirée. Cloudflare reste plus rapide que GitHub Pages (3,4 s contre 4,1 s
+# en 4G) grâce à son réseau et à la compression Brotli.
 /*
-  Cross-Origin-Opener-Policy: same-origin
-  Cross-Origin-Embedder-Policy: credentialless
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
 
