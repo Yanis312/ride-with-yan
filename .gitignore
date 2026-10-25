@@ -20,3 +20,6 @@ key.properties
 .swarm/
 .claude-flow/metrics/
 .claude-flow/learning/
+
+# Fichiers locaux du CLI Supabase
+supabase/.temp/
