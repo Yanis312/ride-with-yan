@@ -66,7 +66,7 @@ jobs:
       - name: Vérification des types et tests
         working-directory: supabase/functions
         run: |
-          deno check chat/index.ts go/index.ts
+          deno check chat/index.ts go/index.ts speak/index.ts
           deno test
 
   e2e:
