@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Construction de l'app sur Cloudflare Pages (leur machine n'a pas Flutter).
-# Réglages du projet Cloudflare :
+# Construction de l'app sur Cloudflare (leur machine n'a pas Flutter).
+# Réglages du projet Cloudflare (le dossier de sortie est dans wrangler.jsonc) :
 #   commande de build : bash tools/cloudflare-pages-build.sh
 #   dossier de sortie : app/build/web
 set -euo pipefail
