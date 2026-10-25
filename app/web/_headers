@@ -1,0 +1,15 @@
+# En-têtes ajoutés par Cloudflare Pages (GitHub Pages les ignore).
+#
+# COOP + COEP isolent la page : Flutter peut alors dessiner sur plusieurs
+# cœurs du processeur (SharedArrayBuffer). « credentialless » laisse charger
+# les ressources d'autres sites (photos, nouvelles) sans cookies.
+/*
+  Cross-Origin-Opener-Policy: same-origin
+  Cross-Origin-Embedder-Policy: credentialless
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+
+# Le code de l'app change à chaque version mais garde son nom : on le
+# revalide à chaque visite.
+/main.dart.*
+  Cache-Control: no-cache
