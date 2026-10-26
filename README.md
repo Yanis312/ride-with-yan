@@ -10,6 +10,11 @@ Application bilingue (anglais / français) pour une tablette fixée derrière le
 
 **Essayer l'app :** https://yanis312.github.io/ride-with-yan/
 
+## Comprendre le projet
+
+La documentation détaillée, avec des schémas, est dans [`docs/`](docs/README.md) :
+architecture, app Flutter, base Supabase, tests, CI/CD, Terraform et Azure AI.
+
 ## Ce que fait l'app
 
 - **Écran de veille** qui fait défiler dix présentations et invite à toucher l'écran.
