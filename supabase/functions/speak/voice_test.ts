@@ -13,5 +13,5 @@ Deno.test('un texte ne peut pas injecter de balises SSML', () => {
 
 Deno.test('texte raccourci à 600 caractères', () => {
   const xml = ssml('a'.repeat(900), 'fr');
-  assertEquals(xml.match(/a+/)![0].length, 600);
+  assertEquals(xml.match(/<voice[^>]*>(a*)<\/voice>/)![1].length, 600);
 });
