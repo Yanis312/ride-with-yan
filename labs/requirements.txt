@@ -6,4 +6,5 @@ azure-ai-vision-imageanalysis
 azure-ai-documentintelligence
 azure-ai-contentsafety
 azure-search-documents
+openai
 python-dotenv
