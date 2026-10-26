@@ -87,13 +87,14 @@ const privacySections = <(Bi, Bi)>[
     Bi(
       'Les questions posées à l’assistant sont envoyées au service Azure '
           'OpenAI de Microsoft, dans un centre de données au Canada, pour '
-          'produire la réponse. Nous ne les enregistrons pas ; seul un '
+          'produire la réponse (et à Azure Speech, au Canada, si vous l’écoutez). Nous ne les enregistrons pas ; seul un '
           'compteur anonyme limite le nombre de questions. Microsoft ne s’en '
           'sert pas pour entraîner ses modèles, mais peut les garder jusqu’à '
           '30 jours pour détecter les abus. N’y écrivez pas de renseignements '
           'personnels.',
       'Questions asked to the assistant are sent to Microsoft’s Azure OpenAI '
-          'service, in a data centre in Canada, to produce the answer. We do '
+          'service, in a data centre in Canada, to produce the answer (and to Azure '
+          'Speech, in Canada, if you listen to it). We do '
           'not store them; only an anonymous counter limits the number of '
           'questions. Microsoft does not use them to train its models, but '
           'may keep them up to 30 days to detect abuse. Do not include '

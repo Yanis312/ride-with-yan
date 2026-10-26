@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../data/assistant.dart';
 import '../data/bilingual.dart';
+import '../data/yan_voice.dart';
 import '../theme/app_icons.dart';
 import '../theme/app_theme.dart';
 import '../widgets/glass.dart';
@@ -216,12 +217,76 @@ class _Bubble extends StatelessWidget {
             ),
             border: mine ? null : Border.all(color: p.hairline),
           ),
-          child: Text(
-            message.text,
-            style: AppText.body(16, color: mine ? Brand.ink : p.text),
-          ),
+          child: mine
+              ? Text(message.text, style: AppText.body(16, color: Brand.ink))
+              : Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Flexible(
+                      child: Text(
+                        message.text,
+                        style: AppText.body(16, color: p.text),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    _ListenButton(text: message.text),
+                  ],
+                ),
         ),
       ),
+    );
+  }
+}
+
+/// Bouton 🔊 : Yan lit sa réponse à voix haute (Azure AI Speech).
+class _ListenButton extends StatelessWidget {
+  const _ListenButton({required this.text});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    final voice = YanVoice.instance;
+    return ListenableBuilder(
+      listenable: voice,
+      builder: (context, _) {
+        final playing = voice.playing == text;
+        void listen() => voice.toggle(
+          text,
+          language: Localizations.localeOf(context).languageCode,
+        );
+        return Semantics(
+          button: true,
+          label: playing
+              ? const Bi('Arrêter la lecture', 'Stop reading').of(context)
+              : const Bi(
+                  'Écouter la réponse',
+                  'Listen to the answer',
+                ).of(context),
+          excludeSemantics: true,
+          // Action aussi déclarée ici : les lecteurs d'écran (et les tests)
+          // touchent le bouton à travers sa description.
+          onTap: listen,
+          child: Pressable(
+            onTap: listen,
+            child: Container(
+              width: 34,
+              height: 34,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: playing
+                    ? Brand.gold
+                    : Brand.gold.withValues(alpha: 0.15),
+              ),
+              child: Icon(
+                playing ? AppIcons.close : AppIcons.volumeUp,
+                size: 18,
+                color: playing ? Brand.ink : Brand.gold,
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

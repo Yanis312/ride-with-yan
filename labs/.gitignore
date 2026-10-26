@@ -1,0 +1,6 @@
+# Clés des services Azure : jamais dans Git.
+.env
+.venv/
+__pycache__/
+*.wav
+*.mp3
