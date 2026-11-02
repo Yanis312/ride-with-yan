@@ -13,7 +13,7 @@ flowchart LR
     merge --> pages[Site GitHub Pages<br/>web-preview.yml]
     merge --> apk[APK Android<br/>android-apk.yml]
     merge --> cf[Site Cloudflare<br/>wrangler deploy]
-    nuit((Chaque nuit)) --> nightly[Nightly<br/>3 navigateurs]
+    nuit((Chaque nuit)) --> nightly[Nightly<br/>Chrome et WebKit]
     nuit --> azure[Azure Pipelines]
     semaine((Chaque semaine)) --> dependabot[Dependabot<br/>PR de mises à jour]
 ```
@@ -24,7 +24,7 @@ flowchart LR
 |---|---|---|
 | `.github/workflows/tests.yml` | Chaque PR et chaque push sur `main` | Format → analyse → tests Flutter → build web → **budget de 4 Mo** → tests Deno → types, lint, tests Playwright |
 | `.github/workflows/docker.yml` | PR qui touche les tests ou Docker | Construit l'app dans Docker (Flutter → nginx) et lance les tests dans un conteneur |
-| `.github/workflows/nightly.yml` | Chaque nuit, 3 h à Ottawa | Toute la suite sur Chrome, Firefox et WebKit, répartie sur 3 machines, plus un contrôle du site en ligne |
+| `.github/workflows/nightly.yml` | Chaque nuit, 3 h à Ottawa | Toute la suite sur Chrome et WebKit, répartie sur 3 machines, plus un contrôle du site en ligne |
 | `.github/workflows/web-preview.yml` | Push sur `main` | Publie le site sur GitHub Pages |
 | `.github/workflows/android-apk.yml` | Push sur `main` qui touche `app/` | Construit l'APK et le publie dans les *Releases* |
 | `azure-pipelines.yml` | Chaque nuit, sur Azure DevOps | La même chaîne, avec résultats JUnit |
