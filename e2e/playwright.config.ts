@@ -1,19 +1,15 @@
 import { defineConfig, devices } from '@playwright/test';
 import { config } from './src/config.js';
 
-// Firefox et WebKit (le moteur de Safari) ne tournent que la nuit : ALL_BROWSERS.
+// WebKit (le moteur de Safari) ne tourne que la nuit : ALL_BROWSERS.
+// Firefox est écarté : sur les machines de CI sans carte graphique, ses clics
+// dépassent 3 minutes alors que le même test passe en 16 s sur un vrai poste.
 const extraBrowsers = process.env.ALL_BROWSERS
   ? [
       {
-        name: 'ui-firefox',
-        testDir: './tests/ui',
-        // Firefox et WebKit sans carte graphique dessinent l'app lentement.
-        timeout: 180_000,
-        use: { ...devices['Desktop Firefox'], ...tablet() },
-      },
-      {
         name: 'ui-webkit',
         testDir: './tests/ui',
+        // WebKit sans carte graphique dessine l'app lentement.
         timeout: 180_000,
         use: { ...devices['Desktop Safari'], ...tablet() },
       },

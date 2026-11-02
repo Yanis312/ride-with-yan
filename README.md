@@ -82,14 +82,14 @@ Dans Docker, sans rien installer d'autre : `docker compose run --rm e2e` (après
 
 Agents IA : `e2e/specs/README.md` explique comment demander à Claude Code de planifier, écrire ou réparer des tests.
 
-Variables utiles : `ALL_BROWSERS=1` ajoute Firefox et WebKit (le moteur de Safari), `APP_URL=…` teste une app déjà en ligne, `PW_CHANNEL=chrome` réutilise le Chrome installé sur le poste.
+Variables utiles : `ALL_BROWSERS=1` ajoute WebKit (le moteur de Safari), `APP_URL=…` teste une app déjà en ligne, `PW_CHANNEL=chrome` réutilise le Chrome installé sur le poste.
 
 ## Intégration continue
 
 | Pipeline | Quand | Ce qu'il fait |
 |---|---|---|
 | **Tests** (GitHub Actions) | À chaque envoi de code et à chaque demande de fusion | Mise en forme, analyse statique, tests Flutter, construction de l'app web, puis types, lint et tests Playwright sur Chromium. Le rapport est joint à l'exécution. |
-| **Nightly** (GitHub Actions) | Chaque nuit | Toute la suite sur Chromium, Firefox et WebKit, répartie sur trois machines en parallèle, rapports fusionnés en un seul. Un contrôle passe aussi sur le site réellement en ligne. |
+| **Nightly** (GitHub Actions) | Chaque nuit | Toute la suite sur Chromium et WebKit, répartie sur trois machines en parallèle, rapports fusionnés en un seul. Un contrôle passe aussi sur le site réellement en ligne. |
 | **Azure Pipelines** | Chaque nuit | La même chaîne sur Azure DevOps ; les résultats sont publiés au format JUnit dans l'onglet « Tests ». |
 | **Web preview** (GitHub Actions) | À chaque envoi sur `main` | Publie l'app web sur GitHub Pages. |
 | **Docker** (GitHub Actions) | Quand les tests ou les fichiers Docker changent | La suite tourne dans des conteneurs (`docker compose`). |
