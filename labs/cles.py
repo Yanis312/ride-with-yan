@@ -39,6 +39,10 @@ def depuis_terraform() -> None:
         'AZURE_REGION=canadacentral',
         f"SEARCH_ENDPOINT={sortie('search_endpoint')}",
         f"SEARCH_KEY={sortie('search_admin_key')}",
+        # Le modèle de Yan (Foundry), pour la partie « génération » du RAG.
+        f"FOUNDRY_ENDPOINT={sortie('endpoint')}",
+        f"FOUNDRY_KEY={sortie('api_key')}",
+        f"FOUNDRY_DEPLOYMENT={sortie('deployment')}",
     ]
     for service in adresses:
         nom = service.upper()
