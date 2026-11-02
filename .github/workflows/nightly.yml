@@ -1,7 +1,7 @@
 name: Nightly
 
-# Chaque nuit : toute la suite sur les trois moteurs de navigateur (Chrome,
-# WebKit, le moteur de Safari), répartie sur trois machines en
+# Chaque nuit : toute la suite sur Chrome et WebKit (le moteur de Safari),
+# répartie sur trois machines en
 # parallèle, puis un contrôle rapide du site réellement en ligne.
 
 on:
