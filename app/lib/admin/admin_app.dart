@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../backend/backend.dart';
+import '../data/activities.dart';
 import '../data/advertisers.dart';
 import '../backend/remote_config.dart';
 import '../config.dart';
@@ -414,7 +415,7 @@ class AdminHomeState extends State<AdminHome> {
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
-      length: 5,
+      length: 6,
       child: Scaffold(
         appBar: AppBar(
           title: Text(
@@ -443,6 +444,7 @@ class AdminHomeState extends State<AdminHome> {
               Tab(icon: Icon(AppIcons.shoppingBag), text: 'Articles'),
               Tab(icon: Icon(AppIcons.chartBar), text: 'Sondage et message'),
               Tab(icon: Icon(AppIcons.storefront), text: 'Annonceurs'),
+              Tab(icon: Icon(AppIcons.mapPin), text: 'Activités'),
               Tab(icon: Icon(AppIcons.chartLineUp), text: 'Statistiques'),
             ],
           ),
@@ -461,6 +463,7 @@ class AdminHomeState extends State<AdminHome> {
                 _ProductsTab(session: widget.session),
                 _PollTab(session: widget.session),
                 _AdvertisersTab(session: widget.session),
+                _ActivitiesTab(session: widget.session),
                 _UsageTab(session: widget.session),
               ],
             );
@@ -1519,6 +1522,7 @@ const _screenLabels = {
   'linkedin': 'LinkedIn',
   'entertainment': 'Vidéos',
   'news': 'Actualités',
+  'activities': 'Sorties',
   'poll': 'Question du jour',
   'weather': 'Météo',
   'assistant': 'Assistant',
@@ -1819,32 +1823,6 @@ const _adFields = [
   ('sort', 'Ordre d’affichage (0, 1, 2…)', 1),
 ];
 
-/// Identifiant à partir du nom : « Café Atlas » → « cafe-atlas ».
-String advertiserSlug(String name) {
-  const accents = {
-    'à': 'a',
-    'â': 'a',
-    'ä': 'a',
-    'é': 'e',
-    'è': 'e',
-    'ê': 'e',
-    'ë': 'e',
-    'î': 'i',
-    'ï': 'i',
-    'ô': 'o',
-    'ö': 'o',
-    'ù': 'u',
-    'û': 'u',
-    'ü': 'u',
-    'ç': 'c',
-  };
-  final plain = name.toLowerCase().split('').map((c) => accents[c] ?? c).join();
-  final slug = plain
-      .replaceAll(RegExp(r'[^a-z0-9]+'), '-')
-      .replaceAll(RegExp(r'^-+|-+$'), '');
-  return slug.length > 40 ? slug.substring(0, 40) : slug;
-}
-
 class _AdvertisersTab extends StatefulWidget {
   const _AdvertisersTab({required this.session});
 
@@ -2124,6 +2102,260 @@ class _AdvertiserEditorState extends State<_AdvertiserEditor> {
                   _error!,
                   style: TextStyle(color: Theme.of(context).colorScheme.error),
                 ),
+            ],
+          ),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: _busy ? null : () => Navigator.pop(context, false),
+          child: const Text('Annuler'),
+        ),
+        FilledButton(
+          onPressed: _busy ? null : _save,
+          child: Text(_busy ? 'Un instant…' : 'Enregistrer'),
+        ),
+      ],
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Activités : les sorties à Ottawa et à Gatineau proposées aux passagers.
+
+/// Champs du formulaire : (colonne, libellé).
+const _activityFields = [
+  ('title_fr', 'Titre (français)'),
+  ('title_en', 'Titre (anglais)'),
+  ('venue', 'Lieu (ex. Centre Bronson)'),
+  ('starts_at', 'Date et heure (ex. 2026-11-20 20:00)'),
+  ('link', 'Billetterie ou page (https://…)'),
+  ('photo_url', 'Photo (adresse https://…)'),
+];
+
+class _ActivitiesTab extends StatefulWidget {
+  const _ActivitiesTab({required this.session});
+
+  final AdminSession session;
+
+  @override
+  State<_ActivitiesTab> createState() => _ActivitiesTabState();
+}
+
+class _ActivitiesTabState extends State<_ActivitiesTab>
+    with AutomaticKeepAliveClientMixin {
+  late Future<List<Map<String, dynamic>>> _rows = _load();
+
+  @override
+  bool get wantKeepAlive => true;
+
+  Future<List<Map<String, dynamic>>> _load() async => Backend.select(
+    'activities',
+    order: 'starts_at.asc',
+    token: await widget.session.token(),
+  );
+
+  void _reload() {
+    setState(() => _rows = _load());
+    ActivityStore.instance.load();
+  }
+
+  Future<void> _edit([Map<String, dynamic>? row]) async {
+    final saved = await showDialog<bool>(
+      context: context,
+      builder: (_) => _ActivityEditor(session: widget.session, row: row),
+    );
+    if (saved == true) _reload();
+  }
+
+  Future<void> _delete(Map<String, dynamic> row) async {
+    final sure = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Supprimer « ${row['title_fr']} » ?'),
+        content: const Text('L’activité disparaît de la tablette.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Annuler'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Supprimer'),
+          ),
+        ],
+      ),
+    );
+    if (sure != true) return;
+    try {
+      await Backend.delete(
+        'activities',
+        'id',
+        '${row['id']}',
+        token: await widget.session.token(),
+      );
+      _reload();
+    } catch (e) {
+      if (mounted) _toast(context, 'Échec : $e', error: true);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
+    return FutureBuilder<List<Map<String, dynamic>>>(
+      future: _rows,
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return Center(child: Text('Échec : ${snapshot.error}'));
+        }
+        final rows = snapshot.data;
+        if (rows == null) {
+          return const Center(
+            child: CircularProgressIndicator(color: Brand.gold),
+          );
+        }
+        return ListView(
+          padding: const EdgeInsets.fromLTRB(14, 14, 14, 40),
+          children: [
+            FilledButton.icon(
+              onPressed: () => _edit(),
+              icon: const Icon(AppIcons.plus),
+              label: const Text('Ajouter une activité'),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Seules Ottawa et Gatineau sont acceptées. Une activité '
+              'disparaît de la tablette le lendemain de sa date.',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+            const SizedBox(height: 12),
+            for (final row in rows)
+              Card(
+                child: ListTile(
+                  title: Text('${row['title_fr']}'),
+                  subtitle: Text('${row['city']} · ${row['starts_at']}'),
+                  onTap: () => _edit(row),
+                  trailing: IconButton(
+                    tooltip: 'Supprimer',
+                    onPressed: () => _delete(row),
+                    icon: const Icon(AppIcons.trash),
+                  ),
+                ),
+              ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _ActivityEditor extends StatefulWidget {
+  const _ActivityEditor({required this.session, this.row});
+
+  final AdminSession session;
+  final Map<String, dynamic>? row;
+
+  @override
+  State<_ActivityEditor> createState() => _ActivityEditorState();
+}
+
+class _ActivityEditorState extends State<_ActivityEditor> {
+  late final Map<String, TextEditingController> _fields = {
+    for (final (key, _) in _activityFields)
+      key: TextEditingController(text: _initial(key)),
+  };
+  late String _city = '${widget.row?['city'] ?? activityCities.first}';
+  bool _busy = false;
+  String? _error;
+
+  String _initial(String key) {
+    final value = widget.row?[key];
+    if (value == null) return '';
+    if (key != 'starts_at') return '$value';
+    // La base garde l'heure universelle ; l'admin écrit l'heure d'ici.
+    final date = DateTime.tryParse('$value')?.toLocal();
+    return date == null ? '' : DateFormat('yyyy-MM-dd HH:mm').format(date);
+  }
+
+  @override
+  void dispose() {
+    for (final c in _fields.values) {
+      c.dispose();
+    }
+    super.dispose();
+  }
+
+  Future<void> _save() async {
+    final (row, error) = activityRowFrom(
+      {for (final e in _fields.entries) e.key: e.value.text},
+      city: _city,
+      id: widget.row?['id'] as String?,
+    );
+    if (row == null) {
+      setState(() => _error = error);
+      return;
+    }
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+    try {
+      await Backend.upsert('activities', {
+        ...row,
+        'updated_at': DateTime.now().toUtc().toIso8601String(),
+      }, token: await widget.session.token());
+      if (mounted) Navigator.pop(context, true);
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _busy = false;
+          _error = 'Échec : $e';
+        });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text(widget.row == null ? 'Nouvelle activité' : 'Modifier'),
+      content: SizedBox(
+        width: 520,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              for (final (key, label) in _activityFields)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: TextField(
+                    controller: _fields[key],
+                    decoration: InputDecoration(
+                      labelText: label,
+                      border: const OutlineInputBorder(),
+                    ),
+                  ),
+                ),
+              DropdownButtonFormField<String>(
+                initialValue: _city,
+                decoration: const InputDecoration(
+                  labelText: 'Ville',
+                  border: OutlineInputBorder(),
+                ),
+                items: [
+                  for (final city in activityCities)
+                    DropdownMenuItem(value: city, child: Text(city)),
+                ],
+                onChanged: (city) => setState(() => _city = city ?? _city),
+              ),
+              if (_error != null) ...[
+                const SizedBox(height: 10),
+                Text(
+                  _error!,
+                  style: TextStyle(color: Theme.of(context).colorScheme.error),
+                ),
+              ],
             ],
           ),
         ),

@@ -6,6 +6,32 @@ import '../config.dart';
 import '../theme/app_icons.dart';
 import 'bilingual.dart';
 
+/// Identifiant à partir du nom : « Café Atlas » → « cafe-atlas ».
+String advertiserSlug(String name) {
+  const accents = {
+    'à': 'a',
+    'â': 'a',
+    'ä': 'a',
+    'é': 'e',
+    'è': 'e',
+    'ê': 'e',
+    'ë': 'e',
+    'î': 'i',
+    'ï': 'i',
+    'ô': 'o',
+    'ö': 'o',
+    'ù': 'u',
+    'û': 'u',
+    'ü': 'u',
+    'ç': 'c',
+  };
+  final plain = name.toLowerCase().split('').map((c) => accents[c] ?? c).join();
+  final slug = plain
+      .replaceAll(RegExp(r'[^a-z0-9]+'), '-')
+      .replaceAll(RegExp(r'^-+|-+$'), '');
+  return slug.length > 40 ? slug.substring(0, 40) : slug;
+}
+
 /// Commerce partenaire affiché dans la section publicité.
 /// [example] : fiche de démonstration, clairement marquée comme telle,
 /// affichée tant qu'aucun vrai partenaire n'est saisi dans l'admin.

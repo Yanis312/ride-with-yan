@@ -1,6 +1,5 @@
 import 'package:flutter/painting.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ride_with_yan/admin/admin_app.dart';
 import 'package:ride_with_yan/data/advertisers.dart';
 
 void main() {

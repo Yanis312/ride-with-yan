@@ -181,6 +181,18 @@ test.describe('Catalogue et sondage : réservés à l’administrateur', () => {
     expect(await errorCode(response)).toBe(FORBIDDEN);
   });
 
+  test('un visiteur ne peut pas ajouter une activité', async ({ request }) => {
+    const response = await new SupabaseAnon(request).insert('activities', {
+      id: probe,
+      title_fr: 'Fausse activité',
+      city: 'Ottawa',
+      starts_at: '2099-01-01T00:00:00Z',
+    });
+
+    expect(response.ok()).toBe(false);
+    expect(await errorCode(response)).toBe(FORBIDDEN);
+  });
+
   test('un visiteur ne peut pas modifier les réglages', async ({ request }) => {
     const response = await new SupabaseAnon(request).insert('settings', {
       key: probe,

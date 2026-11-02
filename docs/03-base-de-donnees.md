@@ -42,6 +42,14 @@ erDiagram
         text kind "session_start, screen, tap…"
         text name
     }
+    activities {
+        text id PK "2026-11-20-grand-concert"
+        text title_fr
+        text city "Ottawa ou Gatineau"
+        timestamptz starts_at
+        text link "billetterie, en QR code"
+        boolean active
+    }
     advertisers {
         text id PK
         text name
@@ -63,7 +71,7 @@ protection vient donc de la base elle-même, avec la **Row Level Security**
 
 | Table | Passager (clé publique) | Admin (connecté) |
 |---|---|---|
-| `product_overrides`, `settings`, `advertisers` | lire | tout |
+| `product_overrides`, `settings`, `advertisers`, `activities` | lire | tout |
 | `orders` | **déposer seulement** (ni lire, ni modifier) | tout |
 | `usage_events` | déposer seulement | lire, supprimer |
 | `poll_votes` | lire ; voter **seulement** via `cast_vote()` | supprimer |
@@ -133,3 +141,4 @@ on sait toujours pourquoi et quand une table a changé.
 | `20261014_usage_events.sql` | Statistiques anonymes |
 | `20261017_chat_quota.sql` | Plafonds de Yan |
 | `20261019_advertisers.sql` | Annonceurs |
+| `20261102_activities.sql` | Sorties à Ottawa et à Gatineau |

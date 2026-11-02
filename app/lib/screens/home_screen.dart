@@ -12,6 +12,7 @@ import '../data/weather.dart';
 import '../l10n/app_localizations.dart';
 import '../navigation/sections.dart';
 import '../session/session_controller.dart';
+import 'activities_screen.dart';
 import 'entertainment_screen.dart';
 import 'news_screen.dart';
 import 'poll_screen.dart';
@@ -283,11 +284,13 @@ class _BentoLayout extends StatelessWidget {
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          Expanded(flex: 3, child: enter(tiles.poll, 3)),
+                          Expanded(flex: 4, child: enter(tiles.poll, 3)),
                           const SizedBox(width: gap),
                           Expanded(flex: 2, child: enter(tiles.news, 4)),
                           const SizedBox(width: gap),
-                          Expanded(flex: 2, child: enter(tiles.weather, 5)),
+                          Expanded(flex: 2, child: enter(tiles.activities, 5)),
+                          const SizedBox(width: gap),
+                          Expanded(flex: 2, child: enter(tiles.weather, 6)),
                         ],
                       ),
                     ),
@@ -315,6 +318,7 @@ class _CompactLayout extends StatelessWidget {
       (220.0, tiles.entertainment),
       (200.0, tiles.poll),
       (170.0, tiles.news),
+      (170.0, tiles.activities),
       (170.0, tiles.weather),
     ];
 
@@ -382,6 +386,7 @@ class _Tiles {
     this.poll,
     this.weather,
     this.news,
+    this.activities,
     this.store,
     this.about,
   );
@@ -399,6 +404,15 @@ class _Tiles {
         hint: l10n.sectionNewsHint,
         onTap: () => openPage(context, const NewsScreen(), name: 'news'),
       ),
+      _PhotoTile(
+        photo: 'assets/photos/theatre.jpg',
+        icon: AppIcons.mapPin,
+        title: const Bi('Sortir', 'Going out').of(context),
+        hint: const Bi('Ottawa et Gatineau', 'Ottawa and Gatineau').of(context),
+        tint: const Color(0xFF3A1D5C),
+        onTap: () =>
+            openPage(context, const ActivitiesScreen(), name: 'activities'),
+      ),
       const _StoreTile(),
       const _AboutTile(),
     );
@@ -408,6 +422,7 @@ class _Tiles {
   final Widget poll;
   final Widget weather;
   final Widget news;
+  final Widget activities;
   final Widget store;
   final Widget about;
 }

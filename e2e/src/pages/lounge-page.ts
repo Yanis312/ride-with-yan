@@ -7,6 +7,7 @@ export class LoungePage {
   readonly videosTile: Locator;
   readonly pollTile: Locator;
   readonly newsTile: Locator;
+  readonly activitiesTile: Locator;
   readonly weatherTile: Locator;
 
   constructor(private readonly page: Page) {
@@ -15,6 +16,7 @@ export class LoungePage {
     this.videosTile = page.getByRole('button', { name: /YouTube/ });
     this.pollTile = page.getByRole('button', { name: /QUESTION OF THE DAY|QUESTION DU JOUR/ });
     this.newsTile = page.getByRole('button', { name: /^(News|Nouvelles|Actualités)/ });
+    this.activitiesTile = page.getByRole('button', { name: /^(Going out|Sortir)/ });
     this.weatherTile = page.getByRole('button', { name: /Weather|Météo/ });
   }
 

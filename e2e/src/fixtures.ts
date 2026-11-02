@@ -17,6 +17,9 @@ export class FakeBackend {
   /** Réglages de produits renvoyés à l'app (prix, stock), vides par défaut. */
   overrides: Record<string, unknown>[] = [];
 
+  /** Activités à Ottawa et à Gatineau, aucune par défaut. */
+  activities: Record<string, unknown>[] = [];
+
   /** Alertes officielles d'Environnement Canada, aucune par défaut. */
   weatherAlerts: Record<string, unknown>[] = [];
 
@@ -34,7 +37,12 @@ export class FakeBackend {
       const request = route.request();
       this.calls.push(`${request.method()} ${new URL(request.url()).pathname}`);
       if (request.method() === 'GET') {
-        const body = request.url().includes('/product_overrides') ? this.overrides : [];
+        const url = request.url();
+        const body = url.includes('/product_overrides')
+          ? this.overrides
+          : url.includes('/activities')
+            ? this.activities
+            : [];
         return route.fulfill({ json: body });
       }
       if (request.url().includes('/functions/v1/chat')) {
