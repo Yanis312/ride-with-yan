@@ -22,13 +22,7 @@ const extraBrowsers = process.env.ALL_BROWSERS
 
 /** L'app est faite pour une tablette en paysage. */
 function tablet() {
-  return {
-    viewport: { width: 1280, height: 800 },
-    locale: 'en-CA',
-    // Mouvement réduit : l'horloge du décor s'arrête. Sans carte graphique, ses 30 images
-    // par seconde bloquaient Firefox au point qu'aucun clic n'aboutissait.
-    contextOptions: { reducedMotion: 'reduce' as const },
-  };
+  return { viewport: { width: 1280, height: 800 }, locale: 'en-CA' };
 }
 
 export default defineConfig({
