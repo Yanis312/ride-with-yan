@@ -11,6 +11,7 @@ import 'package:intl/date_symbol_data_local.dart';
 // jamais le code de l'administration.
 import 'admin/admin_app.dart' deferred as admin;
 import 'app.dart';
+import 'backend/crash_reports.dart';
 import 'backend/remote_config.dart';
 
 Future<void> main() async {
@@ -44,14 +45,16 @@ Future<void> main() async {
   // Prix, stocks et réglages de l'administration, dès le démarrage.
   unawaited(RemoteConfig.instance.refresh());
 
-  runApp(const RideWithYanApp());
+  await CrashReports.run(() {
+    runApp(const RideWithYanApp());
 
-  // Tests de bout en bout (?e2e dans l'adresse) : l'arbre d'accessibilité est
-  // activé d'office, pour que les outils de test trouvent boutons et textes
-  // comme le ferait un lecteur d'écran.
-  if (kIsWeb && Uri.base.queryParameters.containsKey('e2e')) {
-    SemanticsBinding.instance.ensureSemantics();
-  }
+    // Tests de bout en bout (?e2e dans l'adresse) : l'arbre d'accessibilité
+    // est activé d'office, pour que les outils de test trouvent boutons et
+    // textes comme le ferait un lecteur d'écran.
+    if (kIsWeb && Uri.base.queryParameters.containsKey('e2e')) {
+      SemanticsBinding.instance.ensureSemantics();
+    }
+  });
 }
 
 /// Tablette de bord : plein écran sans les barres d'Android, et paysage

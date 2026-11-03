@@ -19,6 +19,11 @@ abstract final class AppConfig {
   static const supabaseUrl = 'https://jwwftxjbswpwtbkluslz.supabase.co';
   static const supabaseKey = 'sb_publishable_HQyveAWuMCiS0PLoTFrJmg_Ga6v5rsp';
 
+  /// Adresse Sentry (suivi des plantages). Publique par nature, comme la
+  /// clé ci-dessus. Vide : aucun signalement.
+  static const sentryDsn =
+      'https://635a37873915be89bc0524f7abcd0297@o4512364985253888.ingest.us.sentry.io/4512365817364480';
+
   static String? get whatsAppLink =>
       whatsAppNumber.isEmpty ? null : 'https://wa.me/$whatsAppNumber';
 }

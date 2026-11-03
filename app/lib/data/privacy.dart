@@ -11,8 +11,8 @@ import 'bilingual.dart';
 /// relire si l'activité grandit.
 
 const privacyUpdated = Bi(
-  'Mise à jour : 17 octobre 2026',
-  'Updated: October 17, 2026',
+  'Mise à jour : 2 novembre 2026',
+  'Updated: November 2, 2026',
 );
 
 const privacyIntro = Bi(
@@ -25,6 +25,17 @@ const privacyIntro = Bi(
 
 /// (titre, texte) de chaque section.
 const privacySections = <(Bi, Bi)>[
+  (
+    Bi('Rapports de plantage', 'Crash reports'),
+    Bi(
+      'Si l’app plante, un rapport technique est envoyé à Sentry, aux '
+          'États-Unis, pour corriger le problème : type d’appareil et erreur. '
+          'Il ne contient ni votre nom, ni votre commande, ni image de l’écran.',
+      'If the app crashes, a technical report is sent to Sentry, in the '
+          'United States, to fix the problem: device type and error. It '
+          'contains neither your name, nor your order, nor a screen image.',
+    ),
+  ),
   (
     Bi('Responsable', 'Person in charge'),
     Bi(
