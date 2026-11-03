@@ -21,7 +21,8 @@ abstract final class AppConfig {
 
   /// Adresse Sentry (suivi des plantages). Publique par nature, comme la
   /// clé ci-dessus. Vide : aucun signalement.
-  static const sentryDsn = '';
+  static const sentryDsn =
+      'https://635a37873915be89bc0524f7abcd0297@o4512364985253888.ingest.us.sentry.io/4512365817364480';
 
   static String? get whatsAppLink =>
       whatsAppNumber.isEmpty ? null : 'https://wa.me/$whatsAppNumber';
