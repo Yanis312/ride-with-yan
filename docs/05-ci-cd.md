@@ -29,7 +29,7 @@ flowchart LR
 | `.github/workflows/android-apk.yml` | Push sur `main` qui touche `app/` | Construit l'APK et le publie dans les *Releases* |
 | `azure-pipelines.yml` | Chaque nuit, sur Azure DevOps | La même chaîne, avec résultats JUnit |
 | `.github/dependabot.yml` | Chaque semaine | Ouvre une PR par mise à jour (sans version majeure automatique) |
-| Cloudflare (`wrangler.jsonc`) | Push sur `main`, et chaque PR | `bash tools/cloudflare-pages-build.sh` puis `npx wrangler deploy` |
+| Cloudflare (`wrangler.jsonc`) | Push sur `main`, et chaque PR | `bash tools/cloudflare-pages-build.sh`, puis `npx wrangler deploy` sur `main` et `npx wrangler preview` (lien d’aperçu) sur les autres branches |
 
 ## Lire un fichier de workflow
 
