@@ -1,6 +1,7 @@
 // Hébergement de l'app web sur Cloudflare (Workers, fichiers statiques).
 // Cloudflare lance « bash tools/cloudflare-pages-build.sh », puis
-// « npx wrangler deploy », qui lit ce fichier.
+// « npx wrangler deploy » (main) ou « npx wrangler preview » (autres branches),
+// qui lisent ce fichier.
 {
   "name": "ride-with-yan",
   "compatibility_date": "2026-10-01",
@@ -9,5 +10,8 @@
     "directory": "./app/build/web",
     // Une adresse inconnue renvoie l'app, comme sur GitHub Pages.
     "not_found_handling": "single-page-application"
-  }
+  },
+  // Aperçu de chaque branche (« npx wrangler preview ») : un bloc vide suffit,
+  // les réglages ci-dessus s'appliquent aussi aux aperçus.
+  "previews": {}
 }
