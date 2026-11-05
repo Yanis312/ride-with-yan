@@ -1,62 +1,45 @@
-import { expect, type Locator, type Page } from '@playwright/test';
+import type { Locator, Page } from '@playwright/test';
 
-export type Category = 'All' | 'Shoes' | 'Jerseys';
+export type Category = 'All' | 'Shoes' | 'Puffer jackets' | 'Jerseys';
+export type Shopper = 'Men' | 'Women';
 
-/** Boutique : catalogue, panier, coordonnées, paiement Interac. */
+/** Boutique : deux rayons, catalogue, panier, commande sur WhatsApp. */
 export class StorePage {
   readonly emptyCart: Locator;
   /** Rappel des prix et du délai, en haut de la boutique. */
   readonly pitch: Locator;
   readonly comboLine: Locator;
+  readonly depositLine: Locator;
   readonly onDelivery: Locator;
   readonly orderButton: Locator;
-  readonly nextStepHint: Locator;
   readonly whatsAppButton: Locator;
   readonly resellerNotice: Locator;
 
-  // Coordonnées du client
-  readonly detailsTitle: Locator;
-  readonly nameField: Locator;
-  readonly phoneField: Locator;
-  readonly addressField: Locator;
-  readonly confirmButton: Locator;
-  readonly nameError: Locator;
-  readonly phoneError: Locator;
-  readonly networkError: Locator;
-  readonly addressError: Locator;
-  readonly orderReceived: Locator;
-
-  // Paiement
-  readonly interacTitle: Locator;
-  readonly interacAmount: Locator;
-  readonly reference: Locator;
-  readonly transferSentButton: Locator;
+  // Feuille de commande WhatsApp
+  readonly orderSheetTitle: Locator;
+  readonly orderSheetBody: Locator;
 
   constructor(private readonly page: Page) {
     this.emptyCart = page.getByText('Your cart is empty.');
-    this.pitch = page.getByText(/^Shoes \$\d+ · Jerseys/);
+    this.pitch = page.getByText(/^Shoes \$\d+ · Puffer jackets/);
     this.comboLine = page.getByText('Pair + jersey combo', { exact: true });
-    this.onDelivery = page.getByText(/^On delivery \(\d+ days\)$/);
-    this.orderButton = page.getByRole('button', { name: 'Order', exact: true });
-    this.nextStepHint = page.getByText(/^Next: your details/);
+    this.depositLine = page.getByText('Deposit when ordering (50%, Interac)', { exact: true });
+    this.onDelivery = page.getByText('On delivery (20 to 30 days)', { exact: true });
+    this.orderButton = page.getByRole('button', { name: 'Order on WhatsApp' });
     this.whatsAppButton = page.getByRole('button', { name: 'Contact me on WhatsApp' });
     this.resellerNotice = page.getByText(/Independent reseller/);
 
-    this.detailsTitle = page.getByText('Your details', { exact: true });
-    this.nameField = page.getByLabel('Your name');
-    this.phoneField = page.getByLabel('Phone (WhatsApp)');
-    this.addressField = page.getByLabel(/^Delivery address/);
-    this.confirmButton = page.getByRole('button', { name: 'Confirm the order' });
-    this.nameError = page.getByText('Enter your name');
-    this.phoneError = page.getByText('10-digit phone number');
-    this.networkError = page.getByText(/No network right now/);
-    this.addressError = page.getByText('Needed to deliver to you');
-    this.orderReceived = page.getByText(/^Order received!/);
+    this.orderSheetTitle = page.getByText('Send it on WhatsApp', { exact: true });
+    this.orderSheetBody = page.getByText(/^Add your address to the message/);
+  }
 
-    this.interacTitle = page.getByText('Interac', { exact: true });
-    this.interacAmount = page.getByText(/^Send \$[\d.,]+ by Interac e-Transfer to/);
-    this.reference = page.getByText(/^RWY-\d{4}$/);
-    this.transferSentButton = page.getByRole('button', { name: 'Transfer sent' });
+  /** Bouton d'un des deux rayons, en haut de la boutique. */
+  shopper(shopper: Shopper) {
+    return this.page.getByRole('button', { name: shopper, exact: true });
+  }
+
+  async showShopper(shopper: Shopper) {
+    await this.shopper(shopper).click();
   }
 
   category(category: Category) {
@@ -95,35 +78,8 @@ export class StorePage {
     return this.page.getByRole('button', { name: new RegExp(`^\\d+ × ${name}`) });
   }
 
-  async goToDetails() {
+  async order() {
     await this.orderButton.click();
-    await this.detailsTitle.waitFor();
-  }
-
-  /**
-   * Tape dans un champ comme le ferait un passager, touche par touche :
-   * c'est ce que l'app reçoit réellement d'un clavier de tablette.
-   */
-  private async type(field: Locator, value: string) {
-    // Sur une machine lente, l'app peut ne pas être prête à recevoir la
-    // première touche : on vérifie le texte saisi et on recommence au besoin.
-    await expect(async () => {
-      await field.click();
-      await expect(field).toBeFocused();
-      await field.press('ControlOrMeta+A');
-      await field.press('Backspace');
-      await field.pressSequentially(value, { delay: 15 });
-      await expect(field).toHaveValue(value, { timeout: 1000 });
-    }).toPass();
-  }
-
-  async fillDetails(details: { name?: string; phone?: string; address?: string }) {
-    if (details.name) await this.type(this.nameField, details.name);
-    if (details.phone) await this.type(this.phoneField, details.phone);
-    if (details.address) await this.type(this.addressField, details.address);
-  }
-
-  async confirm() {
-    await this.confirmButton.click();
+    await this.orderSheetTitle.waitFor();
   }
 }

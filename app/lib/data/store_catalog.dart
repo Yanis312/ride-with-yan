@@ -4,8 +4,23 @@ import '../backend/remote_config.dart';
 import '../theme/app_icons.dart';
 import 'bilingual.dart';
 
+/// Les deux boutiques : chaque article est rangé chez les hommes, chez les
+/// femmes, ou dans les deux.
+enum Shopper {
+  men(Bi('Hommes', 'Men'), AppIcons.users),
+  women(Bi('Femmes', 'Women'), AppIcons.sparkle);
+
+  const Shopper(this.label, this.icon);
+
+  final Bi label;
+  final IconData icon;
+}
+
+const _everyone = {Shopper.men, Shopper.women};
+
 enum ProductCategory {
   sneakers(Bi('Chaussures', 'Shoes'), AppIcons.sneaker),
+  jackets(Bi('Doudounes', 'Puffer jackets'), AppIcons.snowflake),
   jerseys(Bi('Maillots', 'Jerseys'), AppIcons.tShirt);
 
   const ProductCategory(this.label, this.icon);
@@ -61,6 +76,7 @@ class Product {
     required this.category,
     required this.icon,
     required this.colors,
+    this.shoppers = _everyone,
     this.brand,
     this.art,
     this.sizes = const {},
@@ -80,6 +96,9 @@ class Product {
 
   /// Fond de la vitrine (dégradé), choisi pour faire ressortir l'article.
   final List<Color> colors;
+
+  /// Boutiques où l'article apparaît (hommes, femmes ou les deux).
+  final Set<Shopper> shoppers;
   final String? brand;
   final ProductArt? art;
 
@@ -95,7 +114,7 @@ class Product {
   final bool framed;
 
   /// Peut être commandé quand la taille voulue n'est pas à bord : Yanis le
-  /// livre ensuite chez le client (voir [preorderNotice]).
+  /// livre ensuite chez le client (voir [orderNotice]).
   final bool preorder;
   final List<Bi> details;
 
@@ -110,6 +129,7 @@ class Product {
     category: category,
     icon: icon,
     colors: colors,
+    shoppers: shoppers,
     brand: brand,
     art: art,
     // On ne garde que les tailles connues de l'app.
@@ -156,29 +176,42 @@ const resellerNotice = Bi(
   'Independent reseller · new items. Not affiliated with any brand.',
 );
 
-/// Délai de livraison d'un article sur commande, en jours.
-const deliveryDays = 30;
+/// Délai de livraison, chez le client.
+const deliveryWindow = Bi('20 à 30 jours', '20 to 30 days');
+
+/// Part du prix payée par Interac à la commande ; le reste à la livraison.
+const depositShare = 0.5;
+
+/// Comment se passe une commande, rappelé sur chaque fiche article.
+const _howToOrder = [
+  Bi(
+    'Livré chez vous en 20 à 30 jours',
+    'Delivered to your door in 20 to 30 days',
+  ),
+  Bi(
+    'Acompte de 50 % par Interac, le reste à la livraison',
+    '50% deposit by Interac, the rest on delivery',
+  ),
+  Bi('Pas satisfait : remboursé', 'Not satisfied: refunded'),
+];
 
 const _sneakerDetails = [
   Bi('Neuves, jamais portées', 'New, never worn'),
-  Bi(
-    'Livrées chez vous en $deliveryDays jours',
-    'Delivered to your door in $deliveryDays days',
-  ),
-  Bi('Vous payez à la réception', 'You pay when it arrives'),
+  ..._howToOrder,
   Bi(
     'Combo : 1 paire + 1 maillot = 120 \$',
     'Combo: 1 pair + 1 jersey = \$120',
   ),
 ];
 
+const _jacketDetails = [
+  Bi('Neuve, jamais portée', 'New, never worn'),
+  ..._howToOrder,
+];
+
 const _jerseyDetails = [
   Bi('Neuf, jamais porté', 'New, never worn'),
-  Bi(
-    'Livré chez vous en $deliveryDays jours',
-    'Delivered to your door in $deliveryDays days',
-  ),
-  Bi('Vous payez à la réception', 'You pay when it arrives'),
+  ..._howToOrder,
   Bi(
     'Combo : 1 paire + 1 maillot = 120 \$',
     'Combo: 1 pair + 1 jersey = \$120',
@@ -186,11 +219,11 @@ const _jerseyDetails = [
 ];
 
 /// Délai et paiement d'une commande, affichés sous les tailles.
-const preorderNotice = Bi(
-  'Sur commande : je vous le livre chez vous en $deliveryDays jours, et vous '
-      'payez à la réception.',
-  'On order: I deliver it to your door in $deliveryDays days, and you pay '
-      'when it arrives.',
+const orderNotice = Bi(
+  'Livré chez vous en 20 à 30 jours. Acompte de 50 % par Interac à la '
+      'commande, le reste à la livraison. Pas satisfait : remboursé.',
+  'Delivered to your door in 20 to 30 days. 50% deposit by Interac when you '
+      'order, the rest on delivery. Not satisfied: refunded.',
 );
 
 /// Prix d'un combo : une paire de chaussures et un maillot ensemble.
@@ -198,32 +231,109 @@ const comboPrice = 120.0;
 
 /// Rappel des prix affiché en haut de la boutique.
 const storePitch = Bi(
-  'Chaussures 80 \$ · Maillots 50 \$ · Combo paire + maillot 120 \$ · '
-      'Livraison chez vous en $deliveryDays jours.',
-  'Shoes \$80 · Jerseys \$50 · Pair + jersey combo \$120 · Delivered to '
-      'your door in $deliveryDays days.',
+  'Chaussures 80 \$ · Doudounes 120 \$ · Maillots 50 \$ · Livré chez vous en '
+      '20 à 30 jours.',
+  'Shoes \$80 · Puffer jackets \$120 · Jerseys \$50 · Delivered to your door '
+      'in 20 to 30 days.',
 );
 
 /// Tailles des maillots. Zéro partout par défaut : tout est sur commande
 /// tant que le stock réel n'est pas saisi dans le panneau d'administration.
 const _jerseySizes = {'S': 0, 'M': 0, 'L': 0, 'XL': 0};
 
+/// Tailles des doudounes, sur commande comme le reste.
+const _jacketSizes = {'XS': 0, 'S': 0, 'M': 0, 'L': 0, 'XL': 0, 'XXL': 0};
+
 /// Fond sombre derrière les photos de maillots (texte clair par-dessus).
 const _jerseyStage = [Color(0xFF2A2D36), Color(0xFF0E0F13)];
 
 const _shoeBlurb = Bi('Chaussures basses · neuves', 'Low-top shoes · new');
+const _jacketBlurb = Bi('Doudoune · neuve', 'Puffer jacket · new');
+const _vestBlurb = Bi('Doudoune sans manches · neuve', 'Puffer vest · new');
 
 /// Couleurs du fond de studio des photos (texte sombre par-dessus).
 const _studio = [Color(0xFFD5D9E0), Color(0xFF9AA2AE)];
 
 /// Tailles des chaussures. Zéro partout : tout est sur commande tant que le
 /// stock réel n'est pas saisi dans le panneau d'administration.
-const _shoeSizes = {'US 7': 0, 'US 8': 0, 'US 9': 0, 'US 10': 0, 'US 11': 0};
+const _shoeSizes = {
+  'US 5': 0,
+  'US 6': 0,
+  'US 7': 0,
+  'US 8': 0,
+  'US 9': 0,
+  'US 10': 0,
+  'US 11': 0,
+  'US 12': 0,
+};
+const _womenShoeSizes = {
+  'US 5': 0,
+  'US 6': 0,
+  'US 7': 0,
+  'US 8': 0,
+  'US 9': 0,
+  'US 10': 0,
+};
+const _menShoeSizes = {
+  'US 7': 0,
+  'US 8': 0,
+  'US 9': 0,
+  'US 10': 0,
+  'US 11': 0,
+  'US 12': 0,
+};
 
-/// Catalogue. Aucun nom de marque : les chaussures sont désignées par leur
+/// Une paire de la boutique : 80 $, sur commande, une photo cadrée.
+Product _shoe(
+  String id,
+  Bi name, {
+  Set<Shopper> shoppers = _everyone,
+  int photos = 1,
+}) => Product(
+  id: id,
+  name: name,
+  blurb: _shoeBlurb,
+  price: 80,
+  category: ProductCategory.sneakers,
+  icon: AppIcons.sneaker,
+  colors: _studio,
+  shoppers: shoppers,
+  sizes: shoppers.length == 2
+      ? _shoeSizes
+      : (shoppers.contains(Shopper.women) ? _womenShoeSizes : _menShoeSizes),
+  photoCount: photos,
+  framed: true,
+  preorder: true,
+  details: _sneakerDetails,
+);
+
+/// Une doudoune : 120 $, pour hommes et femmes sauf indication contraire.
+Product _jacket(
+  String id,
+  Bi name, {
+  Set<Shopper> shoppers = _everyone,
+  int photos = 1,
+  Bi blurb = _jacketBlurb,
+}) => Product(
+  id: id,
+  name: name,
+  blurb: blurb,
+  price: 120,
+  category: ProductCategory.jackets,
+  icon: AppIcons.snowflake,
+  colors: _studio,
+  shoppers: shoppers,
+  sizes: _jacketSizes,
+  photoCount: photos,
+  framed: true,
+  preorder: true,
+  details: _jacketDetails,
+);
+
+/// Catalogue. Aucun nom de marque : les articles sont désignés par leur
 /// couleur. Tailles, quantités et prix sont à ajuster au vrai stock.
-const baseCatalog = [
-  Product(
+final baseCatalog = <Product>[
+  const Product(
     id: 'chaussures-blanc',
     name: Bi('Blanc intégral', 'All white'),
     blurb: _shoeBlurb,
@@ -237,7 +347,7 @@ const baseCatalog = [
     preorder: true,
     details: _sneakerDetails,
   ),
-  Product(
+  const Product(
     id: 'chaussures-blanc-noir',
     name: Bi('Blanc et noir', 'White and black'),
     blurb: _shoeBlurb,
@@ -251,7 +361,7 @@ const baseCatalog = [
     preorder: true,
     details: _sneakerDetails,
   ),
-  Product(
+  const Product(
     id: 'chaussures-blanc-noir-or',
     name: Bi('Blanc, noir et or', 'White, black and gold'),
     blurb: _shoeBlurb,
@@ -265,7 +375,7 @@ const baseCatalog = [
     preorder: true,
     details: _sneakerDetails,
   ),
-  Product(
+  const Product(
     id: 'chaussures-blanc-gris',
     name: Bi('Blanc et gris', 'White and grey'),
     blurb: _shoeBlurb,
@@ -279,7 +389,7 @@ const baseCatalog = [
     preorder: true,
     details: _sneakerDetails,
   ),
-  Product(
+  const Product(
     id: 'chaussures-camel',
     name: Bi('Camel', 'Wheat'),
     blurb: _shoeBlurb,
@@ -293,7 +403,7 @@ const baseCatalog = [
     preorder: true,
     details: _sneakerDetails,
   ),
-  Product(
+  const Product(
     id: 'chaussures-blanc-lacets-noirs',
     name: Bi('Blanc, lacets noirs', 'White, black laces'),
     blurb: _shoeBlurb,
@@ -307,7 +417,7 @@ const baseCatalog = [
     preorder: true,
     details: _sneakerDetails,
   ),
-  Product(
+  const Product(
     id: 'chaussures-noir-blanc',
     name: Bi('Noir et blanc', 'Black and white'),
     blurb: _shoeBlurb,
@@ -321,7 +431,7 @@ const baseCatalog = [
     preorder: true,
     details: _sneakerDetails,
   ),
-  Product(
+  const Product(
     id: 'chaussures-noir',
     name: Bi('Noir intégral', 'All black'),
     blurb: _shoeBlurb,
@@ -335,7 +445,7 @@ const baseCatalog = [
     preorder: true,
     details: _sneakerDetails,
   ),
-  Product(
+  const Product(
     id: 'chaussures-blanc-vert',
     name: Bi('Blanc et vert, nœud rouge', 'White and green, red knot'),
     blurb: _shoeBlurb,
@@ -349,7 +459,7 @@ const baseCatalog = [
     preorder: true,
     details: _sneakerDetails,
   ),
-  Product(
+  const Product(
     id: 'chaussures-blanc-rouge',
     name: Bi('Blanc, semelle rouge', 'White, red sole'),
     blurb: _shoeBlurb,
@@ -363,7 +473,7 @@ const baseCatalog = [
     preorder: true,
     details: _sneakerDetails,
   ),
-  Product(
+  const Product(
     id: 'chaussures-creme-menthe',
     name: Bi('Crème et menthe', 'Cream and mint'),
     blurb: _shoeBlurb,
@@ -377,7 +487,100 @@ const baseCatalog = [
     preorder: true,
     details: _sneakerDetails,
   ),
-  Product(
+  // Femmes
+  _shoe(
+    'chaussures-rose-bonbon',
+    Bi('Rose bonbon', 'Candy pink'),
+    shoppers: {Shopper.women},
+    photos: 2,
+  ),
+  _shoe(
+    'chaussures-fuchsia-blanc',
+    Bi('Fuchsia et blanc', 'Fuchsia and white'),
+    shoppers: {Shopper.women},
+  ),
+  _shoe(
+    'chaussures-rose-bordeaux',
+    Bi('Rose et bordeaux vernis', 'Pink and burgundy patent'),
+    shoppers: {Shopper.women},
+    photos: 2,
+  ),
+  _shoe(
+    'chaussures-vache',
+    Bi('Crème, motif vache', 'Cream, cow print'),
+    shoppers: {Shopper.women},
+  ),
+  _shoe(
+    'chaussures-cloutees-rose',
+    Bi('Rose et noir à clous', 'Pink and black, studded'),
+    shoppers: {Shopper.women},
+  ),
+  _shoe(
+    'chaussures-daim-rose',
+    Bi('Daim rose', 'Pink suede'),
+    shoppers: {Shopper.women},
+  ),
+  // Hommes
+  _shoe(
+    'chaussures-bleu-ciel',
+    Bi('Bleu ciel et blanc', 'Sky blue and white'),
+    shoppers: {Shopper.men},
+  ),
+  _shoe(
+    'chaussures-bleu-vernis',
+    Bi('Bleu vernis', 'Blue patent'),
+    shoppers: {Shopper.men},
+  ),
+  _shoe(
+    'chaussures-jaune-vert',
+    Bi('Jaune et vert vernis', 'Yellow and green patent'),
+    shoppers: {Shopper.men},
+  ),
+  _shoe(
+    'chaussures-bordeaux-orange',
+    Bi('Bordeaux et orange', 'Burgundy and orange'),
+    shoppers: {Shopper.men},
+  ),
+  _shoe(
+    'chaussures-vert-jaune-rouge',
+    Bi('Vert, jaune et rouge', 'Green, yellow and red'),
+    shoppers: {Shopper.men},
+  ),
+  _shoe(
+    'chaussures-rouge-jaune-bleu',
+    Bi('Rouge, jaune et bleu', 'Red, yellow and blue'),
+    shoppers: {Shopper.men},
+  ),
+  // Pour tous
+  _shoe('chaussures-moka', Bi('Moka et blanc', 'Mocha and white')),
+  _shoe('chaussures-voile', Bi('Voile et gris clair', 'Sail and light grey')),
+  _shoe('chaussures-rouge', Bi('Rouge intégral', 'All red')),
+  _shoe('chaussures-cloutees-blanc', Bi('Blanc à clous', 'White, studded')),
+  _shoe(
+    'chaussures-cloutees-bordeaux',
+    Bi('Bordeaux et noir à clous', 'Burgundy and black, studded'),
+  ),
+  _shoe(
+    'chaussures-patchwork',
+    Bi('Patchwork et badges', 'Patchwork with pins'),
+  ),
+  // Doudounes, toutes couleurs, pour tous
+  _jacket('doudoune-noire', Bi('Doudoune noire', 'Black puffer'), photos: 3),
+  _jacket('doudoune-bleue', Bi('Doudoune bleue', 'Blue puffer'), photos: 2),
+  _jacket('doudoune-orange', Bi('Doudoune orange', 'Orange puffer')),
+  _jacket('doudoune-jaune', Bi('Doudoune jaune', 'Yellow puffer')),
+  _jacket('doudoune-verte', Bi('Doudoune verte', 'Green puffer')),
+  _jacket(
+    'doudoune-blanche-courte',
+    Bi('Doudoune blanche courte', 'White cropped puffer'),
+    shoppers: {Shopper.women},
+  ),
+  _jacket(
+    'veste-sans-manches-noire',
+    Bi('Sans manches noire', 'Black vest'),
+    blurb: _vestBlurb,
+  ),
+  const Product(
     id: 'maillot-yamal',
     name: Bi('Maillot Yamal', 'Yamal jersey'),
     blurb: Bi(
@@ -394,7 +597,7 @@ const baseCatalog = [
     preorder: true,
     details: _jerseyDetails,
   ),
-  Product(
+  const Product(
     id: 'maillot-olise',
     name: Bi('Maillot Olise', 'Olise jersey'),
     blurb: Bi('Rouge · n° 17', 'Red · no. 17'),
@@ -408,7 +611,7 @@ const baseCatalog = [
     preorder: true,
     details: _jerseyDetails,
   ),
-  Product(
+  const Product(
     id: 'maillot-mbappe',
     name: Bi('Maillot Mbappé', 'Mbappé jersey'),
     blurb: Bi('Blanc, manches longues · n° 10', 'White, long sleeves · no. 10'),
@@ -422,7 +625,7 @@ const baseCatalog = [
     preorder: true,
     details: _jerseyDetails,
   ),
-  Product(
+  const Product(
     id: 'maillot-bellingham',
     name: Bi('Maillot Bellingham', 'Bellingham jersey'),
     blurb: Bi('Blanc, manches longues · n° 5', 'White, long sleeves · no. 5'),
@@ -467,6 +670,38 @@ List<Product> get featuredProducts => [
     if (p.stockOf() > 0 || p.preorder) p,
 ];
 
+/// Catalogue d'une des deux boutiques : ce qui est propre à ce rayon
+/// d'abord (le rose chez les femmes, le bleu chez les hommes), puis ce qui
+/// va à tout le monde.
+List<Product> catalogFor(Shopper shopper) => _shelf(catalog, shopper);
+
+List<Product> _shelf(List<Product> products, Shopper shopper) => [
+  for (final p in products)
+    if (p.shoppers.length == 1 && p.shoppers.contains(shopper)) p,
+  for (final p in products)
+    if (p.shoppers.length > 1 && p.shoppers.contains(shopper)) p,
+];
+
+/// Vitrine d'une boutique sur l'écran de veille : les catégories alternent
+/// (une paire, une doudoune, un maillot…), pour montrer tout l'éventail
+/// même quand la diapo n'a le temps de montrer que [limit] articles.
+List<Product> featuredFor(Shopper shopper, {int limit = 24}) {
+  final queues = {
+    for (final c in ProductCategory.values)
+      c: [
+        for (final p in _shelf(featuredProducts, shopper))
+          if (p.category == c) p,
+      ],
+  };
+  final mixed = <Product>[];
+  while (mixed.length < limit && queues.values.any((q) => q.isNotEmpty)) {
+    for (final q in queues.values) {
+      if (q.isNotEmpty && mixed.length < limit) mixed.add(q.removeAt(0));
+    }
+  }
+  return mixed;
+}
+
 /// Fenêtre de [size] articles contenant l'article n° [index], chacun avec
 /// sa position dans [all] (pour les rangées de miniatures).
 Iterable<(int, Product)> productWindow(
@@ -491,8 +726,7 @@ class CartLine {
 
   double get subtotal => product.price * quantity;
 
-  /// Pas à bord dans cette taille : commandé, livré chez le client et payé
-  /// à la réception.
+  /// Pas à bord dans cette taille : commandé, puis livré chez le client.
   bool get onOrder => product.preorder && product.stockOf(size) == 0;
 }
 
@@ -514,7 +748,16 @@ class Cart extends ChangeNotifier {
 
   bool get isEmpty => _lines.isEmpty;
   int get count => _lines.values.fold(0, (a, b) => a + b);
-  double get total => payNow + payLater;
+  double get subtotal => lines.fold(0, (sum, l) => sum + l.subtotal);
+
+  /// Prix à payer, rabais des combos déduits.
+  double get total => subtotal - comboDiscount;
+
+  /// Acompte versé par Interac à la commande.
+  double get deposit => total * depositShare;
+
+  /// Reste payé à la livraison, si le client est satisfait.
+  double get balance => total - deposit;
 
   int _quantityIn(ProductCategory category) => lines
       .where((l) => l.product.category == category)
@@ -541,28 +784,6 @@ class Cart extends ChangeNotifier {
         comboPrice;
     return saving > 0 ? saving * combos : 0;
   }
-
-  double _subtotal({required bool onOrder}) => lines
-      .where((l) => l.onOrder == onOrder)
-      .fold(0, (sum, l) => sum + l.subtotal);
-
-  // Le rabais s'applique d'abord à ce qui se paie à la livraison ; s'il
-  // dépasse ce montant, le reste est retiré de ce qui se paie tout de suite.
-  double get _discountLater {
-    final later = _subtotal(onOrder: true);
-    return comboDiscount < later ? comboDiscount : later;
-  }
-
-  /// Ce qui se paie tout de suite par Interac (articles à bord).
-  double get payNow {
-    final now = _subtotal(onOrder: false) - (comboDiscount - _discountLater);
-    return now > 0 ? now : 0;
-  }
-
-  /// Ce qui se paiera à la livraison (articles sur commande).
-  double get payLater => _subtotal(onOrder: true) - _discountLater;
-
-  bool get hasOnOrder => lines.any((l) => l.onOrder);
 
   /// Quantité maximale d'un même article sur commande.
   static const maxOnOrder = 3;

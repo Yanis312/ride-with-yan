@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ride_with_yan/backend/remote_config.dart';
 import 'package:ride_with_yan/data/bilingual.dart';
@@ -21,21 +23,61 @@ void _stockShoes() {
 }
 
 void main() {
-  test(
-    'tout le catalogue est sur commande : chaussures 80 \$, maillots 50 \$',
-    () {
-      expect(catalog, hasLength(15));
+  test('tout le catalogue est sur commande : chaussures 80 \$, doudounes '
+      '120 \$, maillots 50 \$', () {
+    for (final p in catalog) {
+      expect(p.stockOf(), 0, reason: p.id);
+      expect(p.preorder, isTrue, reason: p.id);
+      expect(p.price, switch (p.category) {
+        ProductCategory.sneakers => 80,
+        ProductCategory.jackets => 120,
+        ProductCategory.jerseys => 50,
+      }, reason: p.id);
+    }
+  });
+
+  group('deux boutiques : hommes et femmes', () {
+    test('chaque article est rangé dans au moins un rayon', () {
       for (final p in catalog) {
-        expect(p.stockOf(), 0, reason: p.id);
-        expect(p.preorder, isTrue, reason: p.id);
-        expect(
-          p.price,
-          p.category == ProductCategory.sneakers ? 80 : 50,
-          reason: p.id,
-        );
+        expect(p.shoppers, isNotEmpty, reason: p.id);
       }
-    },
-  );
+    });
+
+    test('le rose chez les femmes, le bleu chez les hommes', () {
+      final women = catalogFor(Shopper.women).map((p) => p.id);
+      final men = catalogFor(Shopper.men).map((p) => p.id);
+      expect(women, contains('chaussures-rose-bonbon'));
+      expect(men, isNot(contains('chaussures-rose-bonbon')));
+      expect(men, contains('chaussures-bleu-ciel'));
+      expect(women, isNot(contains('chaussures-bleu-ciel')));
+    });
+
+    test('chaque rayon montre d’abord ses propres articles', () {
+      expect(catalogFor(Shopper.women).first.id, 'chaussures-rose-bonbon');
+      expect(catalogFor(Shopper.men).first.id, 'chaussures-bleu-ciel');
+    });
+
+    test('le blanc, le noir et les doudounes dans les deux rayons', () {
+      for (final id in [
+        'chaussures-blanc',
+        'chaussures-noir',
+        'doudoune-noire',
+      ]) {
+        expect(_find(id).shoppers, {Shopper.men, Shopper.women}, reason: id);
+      }
+    });
+
+    test('la vitrine d’un rayon alterne les catégories', () {
+      final shown = featuredFor(Shopper.men);
+      expect(shown.take(3).map((p) => p.category), [
+        ProductCategory.sneakers,
+        ProductCategory.jackets,
+        ProductCategory.jerseys,
+      ]);
+      expect(shown.every((p) => p.shoppers.contains(Shopper.men)), isTrue);
+      expect(featuredFor(Shopper.women, limit: 5), hasLength(5));
+    });
+  });
 
   test('le panier additionne quantités et prix', () {
     final shoes = _find('chaussures-noir');
@@ -47,9 +89,13 @@ void main() {
     expect(cart.count, 3);
     expect(cart.lines, hasLength(2));
     expect(cart.total, 240);
-    // Rien à bord : tout se paie à la livraison.
-    expect(cart.payNow, 0);
-    expect(cart.payLater, 240);
+  });
+
+  test('la moitié à la commande, le reste à la livraison', () {
+    final cart = Cart()..add(_find('doudoune-noire'), 'M');
+    expect(cart.total, 120);
+    expect(cart.deposit, 60);
+    expect(cart.balance, 60);
   });
 
   test('retirer le dernier exemplaire enlève la ligne', () {
@@ -78,7 +124,7 @@ void main() {
       expect(cart.combos, 1);
       expect(cart.comboDiscount, 10);
       expect(cart.total, comboPrice);
-      expect(cart.payLater, comboPrice);
+      expect(cart.deposit, comboPrice / 2);
     });
 
     test('pas de rabais sans maillot, ou sans chaussures', () {
@@ -124,32 +170,6 @@ void main() {
       }
       expect(cart.quantityOf(shoes, 'US 9'), 2);
     });
-
-    test(
-      'ce qui est à bord se paie tout de suite, le reste à la livraison',
-      () {
-        _stockShoes();
-        final cart = Cart()
-          ..add(_find('chaussures-blanc'), 'US 9')
-          ..add(_find('chaussures-noir'), 'US 9');
-
-        expect(cart.lines.first.onOrder, isFalse);
-        expect(cart.lines.last.onOrder, isTrue);
-        expect(cart.payNow, 80);
-        expect(cart.payLater, 80);
-      },
-    );
-
-    test('le rabais du combo est retiré de ce qui se paie à la livraison', () {
-      _stockShoes();
-      final cart = Cart()
-        ..add(_find('chaussures-blanc'), 'US 9')
-        ..add(_find('maillot-yamal'), 'M');
-
-      expect(cart.payNow, 80);
-      expect(cart.payLater, 40);
-      expect(cart.total, comboPrice);
-    });
   });
 
   test("un article épuisé qui ne se commande pas ne s'ajoute pas", () {
@@ -166,23 +186,32 @@ void main() {
     expect((Cart()..add(soldOut)).isEmpty, isTrue);
   });
 
-  test('les lignes de commande copient nom, taille, prix et statut', () {
-    final lines = orderLines(Cart()..add(_find('maillot-yamal'), 'M'));
-    expect(lines.single, {
-      'id': 'maillot-yamal',
-      'name': 'Maillot Yamal',
-      'size': 'M',
-      'qty': 1,
-      'price': 50.0,
-      'on_order': true,
-    });
-  });
+  group('message WhatsApp de la commande', () {
+    Cart order() => Cart()
+      ..add(_find('chaussures-blanc'), 'US 9')
+      ..add(_find('maillot-yamal'), 'M');
 
-  test('numéros de téléphone acceptés et refusés', () {
-    expect(isValidPhone('514 555-0199'), isTrue);
-    expect(isValidPhone('+1 (438) 994-8668'), isTrue);
-    expect(isValidPhone('12345'), isFalse);
-    expect(isValidPhone('appelle-moi'), isFalse);
+    test('en français : articles, tailles, total et acompte', () {
+      final message = orderMessage(order(), english: false);
+      expect(message, startsWith('Bonjour Yanis, je voudrais commander :'));
+      expect(message, contains('1 × Blanc intégral (Chaussures), taille US 9'));
+      expect(message, contains('1 × Maillot Yamal (Maillots), taille M'));
+      expect(message, contains('Rabais combo : −10 \$'));
+      expect(message, contains('Total : 120 \$ · acompte 50 % : 60 \$'));
+      expect(message, endsWith('Mon adresse de livraison :'));
+    });
+
+    test('en anglais', () {
+      final message = orderMessage(order(), english: true);
+      expect(message, contains('1 × All white (Shoes), size US 9 : \$80'));
+      expect(message, contains('Total: \$120 · 50% deposit: \$60'));
+      expect(message, endsWith('My delivery address:'));
+    });
+
+    test('les montants avec des cents gardent deux décimales', () {
+      expect(orderAmount(42.5, english: false), '42,50 \$');
+      expect(orderAmount(42.5, english: true), '\$42.50');
+    });
   });
 
   test('aucun nom de marque dans le catalogue', () {
@@ -193,5 +222,13 @@ void main() {
 
   test('la vitrine montre tous les articles commandables', () {
     expect(featuredProducts, hasLength(catalog.length));
+  });
+
+  test('chaque photo annoncée existe dans les assets', () {
+    for (final p in catalog) {
+      for (final photo in p.photos) {
+        expect(File(photo).existsSync(), isTrue, reason: photo);
+      }
+    }
   });
 }

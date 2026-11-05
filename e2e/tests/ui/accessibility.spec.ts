@@ -36,7 +36,7 @@ test.describe('Accessibilité', () => {
     expect(await seriousViolations(page)).toEqual([]);
   });
 
-  test('boutique et formulaire de commande', async ({ page, welcome, lounge, store }) => {
+  test('boutique et commande WhatsApp', async ({ page, welcome, lounge, store }) => {
     await welcome.open();
     await welcome.start('en');
     await lounge.openStore();
@@ -45,7 +45,7 @@ test.describe('Accessibilité', () => {
 
     await store.showCategory('Jerseys');
     await store.addSized('Yamal jersey', 'M');
-    await store.goToDetails();
+    await store.order();
     expect(await seriousViolations(page)).toEqual([]);
   });
 });

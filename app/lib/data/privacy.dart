@@ -11,8 +11,8 @@ import 'bilingual.dart';
 /// relire si l'activité grandit.
 
 const privacyUpdated = Bi(
-  'Mise à jour : 2 novembre 2026',
-  'Updated: November 2, 2026',
+  'Mise à jour : 5 novembre 2026',
+  'Updated: November 5, 2026',
 );
 
 const privacyIntro = Bi(
@@ -66,31 +66,26 @@ const privacySections = <(Bi, Bi)>[
   (
     Bi('Si vous commandez', 'If you place an order'),
     Bi(
-      'Nous recueillons votre nom, votre téléphone et, pour une livraison, '
-          'votre adresse, avec le contenu de votre panier. Ils servent '
-          'uniquement à traiter la commande, à vous joindre sur WhatsApp et à '
-          'vous livrer. Ils ne sont jamais vendus ni utilisés pour de la '
-          'publicité.',
-      'We collect your name, phone number and, for a delivery, your address, '
-          'with the contents of your cart. They are used only to process the '
-          'order, reach you on WhatsApp and deliver it. They are never sold or '
-          'used for advertising.',
+      'La commande se fait sur WhatsApp, depuis votre téléphone : la tablette '
+          'ne recueille ni votre nom, ni votre numéro, ni votre adresse. Ce que '
+          'vous envoyez (articles, adresse) sert uniquement à traiter la '
+          'commande, à vous joindre et à vous livrer. Ce n’est jamais vendu ni '
+          'utilisé pour de la publicité.',
+      'You order on WhatsApp, from your own phone: the tablet collects '
+          'neither your name, nor your number, nor your address. What you send '
+          '(items, address) is used only to process the order, reach you and '
+          'deliver it. It is never sold or used for advertising.',
     ),
   ),
   (
     Bi('Où vont vos renseignements', 'Where your information goes'),
     Bi(
-      'Les commandes sont enregistrées chez Supabase, dans un centre de '
-          'données au Canada. Seul Yanis peut les lire. Pour l’avertir d’une '
-          'commande, votre prénom et le contenu du panier (sans téléphone ni '
-          'adresse) passent par le service de notification ntfy.sh, hébergé '
-          'hors du Canada. Si vous écrivez sur WhatsApp, Meta traite ce '
-          'message selon ses propres règles.',
-      'Orders are stored with Supabase, in a data centre in Canada. Only Yanis '
-          'can read them. To alert him of an order, your first name and the '
-          'cart contents (no phone or address) go through the ntfy.sh '
-          'notification service, hosted outside Canada. If you write on '
-          'WhatsApp, Meta handles that message under its own rules.',
+      'Votre commande arrive sur le WhatsApp de Yanis, et seul Yanis la lit. '
+          'Meta traite ce message selon ses propres règles. Le paiement de '
+          'l’acompte passe par Interac, depuis votre banque.',
+      'Your order reaches Yanis on WhatsApp, and only Yanis reads it. Meta '
+          'handles that message under its own rules. The deposit is paid by '
+          'Interac, from your own bank.',
     ),
   ),
   (
@@ -157,14 +152,14 @@ const privacySections = <(Bi, Bi)>[
   (
     Bi('Sécurité', 'Security'),
     Bi(
-      'La tablette ne peut que déposer une commande : elle ne peut ni la '
-          'relire ni la modifier. L’accès aux commandes est protégé par mot de '
-          'passe, et les règles de la base sont testées automatiquement. En '
-          'cas d’incident touchant vos renseignements, vous serez avisé.',
-      'The tablet can only submit an order: it can neither read it back nor '
-          'change it. Access to orders is password-protected, and the database '
-          'rules are tested automatically. If an incident affects your '
-          'information, you will be notified.',
+      'La tablette n’enregistre aucune commande : tout passe par WhatsApp. '
+          'Le panneau d’administration est protégé par mot de passe, et les '
+          'règles de la base sont testées automatiquement. En cas d’incident '
+          'touchant vos renseignements, vous serez avisé.',
+      'The tablet stores no order: everything goes through WhatsApp. The '
+          'admin panel is password-protected, and the database rules are '
+          'tested automatically. If an incident affects your information, you '
+          'will be notified.',
     ),
   ),
 ];

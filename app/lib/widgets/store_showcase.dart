@@ -8,32 +8,43 @@ import '../backend/remote_config.dart';
 import '../data/bilingual.dart';
 import '../data/store_catalog.dart';
 import '../navigation/sections.dart';
-import '../theme/app_icons.dart';
 import '../theme/app_theme.dart';
 import 'product_art.dart';
 
 /// Vitrine de l'écran de veille, façon page d'accueil d'un site e-commerce :
-/// quatre articles à la fois, avec leur nom et leur prix, puis les quatre
-/// suivants. Tout le catalogue passe pendant la diapo. Un toucher ouvre la
-/// boutique.
+/// quatre articles d'un rayon (hommes ou femmes) à la fois, avec leur nom et
+/// leur prix, puis les quatre suivants. Un toucher ouvre ce rayon.
 class StoreShowcase extends StatefulWidget {
-  const StoreShowcase({super.key, required this.t, required this.size});
+  const StoreShowcase({
+    super.key,
+    required this.t,
+    required this.size,
+    this.shopper = Shopper.men,
+  });
 
   /// Boucle 0 → 1 de l'écran de veille (gardée pour la même signature que
   /// les autres illustrations).
   final double t;
   final double size;
+  final Shopper shopper;
 
-  /// Durée totale de la diapo : chaque page en reçoit une part égale.
-  static const total = Duration(milliseconds: 15000);
   static const perPage = 4;
+
+  /// Temps laissé à chaque page de quatre articles.
+  static const pageDuration = Duration(milliseconds: 3200);
+
+  /// Durée de la diapo d'un rayon : le temps de montrer toutes ses pages.
+  static Duration durationFor(Shopper shopper) {
+    final pages = (featuredFor(shopper).length / perPage).ceil();
+    return pageDuration * (pages < 2 ? 2 : pages);
+  }
 
   @override
   State<StoreShowcase> createState() => _StoreShowcaseState();
 }
 
 class _StoreShowcaseState extends State<StoreShowcase> {
-  List<Product> _products = featuredProducts;
+  late List<Product> _products = featuredFor(widget.shopper);
   int _page = 0;
   Timer? _timer;
 
@@ -49,7 +60,7 @@ class _StoreShowcaseState extends State<StoreShowcase> {
   void _schedule() {
     _timer?.cancel();
     if (_pages > 1) {
-      _timer = Timer.periodic(StoreShowcase.total ~/ _pages, (_) {
+      _timer = Timer.periodic(StoreShowcase.pageDuration, (_) {
         if (mounted) setState(() => _page = (_page + 1) % _pages);
       });
     }
@@ -59,7 +70,7 @@ class _StoreShowcaseState extends State<StoreShowcase> {
   void _onConfig() {
     if (!mounted) return;
     setState(() {
-      _products = featuredProducts;
+      _products = featuredFor(widget.shopper);
       _page = _pages == 0 ? 0 : _page % _pages;
     });
     _schedule();
@@ -84,7 +95,7 @@ class _StoreShowcaseState extends State<StoreShowcase> {
     final gap = small ? 8.0 : 12.0;
 
     return GestureDetector(
-      onTap: () => openSection(context, Section.store),
+      onTap: () => openSection(context, Section.store, shopper: widget.shopper),
       child: Container(
         padding: EdgeInsets.all(small ? 10 : 14),
         decoration: BoxDecoration(
@@ -105,8 +116,14 @@ class _StoreShowcaseState extends State<StoreShowcase> {
             Row(
               children: [
                 _Pill(
-                  label: const Bi('Nouveautés', 'New in').of(context),
-                  icon: AppIcons.sparkle,
+                  label: switch (widget.shopper) {
+                    Shopper.men => const Bi('Boutique hommes', "Men's shop"),
+                    Shopper.women => const Bi(
+                      'Boutique femmes',
+                      "Women's shop",
+                    ),
+                  }.of(context),
+                  icon: widget.shopper.icon,
                 ),
                 const Spacer(),
                 // Points de pagination : où on en est dans le catalogue.

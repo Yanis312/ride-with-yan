@@ -26,6 +26,7 @@ class QrCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final ready = data != null && data!.isNotEmpty;
+    final dense = (data?.length ?? 0) > 200;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -50,12 +51,16 @@ class QrCard extends StatelessWidget {
                     data: data!,
                     padding: EdgeInsets.zero,
                     backgroundColor: Colors.white,
+                    // Un long message (une commande) donne un code serré :
+                    // des points carrés restent lisibles par un téléphone.
                     eyeStyle: QrEyeStyle(
-                      eyeShape: QrEyeShape.circle,
+                      eyeShape: dense ? QrEyeShape.square : QrEyeShape.circle,
                       color: color,
                     ),
                     dataModuleStyle: QrDataModuleStyle(
-                      dataModuleShape: QrDataModuleShape.circle,
+                      dataModuleShape: dense
+                          ? QrDataModuleShape.square
+                          : QrDataModuleShape.circle,
                       color: color,
                     ),
                   )

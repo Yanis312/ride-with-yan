@@ -46,7 +46,8 @@ class Cart extends ChangeNotifier {
     notifyListeners();            // ← l'écran du panier se redessine
   }
 
-  double get total => payNow + payLater;   // le combo est calculé ici
+  double get total => subtotal - comboDiscount;   // le combo est calculé ici
+  double get deposit => total * depositShare;      // 50 % à la commande
 }
 ```
 
@@ -92,36 +93,35 @@ le réseau.
 
 ### Exemple complet : une commande
 
+Une commande ne passe pas par la base : elle part sur **WhatsApp**, depuis le
+téléphone du passager. La tablette prépare seulement le message et l'affiche
+en code QR.
+
 ```mermaid
 sequenceDiagram
-    participant UI as StoreScreen<br/>(formulaire)
-    participant O as OrderService<br/>data/orders.dart
-    participant B as Backend<br/>backend/backend.dart
-    participant API as Supabase<br/>PostgREST
-    participant SQL as PostgreSQL
+    participant UI as StoreScreen<br/>(panier)
+    participant O as orderMessage<br/>data/orders.dart
+    participant P as Téléphone<br/>du passager
+    participant Y as Yanis<br/>(WhatsApp)
 
-    UI->>O: place(client, panier, langue)
-    O->>B: insert('orders', {...})
-    B->>API: POST /rest/v1/orders<br/>apikey + JSON
-    API->>SQL: INSERT … (règle RLS : dépôt permis, lecture interdite)
-    SQL-->>API: 201
-    API-->>B: 201 (sans corps)
-    B-->>O: OK
-    O-->>UI: PlacedOrder(référence RWY-1234)
-    Note over UI: sans réseau : exception →<br/>message « Pas de réseau » et on réessaie
+    UI->>O: orderMessage(panier, langue)
+    O-->>UI: « Bonjour Yanis, je voudrais commander : … »
+    UI->>P: code QR wa.me/…?text=…
+    P->>Y: message + adresse de livraison
+    Y-->>P: numéro pour l'acompte Interac (50 %)
+    Note over Y,P: le reste est payé à la livraison,<br/>remboursé si le client n'est pas satisfait
 ```
 
 Le code (`data/orders.dart`) :
 
 ```dart
-await Backend.insert('orders', {
-  'id': order.id,
-  'reference': order.reference,
-  'name': customer.name.trim(),
-  'lines': orderLines(cart),
-  'pay_now': cart.payNow,
-  'pay_later': cart.payLater,
-});
+String orderMessage(Cart cart, {required bool english}) => [
+  english ? 'Hi Yanis, I would like to order:' : 'Bonjour Yanis, je voudrais commander :',
+  for (final line in cart.lines) '- ${line.quantity} × …, taille ${line.size}',
+  'Total : 120 \$ · acompte 50 % : 60 \$',
+  'Mon adresse de livraison :',
+].join('
+');
 ```
 
 ### Les autres sources de données

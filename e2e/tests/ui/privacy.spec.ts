@@ -29,11 +29,16 @@ test.describe('Confidentialité', () => {
     }
   });
 
-  test('le formulaire de commande renvoie aussi à la politique', async ({ page, store }) => {
-    await store.showCategory('Jerseys');
-    await store.addSized('Yamal jersey', 'M');
-    await store.goToDetails();
+  test('explique que la commande passe par WhatsApp, pas par la tablette', async ({ page }) => {
+    await page.getByRole('button', { name: /Privacy and your information/ }).first().click();
 
-    await expect(page.getByRole('button', { name: /Privacy and your information/ })).toHaveCount(2);
+    const section = page.getByText(/^You order on WhatsApp, from your own phone/);
+    await expect(async () => {
+      if (!(await section.isVisible())) {
+        await page.mouse.move(640, 450);
+        await page.mouse.wheel(0, 300);
+      }
+      await expect(section).toBeVisible({ timeout: 1500 });
+    }).toPass({ timeout: 60_000 });
   });
 });

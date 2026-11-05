@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
 import '../data/bilingual.dart';
+import '../data/store_catalog.dart';
 import '../theme/app_icons.dart';
 import '../theme/app_theme.dart';
 import 'liquid_metal_logo.dart';
@@ -18,11 +19,15 @@ class SceneVignette extends StatelessWidget {
     required this.scene,
     required this.loop,
     required this.size,
+    this.shopper = Shopper.men,
   });
 
   final Scene scene;
   final Animation<double> loop;
   final double size;
+
+  /// Rayon montré par la vitrine de la boutique.
+  final Shopper shopper;
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +37,7 @@ class SceneVignette extends StatelessWidget {
       return RepaintBoundary(
         child: SizedBox.square(
           dimension: size,
-          child: StoreShowcase(t: 0, size: size),
+          child: StoreShowcase(t: 0, size: size, shopper: shopper),
         ),
       );
     }

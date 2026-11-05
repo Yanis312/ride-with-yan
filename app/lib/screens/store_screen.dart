@@ -30,17 +30,23 @@ String _money(BuildContext context, double amount) => NumberFormat.currency(
   decimalDigits: amount == amount.roundToDouble() ? 0 : 2,
 ).format(amount);
 
-/// Boutique à bord : chaussures et maillots neufs, sur commande ou en stock,
-/// panier et paiement par virement Interac (confirmé à la
-/// main par Yanis, pas d'API Interac pour les particuliers).
+/// Boutique à bord, en deux rayons (hommes, femmes) : chaussures, doudounes
+/// et maillots neufs, livrés chez le client. Le panier se termine sur
+/// WhatsApp : le passager envoie sa commande et son adresse, puis paie un
+/// acompte de 50 % par Interac et le reste à la livraison.
 class StoreScreen extends StatefulWidget {
-  const StoreScreen({super.key});
+  const StoreScreen({super.key, this.shopper = Shopper.men});
+
+  /// Rayon ouvert au départ (celui de la vitrine touchée sur l'écran de veille).
+  final Shopper shopper;
 
   @override
   State<StoreScreen> createState() => _StoreScreenState();
 }
 
 class _StoreScreenState extends State<StoreScreen> {
+  late Shopper _shopper = widget.shopper;
+
   /// Catégorie affichée ; null = tout.
   ProductCategory? _category;
 
@@ -65,17 +71,38 @@ class _StoreScreenState extends State<StoreScreen> {
     final l10n = AppLocalizations.of(context);
     final cart = SessionScope.of(context).cart;
     final compact = MediaQuery.sizeOf(context).width < 900;
+    final shelf = catalogFor(_shopper);
     final products = [
-      for (final p in catalog)
+      for (final p in shelf)
         if (_category == null || p.category == _category) p,
     ];
 
-    final tabs = _CategoryTabs(
-      selected: _category,
-      onSelected: (c) => setState(() => _category = c),
+    final tabs = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _ShopperSwitch(
+          selected: _shopper,
+          onSelected: (s) => setState(() {
+            _shopper = s;
+            // Une catégorie absente de l'autre rayon ne doit pas le vider.
+            if (!catalogFor(s).any((p) => p.category == _category)) {
+              _category = null;
+            }
+          }),
+        ),
+        const SizedBox(height: 14),
+        _CategoryTabs(
+          categories: [
+            for (final c in ProductCategory.values)
+              if (shelf.any((p) => p.category == c)) c,
+          ],
+          selected: _category,
+          onSelected: (c) => setState(() => _category = c),
+        ),
+      ],
     );
     final grid = _ProductGrid(
-      key: ValueKey(_category),
+      key: ValueKey((_shopper, _category)),
       products: products,
       cart: cart,
       // Trois colonnes seulement quand il y a vraiment la place.
@@ -174,9 +201,80 @@ class _Notice extends StatelessWidget {
   }
 }
 
-class _CategoryTabs extends StatelessWidget {
-  const _CategoryTabs({required this.selected, required this.onSelected});
+/// Les deux rayons, en grand, tout en haut : le passager sait toujours dans
+/// quelle boutique il se trouve.
+class _ShopperSwitch extends StatelessWidget {
+  const _ShopperSwitch({required this.selected, required this.onSelected});
 
+  final Shopper selected;
+  final ValueChanged<Shopper> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = context.palette;
+    return Container(
+      padding: const EdgeInsets.all(5),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(999),
+        color: p.glass,
+        border: Border.all(color: p.hairline),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          for (final s in Shopper.values)
+            Semantics(
+              button: true,
+              selected: s == selected,
+              child: Pressable(
+                onTap: () => onSelected(s),
+                child: AnimatedContainer(
+                  duration: AppMotion.medium,
+                  curve: AppMotion.spring,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 30,
+                    vertical: 14,
+                  ),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(999),
+                    color: s == selected ? Brand.gold : Colors.transparent,
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        s.icon,
+                        size: 20,
+                        color: s == selected ? Brand.ink : p.text,
+                      ),
+                      const SizedBox(width: 10),
+                      Text(
+                        s.label.of(context),
+                        style: AppText.body(
+                          19,
+                          weight: FontWeight.w700,
+                          color: s == selected ? Brand.ink : p.text,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CategoryTabs extends StatelessWidget {
+  const _CategoryTabs({
+    required this.categories,
+    required this.selected,
+    required this.onSelected,
+  });
+
+  final List<ProductCategory> categories;
   final ProductCategory? selected;
   final ValueChanged<ProductCategory?> onSelected;
 
@@ -192,7 +290,7 @@ class _CategoryTabs extends StatelessWidget {
           selected: selected == null,
           onTap: () => onSelected(null),
         ),
-        for (final c in ProductCategory.values)
+        for (final c in categories)
           _Tab(
             label: c.label.of(context),
             icon: c.icon,
@@ -1037,7 +1135,7 @@ class _SheetInfo extends StatelessWidget {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    preorderNotice.of(context),
+                    orderNotice.of(context),
                     style: AppText.body(13, color: p.textMuted),
                   ),
                 ),
@@ -1101,6 +1199,7 @@ Future<void> _showWhatsAppSheet(
   required String title,
   required Bi body,
   required Bi message,
+  double qrSize = 180,
 }) {
   final link = AppConfig.whatsAppLink == null
       ? null
@@ -1165,6 +1264,7 @@ Future<void> _showWhatsAppSheet(
                           icon: AppIcons.whatsapp,
                           label: 'WhatsApp',
                           color: const Color(0xFF128C4A),
+                          size: qrSize,
                         ),
                       const SizedBox(height: 14),
                       Text(
@@ -1250,87 +1350,12 @@ class _SizeChip extends StatelessWidget {
 // ---------------------------------------------------------------------------
 // Panier et paiement.
 
-enum _Step { cart, details, pay, done }
-
-class _CartPanel extends StatefulWidget {
+/// Panier : les articles choisis, le total, l'acompte et le reste à payer.
+/// « Commander sur WhatsApp » ouvre le code QR avec la commande déjà écrite.
+class _CartPanel extends StatelessWidget {
   const _CartPanel({required this.cart});
 
   final Cart cart;
-
-  @override
-  State<_CartPanel> createState() => _CartPanelState();
-}
-
-class _CartPanelState extends State<_CartPanel> {
-  _Step _step = _Step.cart;
-  String _reference = '';
-  double _paidTotal = 0;
-  PlacedOrder? _order;
-  bool _onOrderOnly = false;
-  bool _clearing = false;
-
-  SessionController? _session;
-
-  @override
-  void initState() {
-    super.initState();
-    widget.cart.addListener(_onCartChanged);
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _session = SessionScope.of(context);
-  }
-
-  @override
-  void dispose() {
-    widget.cart.removeListener(_onCartChanged);
-    _session?.setPaying(false);
-    super.dispose();
-  }
-
-  void _setStep(_Step step) {
-    setState(() => _step = step);
-    // Pendant la saisie et le virement, le passager est sur le clavier ou
-    // sur son téléphone : la session ne doit pas se terminer au bout de
-    // 90 secondes.
-    _session?.setPaying(step == _Step.details || step == _Step.pay);
-  }
-
-  /// Le panier a changé pendant la commande : les montants seraient faux,
-  /// on revient au panier.
-  void _onCartChanged() {
-    if (!mounted || _clearing) return;
-    if (_step == _Step.details || _step == _Step.pay) _setStep(_Step.cart);
-  }
-
-  /// La commande est enregistrée : on passe au virement s'il y a quelque
-  /// chose à payer tout de suite, sinon c'est terminé.
-  void _onPlaced(PlacedOrder order) {
-    _order = order;
-    _reference = order.reference;
-    _paidTotal = widget.cart.payNow;
-    _onOrderOnly = _paidTotal == 0;
-    if (_onOrderOnly) {
-      _finish();
-    } else {
-      _setStep(_Step.pay);
-    }
-  }
-
-  void _confirmSent() {
-    final order = _order;
-    if (order != null) OrderService.claimTransfer(order);
-    _finish();
-  }
-
-  void _finish() {
-    _setStep(_Step.done);
-    _clearing = true;
-    widget.cart.clear();
-    _clearing = false;
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -1338,39 +1363,18 @@ class _CartPanelState extends State<_CartPanel> {
       radius: 34,
       padding: const EdgeInsets.all(24),
       child: ListenableBuilder(
-        listenable: widget.cart,
-        builder: (context, _) => AnimatedSwitcher(
-          duration: AppMotion.medium,
-          switchInCurve: AppMotion.spring,
-          transitionBuilder: (child, a) =>
-              FadeTransition(opacity: a, child: child),
-          child: switch (_step) {
-            _Step.cart => _CartView(
-              key: const ValueKey('cart'),
-              cart: widget.cart,
-              onCheckout: () {
-                Usage.instance.tap('store.checkout');
-                _setStep(_Step.details);
-              },
-            ),
-            _Step.details => _DetailsView(
-              key: const ValueKey('details'),
-              cart: widget.cart,
-              onBack: () => _setStep(_Step.cart),
-              onPlaced: _onPlaced,
-            ),
-            _Step.pay => _PayView(
-              key: const ValueKey('pay'),
-              total: _paidTotal,
-              reference: _reference,
-              onBack: () => _setStep(_Step.cart),
-              onSent: _confirmSent,
-            ),
-            _Step.done => _DoneView(
-              key: const ValueKey('done'),
-              onOrderOnly: _onOrderOnly,
-              onNewOrder: () => _setStep(_Step.cart),
-            ),
+        listenable: cart,
+        builder: (context, _) => _CartView(
+          cart: cart,
+          onCheckout: () {
+            Usage.instance.tap('store.checkout');
+            // Le passager sort son téléphone : la session patiente.
+            final session = SessionScope.of(context);
+            session.setPaying(true);
+            showOrderSheet(
+              context,
+              cart,
+            ).whenComplete(() => session.setPaying(false));
           },
         ),
       ),
@@ -1378,8 +1382,38 @@ class _CartPanelState extends State<_CartPanel> {
   }
 }
 
+/// La commande part sur WhatsApp : le passager vise le code avec son
+/// téléphone, ajoute son adresse et envoie. Yanis lui répond avec le numéro
+/// pour l'acompte Interac.
+Future<void> showOrderSheet(BuildContext context, Cart cart) {
+  final deposit = _money(context, cart.deposit);
+  final balance = _money(context, cart.balance);
+  return _showWhatsAppSheet(
+    context,
+    eyebrow: const Bi('VOTRE COMMANDE', 'YOUR ORDER'),
+    title: const Bi(
+      'Envoyez-la sur WhatsApp',
+      'Send it on WhatsApp',
+    ).of(context),
+    body: Bi(
+      'Ajoutez votre adresse au message, puis envoyez-le. Je vous réponds avec '
+          'le numéro pour l’acompte Interac de 50 % ($deposit). Le reste '
+          '($balance) se paie à la livraison, dans 20 à 30 jours. Pas '
+          'satisfait : je vous rembourse.',
+      'Add your address to the message, then send it. I will reply with the '
+          'number for the 50% Interac deposit ($deposit). The rest ($balance) '
+          'is paid on delivery, in 20 to 30 days. Not satisfied: I refund you.',
+    ),
+    message: Bi(
+      orderMessage(cart, english: false),
+      orderMessage(cart, english: true),
+    ),
+    qrSize: 300,
+  );
+}
+
 class _CartView extends StatelessWidget {
-  const _CartView({super.key, required this.cart, required this.onCheckout});
+  const _CartView({required this.cart, required this.onCheckout});
 
   final Cart cart;
   final VoidCallback onCheckout;
@@ -1387,11 +1421,24 @@ class _CartView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final onDelivery = const Bi(
-      'À la livraison ($deliveryDays jours)',
-      'On delivery ($deliveryDays days)',
-    ).of(context);
     final p = context.palette;
+
+    Widget amountRow(String label, double amount, {bool strong = false}) => Row(
+      children: [
+        Expanded(
+          child: Text(
+            label,
+            style: AppText.body(strong ? 18 : 14, color: p.textMuted),
+          ),
+        ),
+        Text(
+          _money(context, amount),
+          style: strong
+              ? AppText.display(36, color: p.text)
+              : AppText.body(16, weight: FontWeight.w600, color: p.text),
+        ),
+      ],
+    );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1425,10 +1472,7 @@ class _CartView extends StatelessWidget {
           ),
           Divider(color: p.hairline),
           const SizedBox(height: 8),
-          // Le rabais d'abord, puis le montant principal en gros : ce qui se
-          // paie tout de suite, ou le total à la livraison si rien n'est à bord.
           if (cart.comboDiscount > 0) ...[
-            const SizedBox(height: 4),
             Row(
               children: [
                 Expanded(
@@ -1450,71 +1494,41 @@ class _CartView extends StatelessWidget {
                 ),
               ],
             ),
-          ],
-          if (cart.comboDiscount > 0) const SizedBox(height: 4),
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  cart.payNow > 0
-                      ? (cart.hasOnOrder
-                            ? const Bi(
-                                'À payer maintenant',
-                                'To pay now',
-                              ).of(context)
-                            : l10n.total)
-                      : onDelivery,
-                  style: AppText.body(18, color: p.textMuted),
-                ),
-              ),
-              Text(
-                _money(context, cart.payNow > 0 ? cart.payNow : cart.payLater),
-                style: AppText.display(36, color: p.text),
-              ),
-            ],
-          ),
-          if (cart.payNow > 0 && cart.hasOnOrder) ...[
             const SizedBox(height: 4),
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    onDelivery,
-                    style: AppText.body(14, color: p.textMuted),
-                  ),
-                ),
-                Text(
-                  _money(context, cart.payLater),
-                  style: AppText.body(
-                    16,
-                    weight: FontWeight.w600,
-                    color: p.text,
-                  ),
-                ),
-              ],
-            ),
           ],
+          amountRow(l10n.total, cart.total, strong: true),
+          const SizedBox(height: 4),
+          amountRow(
+            const Bi(
+              'Acompte à la commande (50 %, Interac)',
+              'Deposit when ordering (50%, Interac)',
+            ).of(context),
+            cart.deposit,
+          ),
+          amountRow(
+            const Bi(
+              'À la livraison (20 à 30 jours)',
+              'On delivery (20 to 30 days)',
+            ).of(context),
+            cart.balance,
+          ),
           const SizedBox(height: 16),
           GlowButton(
-            label: const Bi('Commander', 'Order').of(context),
-            icon: AppIcons.arrowRight,
+            label: const Bi(
+              'Commander sur WhatsApp',
+              'Order on WhatsApp',
+            ).of(context),
+            icon: AppIcons.whatsapp,
             onTap: onCheckout,
           ),
           const SizedBox(height: 10),
-          // On annonce la suite : le paiement Interac vient après les
-          // coordonnées, il n'a pas disparu.
           Text(
-            cart.payNow > 0
-                ? const Bi(
-                    'Étape suivante : vos coordonnées, puis le paiement par '
-                        'virement Interac.',
-                    'Next: your details, then payment by Interac e-Transfer.',
-                  ).of(context)
-                : const Bi(
-                    'Étape suivante : vos coordonnées. Vous payez à la '
-                        'livraison.',
-                    'Next: your details. You pay on delivery.',
-                  ).of(context),
+            const Bi(
+              'Vous envoyez la commande et votre adresse sur WhatsApp. Pas '
+                  'satisfait à la livraison : remboursé.',
+              'You send the order and your address on WhatsApp. Not '
+                  'satisfied on delivery: refunded.',
+            ).of(context),
             textAlign: TextAlign.center,
             style: AppText.body(13, color: p.textMuted),
           ),
@@ -1565,14 +1579,7 @@ class _CartLineRow extends StatelessWidget {
                     color: p.text,
                   ),
                 ),
-                if (line.onOrder)
-                  Text(
-                    '${size ?? ''} · ${const Bi('sur commande', 'on order').of(context)}',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: AppText.body(13, color: p.accentText),
-                  )
-                else if (size != null)
+                if (size != null)
                   Text(
                     '${product.blurb.of(context).split(' · ').first} · $size',
                     maxLines: 1,
@@ -1590,420 +1597,6 @@ class _CartLineRow extends StatelessWidget {
             icon: line.quantity == 1 ? AppIcons.trash : AppIcons.minus,
             onTap: () => cart.remove(product, size),
             size: 44,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// Coordonnées du client, demandées avant le paiement. La commande est
-/// enregistrée ici ; Yanis reçoit une alerte sur son téléphone.
-class _DetailsView extends StatefulWidget {
-  const _DetailsView({
-    super.key,
-    required this.cart,
-    required this.onBack,
-    required this.onPlaced,
-  });
-
-  final Cart cart;
-  final VoidCallback onBack;
-  final ValueChanged<PlacedOrder> onPlaced;
-
-  @override
-  State<_DetailsView> createState() => _DetailsViewState();
-}
-
-class _DetailsViewState extends State<_DetailsView> {
-  final _name = TextEditingController();
-  final _phone = TextEditingController();
-  final _address = TextEditingController();
-  bool _sending = false;
-  bool _showErrors = false;
-  bool _failed = false;
-
-  @override
-  void dispose() {
-    _name.dispose();
-    _phone.dispose();
-    _address.dispose();
-    super.dispose();
-  }
-
-  bool get _needsAddress => widget.cart.hasOnOrder;
-  bool get _nameOk => _name.text.trim().isNotEmpty;
-  bool get _phoneOk => isValidPhone(_phone.text);
-  bool get _addressOk => !_needsAddress || _address.text.trim().length >= 8;
-
-  Future<void> _submit() async {
-    if (_sending) return;
-    if (!(_nameOk && _phoneOk && _addressOk)) {
-      setState(() => _showErrors = true);
-      return;
-    }
-    setState(() {
-      _sending = true;
-      _failed = false;
-    });
-    try {
-      final order = await OrderService.place(
-        customer: CustomerDetails(
-          name: _name.text,
-          phone: _phone.text,
-          address: _address.text,
-        ),
-        cart: widget.cart,
-        language: Localizations.localeOf(context).languageCode,
-      );
-      Usage.instance.tap('store.order_sent');
-      if (mounted) widget.onPlaced(order);
-    } catch (_) {
-      // Pas de réseau : on le dit, et on propose WhatsApp à la place.
-      if (mounted) {
-        setState(() {
-          _sending = false;
-          _failed = true;
-        });
-      }
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final p = context.palette;
-
-    InputDecoration field(String label, {String? error, String? hint}) =>
-        InputDecoration(
-          labelText: label,
-          hintText: hint,
-          errorText: _showErrors ? error : null,
-          filled: true,
-          fillColor: p.glass,
-          labelStyle: AppText.body(15, color: p.textMuted),
-          hintStyle: AppText.body(15, color: p.textMuted),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(16),
-            borderSide: BorderSide(color: p.hairline),
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(16),
-            borderSide: BorderSide(color: p.hairline),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(16),
-            borderSide: const BorderSide(color: Brand.gold, width: 1.5),
-          ),
-        );
-    final text = AppText.body(17, weight: FontWeight.w500, color: p.text);
-
-    return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            children: [
-              LiquidIconButton(
-                icon: AppIcons.arrowLeft,
-                label: const Bi('Retour', 'Back').of(context),
-                size: 40,
-                onTap: widget.onBack,
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    const Bi('Vos coordonnées', 'Your details').of(context),
-                    style: AppText.display(32, color: p.text),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          TextField(
-            controller: _name,
-            style: text,
-            textCapitalization: TextCapitalization.words,
-            textInputAction: TextInputAction.next,
-            maxLength: 80,
-            buildCounter: _noCounter,
-            decoration: field(
-              const Bi('Votre nom', 'Your name').of(context),
-              error: _nameOk
-                  ? null
-                  : const Bi(
-                      'Indiquez votre nom',
-                      'Enter your name',
-                    ).of(context),
-            ),
-          ),
-          const SizedBox(height: 12),
-          TextField(
-            controller: _phone,
-            style: text,
-            keyboardType: TextInputType.phone,
-            textInputAction: TextInputAction.next,
-            maxLength: 24,
-            buildCounter: _noCounter,
-            decoration: field(
-              const Bi('Téléphone (WhatsApp)', 'Phone (WhatsApp)').of(context),
-              hint: '514 555-0199',
-              error: _phoneOk
-                  ? null
-                  : const Bi(
-                      'Numéro à 10 chiffres',
-                      '10-digit phone number',
-                    ).of(context),
-            ),
-          ),
-          const SizedBox(height: 12),
-          TextField(
-            controller: _address,
-            style: text,
-            keyboardType: TextInputType.streetAddress,
-            textCapitalization: TextCapitalization.words,
-            minLines: 2,
-            maxLines: 3,
-            maxLength: 300,
-            buildCounter: _noCounter,
-            decoration: field(
-              _needsAddress
-                  ? const Bi(
-                      'Adresse de livraison',
-                      'Delivery address',
-                    ).of(context)
-                  : const Bi(
-                      'Adresse de livraison (facultatif)',
-                      'Delivery address (optional)',
-                    ).of(context),
-              error: _addressOk
-                  ? null
-                  : const Bi(
-                      'Nécessaire pour vous livrer',
-                      'Needed to deliver to you',
-                    ).of(context),
-            ),
-          ),
-          if (_needsAddress) ...[
-            const SizedBox(height: 12),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Icon(AppIcons.package, size: 18, color: p.accentText),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    const Bi(
-                      'Les articles sur commande sont livrés chez vous en '
-                          '$deliveryDays jours. Je vous contacte sur WhatsApp, et '
-                          'vous payez à la réception.',
-                      'Items on order are delivered to your door in '
-                          '$deliveryDays days. I will message you on WhatsApp, and you '
-                          'pay when they arrive.',
-                    ).of(context),
-                    style: AppText.body(13, color: p.textMuted),
-                  ),
-                ),
-              ],
-            ),
-          ],
-          if (_failed) ...[
-            const SizedBox(height: 12),
-            Text(
-              const Bi(
-                'Pas de réseau pour le moment. Réessayez, ou écrivez-moi sur '
-                    'WhatsApp avec le bouton vert.',
-                'No network right now. Try again, or message me on WhatsApp '
-                    'with the green button.',
-              ).of(context),
-              style: AppText.body(14, color: const Color(0xFFFF6B6B)),
-            ),
-          ],
-          const SizedBox(height: 16),
-          GlowButton(
-            label: _sending
-                ? const Bi('Envoi…', 'Sending…').of(context)
-                : const Bi(
-                    'Valider la commande',
-                    'Confirm the order',
-                  ).of(context),
-            icon: AppIcons.check,
-            onTap: _submit,
-          ),
-          const SizedBox(height: 12),
-          // Loi 25 : on dit simplement à quoi servent les coordonnées.
-          Text(
-            const Bi(
-              'Vos coordonnées servent uniquement à traiter cette commande '
-                  'et à vous contacter à son sujet.',
-              'Your details are used only to process this order and to '
-                  'contact you about it.',
-            ).of(context),
-            style: AppText.body(12, color: p.textMuted),
-          ),
-          const PrivacyLink(),
-        ],
-      ),
-    );
-  }
-}
-
-/// Pas de compteur de caractères sous les champs.
-Widget? _noCounter(
-  BuildContext context, {
-  required int currentLength,
-  required bool isFocused,
-  required int? maxLength,
-}) => null;
-
-class _PayView extends StatelessWidget {
-  const _PayView({
-    super.key,
-    required this.total,
-    required this.reference,
-    required this.onBack,
-    required this.onSent,
-  });
-
-  final double total;
-  final String reference;
-  final VoidCallback onBack;
-  final VoidCallback onSent;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final p = context.palette;
-    final email = AppConfig.interacEmail.isEmpty
-        ? l10n.toConfigure
-        : AppConfig.interacEmail;
-
-    return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            children: [
-              LiquidIconButton(
-                icon: AppIcons.arrowLeft,
-                label: const Bi('Retour', 'Back').of(context),
-                size: 40,
-                onTap: onBack,
-              ),
-              const SizedBox(width: 12),
-              Text('Interac', style: AppText.display(34, color: p.text)),
-            ],
-          ),
-          const SizedBox(height: 18),
-          Text(
-            l10n.interacSend(_money(context, total)),
-            style: AppText.body(16, color: p.textMuted),
-          ),
-          const SizedBox(height: 6),
-          SelectableText(
-            email,
-            style: AppText.body(20, weight: FontWeight.w600, color: p.text),
-          ),
-          const SizedBox(height: 18),
-          Text(l10n.interacCode, style: AppText.body(16, color: p.textMuted)),
-          const SizedBox(height: 8),
-          Container(
-            padding: const EdgeInsets.symmetric(vertical: 14),
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: Brand.gold, width: 1.5),
-              color: Brand.gold.withValues(alpha: 0.12),
-            ),
-            child: Text(
-              reference,
-              style: AppText.display(
-                38,
-                color: p.text,
-              ).copyWith(letterSpacing: 4),
-            ),
-          ),
-          const SizedBox(height: 20),
-          GlowButton(
-            label: l10n.interacDone,
-            icon: AppIcons.check,
-            onTap: onSent,
-          ),
-          const SizedBox(height: 22),
-          Text(
-            l10n.whatsappAsk,
-            textAlign: TextAlign.center,
-            style: AppText.body(14, color: p.textMuted),
-          ),
-          const SizedBox(height: 12),
-          Center(
-            child: QrCard(
-              data: AppConfig.whatsAppLink,
-              icon: AppIcons.whatsapp,
-              label: 'WhatsApp',
-              color: const Color(0xFF128C4A),
-              size: 120,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _DoneView extends StatelessWidget {
-  const _DoneView({
-    super.key,
-    required this.onNewOrder,
-    required this.onOrderOnly,
-  });
-
-  final VoidCallback onNewOrder;
-
-  /// Rien à payer tout de suite : la commande sera livrée et payée plus tard.
-  final bool onOrderOnly;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final p = context.palette;
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 96,
-            height: 96,
-            decoration: const BoxDecoration(
-              shape: BoxShape.circle,
-              color: Brand.gold,
-            ),
-            child: const Icon(AppIcons.check, size: 44, color: Brand.ink),
-          ).animate().scale(
-            begin: const Offset(0.4, 0.4),
-            duration: 700.ms,
-            curve: Curves.elasticOut,
-          ),
-          const SizedBox(height: 22),
-          Text(
-            onOrderOnly
-                ? const Bi(
-                    'Commande reçue ! Je vous contacte sur WhatsApp pour la livraison.',
-                    'Order received! I will message you on WhatsApp about delivery.',
-                  ).of(context)
-                : l10n.orderThanks,
-            textAlign: TextAlign.center,
-            style: AppText.display(28, color: p.text),
-          ),
-          const SizedBox(height: 22),
-          PillButton(
-            label: l10n.newOrder,
-            filled: false,
-            onTap: onNewOrder,
-            trailing: const Icon(AppIcons.plus),
           ),
         ],
       ),

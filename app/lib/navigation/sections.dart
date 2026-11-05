@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../data/store_catalog.dart';
 import '../screens/ads_screen.dart';
 import '../screens/collaboration_screen.dart';
 import '../screens/linkedin_screen.dart';
@@ -13,14 +14,19 @@ enum Section { music, linkedin, collaboration, store, ads }
 
 /// Ouvre une section. Depuis l'écran de veille, la session démarre d'abord
 /// dans la langue affichée (anglais par défaut, modifiable ensuite).
-void openSection(BuildContext context, Section section) {
+/// [shopper] choisit le rayon ouvert quand la section est la boutique.
+void openSection(
+  BuildContext context,
+  Section section, {
+  Shopper shopper = Shopper.men,
+}) {
   final session = SessionScope.of(context);
   final navigator = Navigator.of(context, rootNavigator: true);
   if (!session.isActive) session.start(Localizations.localeOf(context));
 
   // Une seule section à la fois au-dessus du lounge.
   navigator.popUntil((route) => route.isFirst);
-  navigator.push(_sectionRoute(section));
+  navigator.push(_sectionRoute(section, shopper));
 }
 
 /// Ouvre un écran du lounge (divertissement, actualités, météo, sondage)
@@ -29,12 +35,12 @@ void openPage(BuildContext context, Widget page, {required String name}) {
   Navigator.of(context, rootNavigator: true).push(_fadeRoute(name, page));
 }
 
-Route<void> _sectionRoute(Section section) {
+Route<void> _sectionRoute(Section section, Shopper shopper) {
   return _fadeRoute(section.name, switch (section) {
     Section.music => const MusicScreen(),
     Section.linkedin => const LinkedInScreen(),
     Section.collaboration => const CollaborationScreen(),
-    Section.store => const StoreScreen(),
+    Section.store => StoreScreen(shopper: shopper),
     Section.ads => const AdsScreen(),
   });
 }

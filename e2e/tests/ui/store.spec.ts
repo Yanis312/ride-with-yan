@@ -9,15 +9,32 @@ test.describe('Boutique', () => {
 
   test('s’ouvre avec un panier vide, les prix et la mention de revendeur', async ({ store }) => {
     await expect(store.emptyCart).toBeVisible();
-    await expect(store.pitch).toContainText('Shoes $80 · Jerseys $50');
-    await expect(store.pitch).toContainText('combo $120');
-    await expect(store.pitch).toContainText('30 days');
+    await expect(store.pitch).toContainText('Shoes $80 · Puffer jackets $120 · Jerseys $50');
+    await expect(store.pitch).toContainText('20 to 30 days');
     await expect(store.resellerNotice).toBeVisible();
     await expect(store.whatsAppButton).toBeVisible();
   });
 
-  test('ne propose que des chaussures et des maillots', async ({ page, store }) => {
+  test('propose deux rayons, hommes et femmes, ouverts sur les hommes', async ({ store }) => {
+    await expect(store.shopper('Men')).toBeVisible();
+    await expect(store.shopper('Women')).toBeVisible();
+    await expect(store.product('Sky blue and white')).toBeVisible();
+    await expect(store.product('Candy pink')).toHaveCount(0);
+  });
+
+  test('le rayon femmes montre le rose, pas le bleu', async ({ store }) => {
+    await store.showShopper('Women');
+
+    await expect(store.product('Candy pink')).toBeVisible();
+    await expect(store.product('Sky blue and white')).toHaveCount(0);
+    // Le blanc et les doudounes sont dans les deux rayons.
+    await expect(store.product('All white')).toBeVisible();
+    await expect(store.product('Black puffer')).toBeVisible();
+  });
+
+  test('range les articles en chaussures, doudounes et maillots', async ({ page, store }) => {
     await expect(store.category('Shoes')).toBeVisible();
+    await expect(store.category('Puffer jackets')).toBeVisible();
     await expect(store.category('Jerseys')).toBeVisible();
     await expect(page.getByRole('button', { name: 'Essentials' })).toHaveCount(0);
   });
@@ -30,6 +47,13 @@ test.describe('Boutique', () => {
     await expect(store.products().filter({ hasText: /in stock/ })).toHaveCount(0);
   });
 
+  test('les doudounes sont sur commande à 120 $', async ({ store }) => {
+    await store.showCategory('Puffer jackets');
+
+    await expect(store.product('Black puffer')).toHaveAccessibleName(/On order.*\$120$/);
+    await expect(store.product('Sky blue and white')).toHaveCount(0);
+  });
+
   test('tous les maillots sont sur commande à 50 $', async ({ store }) => {
     await store.showCategory('Jerseys');
 
@@ -39,15 +63,16 @@ test.describe('Boutique', () => {
     }
   });
 
-  test('une paire seule se paie 80 $ à la livraison', async ({ store }) => {
+  test('une paire : 40 $ d’acompte, 40 $ à la livraison', async ({ store }) => {
     await store.showCategory('Shoes');
     await store.addSized('All white', 'US 9');
 
     await expect(store.cartLine('All white')).toBeVisible();
-    await expect(store.onDelivery).toBeVisible();
     await expect(store.amount('$80')).toBeVisible();
+    await expect(store.depositLine).toBeVisible();
+    await expect(store.onDelivery).toBeVisible();
+    await expect(store.amount('$40')).toHaveCount(2);
     await expect(store.comboLine).toBeHidden();
-    await expect(store.nextStepHint).toContainText('You pay on delivery');
   });
 
   test('une paire avec un maillot revient à 120 $ (combo)', async ({ store }) => {
