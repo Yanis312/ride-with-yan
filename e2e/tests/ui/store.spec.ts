@@ -9,7 +9,7 @@ test.describe('Boutique', () => {
 
   test('s’ouvre avec un panier vide, les prix et la mention de revendeur', async ({ store }) => {
     await expect(store.emptyCart).toBeVisible();
-    await expect(store.pitch).toContainText('Shoes $80 · The North Face $120');
+    await expect(store.pitch).toContainText('Everything $80');
     await expect(store.pitch).toContainText('20 to 30 days');
     await expect(store.resellerNotice).toBeVisible();
     await expect(store.whatsAppButton).toBeVisible();
@@ -56,10 +56,10 @@ test.describe('Boutique', () => {
     await expect(store.product('White, studded')).toBeVisible();
   });
 
-  test('les doudounes The North Face sont sur commande à 120 $', async ({ store }) => {
+  test('les doudounes The North Face sont sur commande à 80 $', async ({ store }) => {
     await store.showCategory('The North Face');
 
-    await expect(store.product('Black puffer')).toHaveAccessibleName(/On order.*\$120$/);
+    await expect(store.product('Black puffer')).toHaveAccessibleName(/On order.*\$80$/);
     await expect(store.product('All white')).toHaveCount(0);
   });
 
@@ -91,6 +91,6 @@ test.describe('Boutique', () => {
     await store.showCategory('The North Face');
 
     await expect(store.product('Yellow puffer')).toHaveAccessibleName(/\$99$/);
-    await expect(store.product('Orange puffer')).toHaveAccessibleName(/\$120$/);
+    await expect(store.product('Orange puffer')).toHaveAccessibleName(/\$80$/);
   });
 });

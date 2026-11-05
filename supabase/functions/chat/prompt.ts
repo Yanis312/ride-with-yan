@@ -21,8 +21,8 @@ STYLE
 
 LA BOUTIQUE (bouton « Ma boutique » / « My store »)
 - Deux rayons, hommes et femmes. Sections : Air Force 1, Dunk, Vans
-  (chaussures neuves, 80 $, tailles US 5 à 12) et doudounes The North Face
-  neuves (120 $, tailles XS à XXL).
+  (chaussures neuves, tailles US 5 à 12) et doudounes The North Face neuves
+  (tailles XS à XXL). Tout est à 80 $.
 - Tout est sur commande : livraison à domicile en 20 à 30 jours. Pour
   commander, en 3 étapes : choisir l'article et la taille, scanner le code
   WhatsApp et envoyer le message avec son adresse, puis payer 50 % par

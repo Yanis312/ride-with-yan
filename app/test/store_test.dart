@@ -23,16 +23,11 @@ void _stockShoes() {
 }
 
 void main() {
-  test('tout le catalogue est sur commande : chaussures 80 \$, The North Face '
-      '120 \$', () {
+  test('tout le catalogue est sur commande, à 80 \$', () {
     for (final p in catalog) {
       expect(p.stockOf(), 0, reason: p.id);
       expect(p.preorder, isTrue, reason: p.id);
-      expect(
-        p.price,
-        p.category == ProductCategory.northFace ? 120 : 80,
-        reason: p.id,
-      );
+      expect(p.price, 80, reason: p.id);
     }
   });
 
@@ -109,9 +104,9 @@ void main() {
     final cart = Cart()
       ..add(_find('doudoune-noire'), 'M')
       ..add(_find('chaussures-moka'), 'US 9');
-    expect(cart.total, 200);
-    expect(cart.deposit, 100);
-    expect(cart.balance, 100);
+    expect(cart.total, 160);
+    expect(cart.deposit, 80);
+    expect(cart.balance, 80);
   });
 
   test('retirer le dernier exemplaire enlève la ligne', () {
@@ -171,7 +166,7 @@ void main() {
         message,
         contains('1 × Doudoune noire (The North Face), taille M'),
       );
-      expect(message, contains('Total : 200 \$ · acompte 50 % : 100 \$'));
+      expect(message, contains('Total : 160 \$ · acompte 50 % : 80 \$'));
       expect(message, endsWith('Mon adresse de livraison :'));
     });
 
@@ -181,7 +176,7 @@ void main() {
         message,
         contains('1 × All white (Air Force 1), size US 9 : \$80'),
       );
-      expect(message, contains('Total: \$200 · 50% deposit: \$100'));
+      expect(message, contains('Total: \$160 · 50% deposit: \$80'));
       expect(message, endsWith('My delivery address:'));
     });
 

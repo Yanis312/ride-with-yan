@@ -16,7 +16,7 @@ test.describe('Commande sur WhatsApp', () => {
 
     await expect(store.step('Scan the code')).toBeVisible();
     await expect(store.step('Add your address and send')).toBeVisible();
-    await expect(store.step('Pay $60 by Interac, the rest on delivery')).toBeVisible();
+    await expect(store.step('Pay $40 by Interac, the rest on delivery')).toBeVisible();
     await expect(page.getByText('WhatsApp', { exact: true })).toBeVisible();
 
     // Aucune commande n'est écrite dans la base depuis la tablette.
@@ -30,7 +30,7 @@ test.describe('Commande sur WhatsApp', () => {
     await store.addSized('Orange puffer', 'L');
     await store.order();
 
-    await expect(store.step('Pay $100 by Interac, the rest on delivery')).toBeVisible();
+    await expect(store.step('Pay $80 by Interac, the rest on delivery')).toBeVisible();
   });
 
   test('se ferme et garde le panier', async ({ page, store }) => {

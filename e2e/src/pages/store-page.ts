@@ -19,7 +19,7 @@ export class StorePage {
 
   constructor(private readonly page: Page) {
     this.emptyCart = page.getByText('Your cart is empty.');
-    this.pitch = page.getByText(/^Shoes \$\d+ · The North Face/);
+    this.pitch = page.getByText(/^Everything \$\d+ · Delivered/);
     this.depositLine = page.getByText('Deposit when ordering (50%, Interac)', { exact: true });
     this.onDelivery = page.getByText('On delivery (20 to 30 days)', { exact: true });
     this.orderButton = page.getByRole('button', { name: 'Order on WhatsApp' });

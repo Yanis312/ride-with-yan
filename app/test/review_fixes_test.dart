@@ -161,7 +161,7 @@ void main() {
     expect(shoes.stockOf('US 8'), base.stockOf('US 8'));
 
     final jacket = catalog.firstWhere((p) => p.id == 'doudoune-jaune');
-    expect(jacket.price, 120);
+    expect(jacket.price, 80);
     expect(jacket.stock, 5);
   });
 }

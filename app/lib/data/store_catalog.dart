@@ -217,10 +217,8 @@ const orderNotice = Bi(
 
 /// Rappel des prix affiché en haut de la boutique.
 const storePitch = Bi(
-  'Chaussures 80 \$ · The North Face 120 \$ · Livré chez vous en 20 à 30 '
-      'jours.',
-  'Shoes \$80 · The North Face \$120 · Delivered to your door in 20 to 30 '
-      'days.',
+  'Tout à 80 \$ · Livré chez vous en 20 à 30 jours.',
+  'Everything \$80 · Delivered to your door in 20 to 30 days.',
 );
 
 /// Tailles des doudounes, sur commande comme le reste.
@@ -287,7 +285,7 @@ Product _shoe(
   details: _sneakerDetails,
 );
 
-/// Une doudoune : 120 $, pour hommes et femmes sauf indication contraire.
+/// Une doudoune : 80 $, pour hommes et femmes sauf indication contraire.
 Product _jacket(
   String id,
   Bi name, {
@@ -298,7 +296,7 @@ Product _jacket(
   id: id,
   name: name,
   blurb: blurb,
-  price: 120,
+  price: 80,
   category: ProductCategory.northFace,
   icon: AppIcons.snowflake,
   colors: _studio,
