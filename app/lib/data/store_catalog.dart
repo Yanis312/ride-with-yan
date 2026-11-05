@@ -18,10 +18,12 @@ enum Shopper {
 
 const _everyone = {Shopper.men, Shopper.women};
 
+/// Les sections de la boutique, par modèle.
 enum ProductCategory {
-  sneakers(Bi('Chaussures', 'Shoes'), AppIcons.sneaker),
-  jackets(Bi('Doudounes', 'Puffer jackets'), AppIcons.snowflake),
-  jerseys(Bi('Maillots', 'Jerseys'), AppIcons.tShirt);
+  airForce1(Bi('Air Force 1', 'Air Force 1'), AppIcons.sneaker),
+  dunk(Bi('Dunk', 'Dunk'), AppIcons.sneaker),
+  vans(Bi('Vans', 'Vans'), AppIcons.sneaker),
+  northFace(Bi('The North Face', 'The North Face'), AppIcons.snowflake);
 
   const ProductCategory(this.label, this.icon);
 
@@ -198,10 +200,6 @@ const _howToOrder = [
 const _sneakerDetails = [
   Bi('Neuves, jamais portées', 'New, never worn'),
   ..._howToOrder,
-  Bi(
-    'Combo : 1 paire + 1 maillot = 120 \$',
-    'Combo: 1 pair + 1 jersey = \$120',
-  ),
 ];
 
 const _jacketDetails = [
@@ -209,43 +207,24 @@ const _jacketDetails = [
   ..._howToOrder,
 ];
 
-const _jerseyDetails = [
-  Bi('Neuf, jamais porté', 'New, never worn'),
-  ..._howToOrder,
-  Bi(
-    'Combo : 1 paire + 1 maillot = 120 \$',
-    'Combo: 1 pair + 1 jersey = \$120',
-  ),
-];
-
 /// Délai et paiement d'une commande, affichés sous les tailles.
 const orderNotice = Bi(
-  'Livré chez vous en 20 à 30 jours. Acompte de 50 % par Interac à la '
-      'commande, le reste à la livraison. Pas satisfait : remboursé.',
-  'Delivered to your door in 20 to 30 days. 50% deposit by Interac when you '
-      'order, the rest on delivery. Not satisfied: refunded.',
+  'Livré chez vous en 20 à 30 jours · 50 % à la commande, le reste à la '
+      'livraison.',
+  'Delivered to your door in 20 to 30 days · 50% when you order, the rest '
+      'on delivery.',
 );
-
-/// Prix d'un combo : une paire de chaussures et un maillot ensemble.
-const comboPrice = 120.0;
 
 /// Rappel des prix affiché en haut de la boutique.
 const storePitch = Bi(
-  'Chaussures 80 \$ · Doudounes 120 \$ · Maillots 50 \$ · Livré chez vous en '
-      '20 à 30 jours.',
-  'Shoes \$80 · Puffer jackets \$120 · Jerseys \$50 · Delivered to your door '
-      'in 20 to 30 days.',
+  'Chaussures 80 \$ · The North Face 120 \$ · Livré chez vous en 20 à 30 '
+      'jours.',
+  'Shoes \$80 · The North Face \$120 · Delivered to your door in 20 to 30 '
+      'days.',
 );
-
-/// Tailles des maillots. Zéro partout par défaut : tout est sur commande
-/// tant que le stock réel n'est pas saisi dans le panneau d'administration.
-const _jerseySizes = {'S': 0, 'M': 0, 'L': 0, 'XL': 0};
 
 /// Tailles des doudounes, sur commande comme le reste.
 const _jacketSizes = {'XS': 0, 'S': 0, 'M': 0, 'L': 0, 'XL': 0, 'XXL': 0};
-
-/// Fond sombre derrière les photos de maillots (texte clair par-dessus).
-const _jerseyStage = [Color(0xFF2A2D36), Color(0xFF0E0F13)];
 
 const _shoeBlurb = Bi('Chaussures basses · neuves', 'Low-top shoes · new');
 const _jacketBlurb = Bi('Doudoune · neuve', 'Puffer jacket · new');
@@ -285,6 +264,7 @@ const _menShoeSizes = {
 
 /// Une paire de la boutique : 80 $, sur commande, une photo cadrée.
 Product _shoe(
+  ProductCategory category,
   String id,
   Bi name, {
   Set<Shopper> shoppers = _everyone,
@@ -294,7 +274,7 @@ Product _shoe(
   name: name,
   blurb: _shoeBlurb,
   price: 80,
-  category: ProductCategory.sneakers,
+  category: category,
   icon: AppIcons.sneaker,
   colors: _studio,
   shoppers: shoppers,
@@ -319,7 +299,7 @@ Product _jacket(
   name: name,
   blurb: blurb,
   price: 120,
-  category: ProductCategory.jackets,
+  category: ProductCategory.northFace,
   icon: AppIcons.snowflake,
   colors: _studio,
   shoppers: shoppers,
@@ -330,241 +310,117 @@ Product _jacket(
   details: _jacketDetails,
 );
 
-/// Catalogue. Aucun nom de marque : les articles sont désignés par leur
-/// couleur. Tailles, quantités et prix sont à ajuster au vrai stock.
+/// Catalogue, rangé par modèle ; chaque article est désigné par sa couleur. Tailles, quantités et prix sont à ajuster au vrai stock.
 final baseCatalog = <Product>[
-  const Product(
-    id: 'chaussures-blanc',
-    name: Bi('Blanc intégral', 'All white'),
-    blurb: _shoeBlurb,
-    price: 80,
-    category: ProductCategory.sneakers,
-    icon: AppIcons.sneaker,
-    colors: _studio,
-    sizes: _shoeSizes,
-    photoCount: 1,
-    framed: true,
-    preorder: true,
-    details: _sneakerDetails,
-  ),
-  const Product(
-    id: 'chaussures-blanc-noir',
-    name: Bi('Blanc et noir', 'White and black'),
-    blurb: _shoeBlurb,
-    price: 80,
-    category: ProductCategory.sneakers,
-    icon: AppIcons.sneaker,
-    colors: _studio,
-    sizes: _shoeSizes,
-    photoCount: 1,
-    framed: true,
-    preorder: true,
-    details: _sneakerDetails,
-  ),
-  const Product(
-    id: 'chaussures-blanc-noir-or',
-    name: Bi('Blanc, noir et or', 'White, black and gold'),
-    blurb: _shoeBlurb,
-    price: 80,
-    category: ProductCategory.sneakers,
-    icon: AppIcons.sneaker,
-    colors: _studio,
-    sizes: _shoeSizes,
-    photoCount: 1,
-    framed: true,
-    preorder: true,
-    details: _sneakerDetails,
-  ),
-  const Product(
-    id: 'chaussures-blanc-gris',
-    name: Bi('Blanc et gris', 'White and grey'),
-    blurb: _shoeBlurb,
-    price: 80,
-    category: ProductCategory.sneakers,
-    icon: AppIcons.sneaker,
-    colors: _studio,
-    sizes: _shoeSizes,
-    photoCount: 1,
-    framed: true,
-    preorder: true,
-    details: _sneakerDetails,
-  ),
-  const Product(
-    id: 'chaussures-camel',
-    name: Bi('Camel', 'Wheat'),
-    blurb: _shoeBlurb,
-    price: 80,
-    category: ProductCategory.sneakers,
-    icon: AppIcons.sneaker,
-    colors: _studio,
-    sizes: _shoeSizes,
-    photoCount: 1,
-    framed: true,
-    preorder: true,
-    details: _sneakerDetails,
-  ),
-  const Product(
-    id: 'chaussures-blanc-lacets-noirs',
-    name: Bi('Blanc, lacets noirs', 'White, black laces'),
-    blurb: _shoeBlurb,
-    price: 80,
-    category: ProductCategory.sneakers,
-    icon: AppIcons.sneaker,
-    colors: _studio,
-    sizes: _shoeSizes,
-    photoCount: 1,
-    framed: true,
-    preorder: true,
-    details: _sneakerDetails,
-  ),
-  const Product(
-    id: 'chaussures-noir-blanc',
-    name: Bi('Noir et blanc', 'Black and white'),
-    blurb: _shoeBlurb,
-    price: 80,
-    category: ProductCategory.sneakers,
-    icon: AppIcons.sneaker,
-    colors: _studio,
-    sizes: _shoeSizes,
-    photoCount: 1,
-    framed: true,
-    preorder: true,
-    details: _sneakerDetails,
-  ),
-  const Product(
-    id: 'chaussures-noir',
-    name: Bi('Noir intégral', 'All black'),
-    blurb: _shoeBlurb,
-    price: 80,
-    category: ProductCategory.sneakers,
-    icon: AppIcons.sneaker,
-    colors: _studio,
-    sizes: _shoeSizes,
-    photoCount: 1,
-    framed: true,
-    preorder: true,
-    details: _sneakerDetails,
-  ),
-  const Product(
-    id: 'chaussures-blanc-vert',
-    name: Bi('Blanc et vert, nœud rouge', 'White and green, red knot'),
-    blurb: _shoeBlurb,
-    price: 80,
-    category: ProductCategory.sneakers,
-    icon: AppIcons.sneaker,
-    colors: _studio,
-    sizes: _shoeSizes,
-    photoCount: 1,
-    framed: true,
-    preorder: true,
-    details: _sneakerDetails,
-  ),
-  const Product(
-    id: 'chaussures-blanc-rouge',
-    name: Bi('Blanc, semelle rouge', 'White, red sole'),
-    blurb: _shoeBlurb,
-    price: 80,
-    category: ProductCategory.sneakers,
-    icon: AppIcons.sneaker,
-    colors: _studio,
-    sizes: _shoeSizes,
-    photoCount: 1,
-    framed: true,
-    preorder: true,
-    details: _sneakerDetails,
-  ),
-  const Product(
-    id: 'chaussures-creme-menthe',
-    name: Bi('Crème et menthe', 'Cream and mint'),
-    blurb: _shoeBlurb,
-    price: 80,
-    category: ProductCategory.sneakers,
-    icon: AppIcons.sneaker,
-    colors: _studio,
-    sizes: _shoeSizes,
-    photoCount: 1,
-    framed: true,
-    preorder: true,
-    details: _sneakerDetails,
-  ),
-  // Femmes
+  // Les nouveautés d'abord, avec leurs vraies photos.
+  // Air Force 1
   _shoe(
-    'chaussures-rose-bonbon',
-    Bi('Rose bonbon', 'Candy pink'),
-    shoppers: {Shopper.women},
-    photos: 2,
-  ),
-  _shoe(
-    'chaussures-fuchsia-blanc',
-    Bi('Fuchsia et blanc', 'Fuchsia and white'),
-    shoppers: {Shopper.women},
-  ),
-  _shoe(
+    ProductCategory.airForce1,
     'chaussures-rose-bordeaux',
     Bi('Rose et bordeaux vernis', 'Pink and burgundy patent'),
     shoppers: {Shopper.women},
     photos: 2,
   ),
   _shoe(
+    ProductCategory.airForce1,
     'chaussures-vache',
     Bi('Crème, motif vache', 'Cream, cow print'),
     shoppers: {Shopper.women},
   ),
   _shoe(
-    'chaussures-cloutees-rose',
-    Bi('Rose et noir à clous', 'Pink and black, studded'),
-    shoppers: {Shopper.women},
-  ),
-  _shoe(
-    'chaussures-daim-rose',
-    Bi('Daim rose', 'Pink suede'),
-    shoppers: {Shopper.women},
-  ),
-  // Hommes
-  _shoe(
-    'chaussures-bleu-ciel',
-    Bi('Bleu ciel et blanc', 'Sky blue and white'),
-    shoppers: {Shopper.men},
-  ),
-  _shoe(
+    ProductCategory.airForce1,
     'chaussures-bleu-vernis',
     Bi('Bleu vernis', 'Blue patent'),
     shoppers: {Shopper.men},
   ),
   _shoe(
+    ProductCategory.airForce1,
     'chaussures-jaune-vert',
     Bi('Jaune et vert vernis', 'Yellow and green patent'),
     shoppers: {Shopper.men},
   ),
   _shoe(
+    ProductCategory.airForce1,
     'chaussures-bordeaux-orange',
     Bi('Bordeaux et orange', 'Burgundy and orange'),
     shoppers: {Shopper.men},
   ),
   _shoe(
+    ProductCategory.airForce1,
     'chaussures-vert-jaune-rouge',
     Bi('Vert, jaune et rouge', 'Green, yellow and red'),
     shoppers: {Shopper.men},
   ),
   _shoe(
+    ProductCategory.airForce1,
+    'chaussures-rouge',
+    Bi('Rouge intégral', 'All red'),
+  ),
+  // Dunk
+  _shoe(
+    ProductCategory.dunk,
+    'chaussures-rose-bonbon',
+    Bi('Rose bonbon', 'Candy pink'),
+    shoppers: {Shopper.women},
+    photos: 2,
+  ),
+  _shoe(
+    ProductCategory.dunk,
+    'chaussures-fuchsia-blanc',
+    Bi('Fuchsia et blanc', 'Fuchsia and white'),
+    shoppers: {Shopper.women},
+  ),
+  _shoe(
+    ProductCategory.dunk,
+    'chaussures-bleu-ciel',
+    Bi('Bleu ciel et blanc', 'Sky blue and white'),
+    shoppers: {Shopper.men},
+  ),
+  _shoe(
+    ProductCategory.dunk,
     'chaussures-rouge-jaune-bleu',
     Bi('Rouge, jaune et bleu', 'Red, yellow and blue'),
     shoppers: {Shopper.men},
   ),
-  // Pour tous
-  _shoe('chaussures-moka', Bi('Moka et blanc', 'Mocha and white')),
-  _shoe('chaussures-voile', Bi('Voile et gris clair', 'Sail and light grey')),
-  _shoe('chaussures-rouge', Bi('Rouge intégral', 'All red')),
-  _shoe('chaussures-cloutees-blanc', Bi('Blanc à clous', 'White, studded')),
   _shoe(
+    ProductCategory.dunk,
+    'chaussures-moka',
+    Bi('Moka et blanc', 'Mocha and white'),
+  ),
+  _shoe(
+    ProductCategory.dunk,
+    'chaussures-voile',
+    Bi('Voile et gris clair', 'Sail and light grey'),
+  ),
+  // Vans
+  _shoe(
+    ProductCategory.vans,
+    'chaussures-cloutees-rose',
+    Bi('Rose et noir à clous', 'Pink and black, studded'),
+    shoppers: {Shopper.women},
+  ),
+  _shoe(
+    ProductCategory.vans,
+    'chaussures-daim-rose',
+    Bi('Daim rose', 'Pink suede'),
+    shoppers: {Shopper.women},
+  ),
+  _shoe(
+    ProductCategory.vans,
+    'chaussures-cloutees-blanc',
+    Bi('Blanc à clous', 'White, studded'),
+  ),
+  _shoe(
+    ProductCategory.vans,
     'chaussures-cloutees-bordeaux',
     Bi('Bordeaux et noir à clous', 'Burgundy and black, studded'),
   ),
   _shoe(
+    ProductCategory.vans,
     'chaussures-patchwork',
     Bi('Patchwork et badges', 'Patchwork with pins'),
   ),
-  // Doudounes, toutes couleurs, pour tous
+  // The North Face, toutes couleurs, pour tous
   _jacket('doudoune-noire', Bi('Doudoune noire', 'Black puffer'), photos: 3),
   _jacket('doudoune-bleue', Bi('Doudoune bleue', 'Blue puffer'), photos: 2),
   _jacket('doudoune-orange', Bi('Doudoune orange', 'Orange puffer')),
@@ -580,64 +436,160 @@ final baseCatalog = <Product>[
     Bi('Sans manches noire', 'Black vest'),
     blurb: _vestBlurb,
   ),
+  // Les Air Force 1 de départ, photos de studio.
   const Product(
-    id: 'maillot-yamal',
-    name: Bi('Maillot Yamal', 'Yamal jersey'),
-    blurb: Bi(
-      'Rayé bleu et grenat · n° 10',
-      'Blue and garnet stripes · no. 10',
-    ),
-    price: 50,
-    category: ProductCategory.jerseys,
-    icon: AppIcons.tShirt,
-    colors: _jerseyStage,
-    sizes: _jerseySizes,
-    photoCount: 2,
+    id: 'chaussures-blanc',
+    name: Bi('Blanc intégral', 'All white'),
+    blurb: _shoeBlurb,
+    price: 80,
+    category: ProductCategory.airForce1,
+    icon: AppIcons.sneaker,
+    colors: _studio,
+    sizes: _shoeSizes,
+    photoCount: 1,
     framed: true,
     preorder: true,
-    details: _jerseyDetails,
+    details: _sneakerDetails,
   ),
   const Product(
-    id: 'maillot-olise',
-    name: Bi('Maillot Olise', 'Olise jersey'),
-    blurb: Bi('Rouge · n° 17', 'Red · no. 17'),
-    price: 50,
-    category: ProductCategory.jerseys,
-    icon: AppIcons.tShirt,
-    colors: _jerseyStage,
-    sizes: _jerseySizes,
-    photoCount: 2,
+    id: 'chaussures-blanc-noir',
+    name: Bi('Blanc et noir', 'White and black'),
+    blurb: _shoeBlurb,
+    price: 80,
+    category: ProductCategory.airForce1,
+    icon: AppIcons.sneaker,
+    colors: _studio,
+    sizes: _shoeSizes,
+    photoCount: 1,
     framed: true,
     preorder: true,
-    details: _jerseyDetails,
+    details: _sneakerDetails,
   ),
   const Product(
-    id: 'maillot-mbappe',
-    name: Bi('Maillot Mbappé', 'Mbappé jersey'),
-    blurb: Bi('Blanc, manches longues · n° 10', 'White, long sleeves · no. 10'),
-    price: 50,
-    category: ProductCategory.jerseys,
-    icon: AppIcons.tShirt,
-    colors: _jerseyStage,
-    sizes: _jerseySizes,
-    photoCount: 2,
+    id: 'chaussures-blanc-noir-or',
+    name: Bi('Blanc, noir et or', 'White, black and gold'),
+    blurb: _shoeBlurb,
+    price: 80,
+    category: ProductCategory.airForce1,
+    icon: AppIcons.sneaker,
+    colors: _studio,
+    sizes: _shoeSizes,
+    photoCount: 1,
     framed: true,
     preorder: true,
-    details: _jerseyDetails,
+    details: _sneakerDetails,
   ),
   const Product(
-    id: 'maillot-bellingham',
-    name: Bi('Maillot Bellingham', 'Bellingham jersey'),
-    blurb: Bi('Blanc, manches longues · n° 5', 'White, long sleeves · no. 5'),
-    price: 50,
-    category: ProductCategory.jerseys,
-    icon: AppIcons.tShirt,
-    colors: _jerseyStage,
-    sizes: _jerseySizes,
-    photoCount: 2,
+    id: 'chaussures-blanc-gris',
+    name: Bi('Blanc et gris', 'White and grey'),
+    blurb: _shoeBlurb,
+    price: 80,
+    category: ProductCategory.airForce1,
+    icon: AppIcons.sneaker,
+    colors: _studio,
+    sizes: _shoeSizes,
+    photoCount: 1,
     framed: true,
     preorder: true,
-    details: _jerseyDetails,
+    details: _sneakerDetails,
+  ),
+  const Product(
+    id: 'chaussures-camel',
+    name: Bi('Camel', 'Wheat'),
+    blurb: _shoeBlurb,
+    price: 80,
+    category: ProductCategory.airForce1,
+    icon: AppIcons.sneaker,
+    colors: _studio,
+    sizes: _shoeSizes,
+    photoCount: 1,
+    framed: true,
+    preorder: true,
+    details: _sneakerDetails,
+  ),
+  const Product(
+    id: 'chaussures-blanc-lacets-noirs',
+    name: Bi('Blanc, lacets noirs', 'White, black laces'),
+    blurb: _shoeBlurb,
+    price: 80,
+    category: ProductCategory.airForce1,
+    icon: AppIcons.sneaker,
+    colors: _studio,
+    sizes: _shoeSizes,
+    photoCount: 1,
+    framed: true,
+    preorder: true,
+    details: _sneakerDetails,
+  ),
+  const Product(
+    id: 'chaussures-noir-blanc',
+    name: Bi('Noir et blanc', 'Black and white'),
+    blurb: _shoeBlurb,
+    price: 80,
+    category: ProductCategory.airForce1,
+    icon: AppIcons.sneaker,
+    colors: _studio,
+    sizes: _shoeSizes,
+    photoCount: 1,
+    framed: true,
+    preorder: true,
+    details: _sneakerDetails,
+  ),
+  const Product(
+    id: 'chaussures-noir',
+    name: Bi('Noir intégral', 'All black'),
+    blurb: _shoeBlurb,
+    price: 80,
+    category: ProductCategory.airForce1,
+    icon: AppIcons.sneaker,
+    colors: _studio,
+    sizes: _shoeSizes,
+    photoCount: 1,
+    framed: true,
+    preorder: true,
+    details: _sneakerDetails,
+  ),
+  const Product(
+    id: 'chaussures-blanc-vert',
+    name: Bi('Blanc et vert, nœud rouge', 'White and green, red knot'),
+    blurb: _shoeBlurb,
+    price: 80,
+    category: ProductCategory.airForce1,
+    icon: AppIcons.sneaker,
+    colors: _studio,
+    sizes: _shoeSizes,
+    photoCount: 1,
+    framed: true,
+    preorder: true,
+    details: _sneakerDetails,
+  ),
+  const Product(
+    id: 'chaussures-blanc-rouge',
+    name: Bi('Blanc, semelle rouge', 'White, red sole'),
+    blurb: _shoeBlurb,
+    price: 80,
+    category: ProductCategory.airForce1,
+    icon: AppIcons.sneaker,
+    colors: _studio,
+    sizes: _shoeSizes,
+    photoCount: 1,
+    framed: true,
+    preorder: true,
+    details: _sneakerDetails,
+  ),
+  const Product(
+    id: 'chaussures-creme-menthe',
+    name: Bi('Crème et menthe', 'Cream and mint'),
+    blurb: _shoeBlurb,
+    price: 80,
+    category: ProductCategory.airForce1,
+    icon: AppIcons.sneaker,
+    colors: _studio,
+    sizes: _shoeSizes,
+    photoCount: 1,
+    framed: true,
+    preorder: true,
+    details: _sneakerDetails,
   ),
 ];
 
@@ -683,7 +635,7 @@ List<Product> _shelf(List<Product> products, Shopper shopper) => [
 ];
 
 /// Vitrine d'une boutique sur l'écran de veille : les catégories alternent
-/// (une paire, une doudoune, un maillot…), pour montrer tout l'éventail
+/// (Air Force 1, Dunk, Vans, The North Face…), pour montrer tout l'éventail
 /// même quand la diapo n'a le temps de montrer que [limit] articles.
 List<Product> featuredFor(Shopper shopper, {int limit = 24}) {
   final queues = {
@@ -750,40 +702,13 @@ class Cart extends ChangeNotifier {
   int get count => _lines.values.fold(0, (a, b) => a + b);
   double get subtotal => lines.fold(0, (sum, l) => sum + l.subtotal);
 
-  /// Prix à payer, rabais des combos déduits.
-  double get total => subtotal - comboDiscount;
+  double get total => subtotal;
 
   /// Acompte versé par Interac à la commande.
   double get deposit => total * depositShare;
 
   /// Reste payé à la livraison, si le client est satisfait.
   double get balance => total - deposit;
-
-  int _quantityIn(ProductCategory category) => lines
-      .where((l) => l.product.category == category)
-      .fold(0, (sum, l) => sum + l.quantity);
-
-  /// Nombre de combos dans le panier : une paire avec un maillot.
-  int get combos {
-    final shoes = _quantityIn(ProductCategory.sneakers);
-    final jerseys = _quantityIn(ProductCategory.jerseys);
-    return shoes < jerseys ? shoes : jerseys;
-  }
-
-  /// Rabais des combos : chaque paire prise avec un maillot revient à
-  /// [comboPrice] au lieu du prix des deux articles séparés.
-  double get comboDiscount {
-    if (combos == 0) return 0;
-    double cheapest(ProductCategory category) => lines
-        .where((l) => l.product.category == category)
-        .map((l) => l.product.price)
-        .reduce((a, b) => a < b ? a : b);
-    final saving =
-        cheapest(ProductCategory.sneakers) +
-        cheapest(ProductCategory.jerseys) -
-        comboPrice;
-    return saving > 0 ? saving * combos : 0;
-  }
 
   /// Quantité maximale d'un même article sur commande.
   static const maxOnOrder = 3;

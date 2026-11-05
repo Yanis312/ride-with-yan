@@ -1,6 +1,6 @@
 import type { Locator, Page } from '@playwright/test';
 
-export type Category = 'All' | 'Shoes' | 'Puffer jackets' | 'Jerseys';
+export type Category = 'All' | 'Air Force 1' | 'Dunk' | 'Vans' | 'The North Face';
 export type Shopper = 'Men' | 'Women';
 
 /** Boutique : deux rayons, catalogue, panier, commande sur WhatsApp. */
@@ -8,29 +8,25 @@ export class StorePage {
   readonly emptyCart: Locator;
   /** Rappel des prix et du délai, en haut de la boutique. */
   readonly pitch: Locator;
-  readonly comboLine: Locator;
   readonly depositLine: Locator;
   readonly onDelivery: Locator;
   readonly orderButton: Locator;
   readonly whatsAppButton: Locator;
   readonly resellerNotice: Locator;
 
-  // Feuille de commande WhatsApp
+  // Feuille de commande WhatsApp, en trois étapes
   readonly orderSheetTitle: Locator;
-  readonly orderSheetBody: Locator;
 
   constructor(private readonly page: Page) {
     this.emptyCart = page.getByText('Your cart is empty.');
-    this.pitch = page.getByText(/^Shoes \$\d+ · Puffer jackets/);
-    this.comboLine = page.getByText('Pair + jersey combo', { exact: true });
+    this.pitch = page.getByText(/^Shoes \$\d+ · The North Face/);
     this.depositLine = page.getByText('Deposit when ordering (50%, Interac)', { exact: true });
     this.onDelivery = page.getByText('On delivery (20 to 30 days)', { exact: true });
     this.orderButton = page.getByRole('button', { name: 'Order on WhatsApp' });
     this.whatsAppButton = page.getByRole('button', { name: 'Contact me on WhatsApp' });
     this.resellerNotice = page.getByText(/Independent reseller/);
 
-    this.orderSheetTitle = page.getByText('Send it on WhatsApp', { exact: true });
-    this.orderSheetBody = page.getByText(/^Add your address to the message/);
+    this.orderSheetTitle = page.getByText('Order in 3 steps', { exact: true });
   }
 
   /** Bouton d'un des deux rayons, en haut de la boutique. */
@@ -76,6 +72,11 @@ export class StorePage {
 
   cartLine(name: string) {
     return this.page.getByRole('button', { name: new RegExp(`^\\d+ × ${name}`) });
+  }
+
+  /** Étape de la commande, retrouvée par son texte. */
+  step(text: string | RegExp) {
+    return this.page.getByText(text);
   }
 
   async order() {

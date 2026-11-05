@@ -30,8 +30,8 @@ String _money(BuildContext context, double amount) => NumberFormat.currency(
   decimalDigits: amount == amount.roundToDouble() ? 0 : 2,
 ).format(amount);
 
-/// Boutique à bord, en deux rayons (hommes, femmes) : chaussures, doudounes
-/// et maillots neufs, livrés chez le client. Le panier se termine sur
+/// Boutique à bord, en deux rayons (hommes, femmes) : Air Force 1, Dunk,
+/// Vans et The North Face neufs, livrés chez le client. Le panier finit sur
 /// WhatsApp : le passager envoie sa commande et son adresse, puis paie un
 /// acompte de 50 % par Interac et le reste à la livraison.
 class StoreScreen extends StatefulWidget {
@@ -1197,7 +1197,8 @@ Future<void> _showWhatsAppSheet(
   BuildContext context, {
   required Bi eyebrow,
   required String title,
-  required Bi body,
+  Bi? body,
+  List<Bi> steps = const [],
   required Bi message,
   double qrSize = 180,
 }) {
@@ -1251,12 +1252,18 @@ Future<void> _showWhatsAppSheet(
                         textAlign: TextAlign.center,
                         style: AppText.display(34, color: p.text),
                       ),
-                      const SizedBox(height: 10),
-                      Text(
-                        body.of(context),
-                        textAlign: TextAlign.center,
-                        style: AppText.body(16, color: p.textMuted),
-                      ),
+                      if (body != null) ...[
+                        const SizedBox(height: 10),
+                        Text(
+                          body.of(context),
+                          textAlign: TextAlign.center,
+                          style: AppText.body(16, color: p.textMuted),
+                        ),
+                      ],
+                      // Une commande : trois étapes courtes, numérotées, à
+                      // lire d'un coup d'œil.
+                      for (final (i, step) in steps.indexed)
+                        _Step(number: i + 1, text: step.of(context)),
                       const SizedBox(height: 22),
                       if (link != null)
                         QrCard(
@@ -1266,17 +1273,19 @@ Future<void> _showWhatsAppSheet(
                           color: const Color(0xFF128C4A),
                           size: qrSize,
                         ),
-                      const SizedBox(height: 14),
-                      Text(
-                        const Bi(
-                          'Visez le code avec votre téléphone : le message '
-                              'est déjà écrit, il ne reste qu’à l’envoyer.',
-                          'Point your phone at the code: the message is '
-                              'already written, just send it.',
-                        ).of(context),
-                        textAlign: TextAlign.center,
-                        style: AppText.body(14, color: p.textMuted),
-                      ),
+                      if (steps.isEmpty) ...[
+                        const SizedBox(height: 14),
+                        Text(
+                          const Bi(
+                            'Visez le code avec votre téléphone : le message '
+                                'est déjà écrit, il ne reste qu’à l’envoyer.',
+                            'Point your phone at the code: the message is '
+                                'already written, just send it.',
+                          ).of(context),
+                          textAlign: TextAlign.center,
+                          style: AppText.body(14, color: p.textMuted),
+                        ),
+                      ],
                       const SizedBox(height: 18),
                       PillButton(
                         label: const Bi('Fermer', 'Close').of(context),
@@ -1387,29 +1396,71 @@ class _CartPanel extends StatelessWidget {
 /// pour l'acompte Interac.
 Future<void> showOrderSheet(BuildContext context, Cart cart) {
   final deposit = _money(context, cart.deposit);
-  final balance = _money(context, cart.balance);
   return _showWhatsAppSheet(
     context,
     eyebrow: const Bi('VOTRE COMMANDE', 'YOUR ORDER'),
-    title: const Bi(
-      'Envoyez-la sur WhatsApp',
-      'Send it on WhatsApp',
-    ).of(context),
-    body: Bi(
-      'Ajoutez votre adresse au message, puis envoyez-le. Je vous réponds avec '
-          'le numéro pour l’acompte Interac de 50 % ($deposit). Le reste '
-          '($balance) se paie à la livraison, dans 20 à 30 jours. Pas '
-          'satisfait : je vous rembourse.',
-      'Add your address to the message, then send it. I will reply with the '
-          'number for the 50% Interac deposit ($deposit). The rest ($balance) '
-          'is paid on delivery, in 20 to 30 days. Not satisfied: I refund you.',
-    ),
+    title: const Bi('Commandez en 3 étapes', 'Order in 3 steps').of(context),
+    steps: [
+      const Bi('Scannez le code', 'Scan the code'),
+      const Bi('Ajoutez votre adresse et envoyez', 'Add your address and send'),
+      Bi(
+        'Payez $deposit par Interac, le reste à la livraison',
+        'Pay $deposit by Interac, the rest on delivery',
+      ),
+    ],
     message: Bi(
       orderMessage(cart, english: false),
       orderMessage(cart, english: true),
     ),
     qrSize: 300,
   );
+}
+
+/// Une étape de la commande : un grand numéro doré et quelques mots.
+class _Step extends StatelessWidget {
+  const _Step({required this.number, required this.text});
+
+  final int number;
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 12),
+      child: Row(
+        children: [
+          Container(
+            width: 34,
+            height: 34,
+            alignment: Alignment.center,
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              color: Brand.gold,
+            ),
+            child: Text(
+              '$number',
+              style: AppText.body(
+                17,
+                weight: FontWeight.w800,
+                color: Brand.ink,
+              ),
+            ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Text(
+              text,
+              style: AppText.body(
+                18,
+                weight: FontWeight.w600,
+                color: context.palette.text,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _CartView extends StatelessWidget {
@@ -1472,30 +1523,6 @@ class _CartView extends StatelessWidget {
           ),
           Divider(color: p.hairline),
           const SizedBox(height: 8),
-          if (cart.comboDiscount > 0) ...[
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    const Bi(
-                      'Combo paire + maillot',
-                      'Pair + jersey combo',
-                    ).of(context),
-                    style: AppText.body(14, color: p.accentText),
-                  ),
-                ),
-                Text(
-                  '− ${_money(context, cart.comboDiscount)}',
-                  style: AppText.body(
-                    16,
-                    weight: FontWeight.w600,
-                    color: p.accentText,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 4),
-          ],
           amountRow(l10n.total, cart.total, strong: true),
           const SizedBox(height: 4),
           amountRow(
@@ -1524,10 +1551,8 @@ class _CartView extends StatelessWidget {
           const SizedBox(height: 10),
           Text(
             const Bi(
-              'Vous envoyez la commande et votre adresse sur WhatsApp. Pas '
-                  'satisfait à la livraison : remboursé.',
-              'You send the order and your address on WhatsApp. Not '
-                  'satisfied on delivery: refunded.',
+              'Pas satisfait à la livraison : remboursé.',
+              'Not satisfied on delivery: refunded.',
             ).of(context),
             textAlign: TextAlign.center,
             style: AppText.body(13, color: p.textMuted),

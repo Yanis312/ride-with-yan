@@ -59,7 +59,10 @@ const _phases = [
     AppIcons.users,
     [
       ('La boutique hommes.', "The men's shop."),
-      ('Pour lui : chaussures et doudounes.', 'For him: shoes and jackets.'),
+      (
+        'Air Force 1, Dunk, Vans, North Face.',
+        'Air Force 1, Dunk, Vans, North Face.',
+      ),
     ],
     note: (
       'Neuf, livré chez vous en 20 à 30 jours. Touchez pour voir.',
@@ -72,7 +75,10 @@ const _phases = [
     AppIcons.sparkle,
     [
       ('La boutique femmes.', "The women's shop."),
-      ('Pour elle : chaussures et doudounes.', 'For her: shoes and jackets.'),
+      (
+        'Air Force 1, Dunk, Vans, North Face.',
+        'Air Force 1, Dunk, Vans, North Face.',
+      ),
     ],
     note: (
       'Neuf, livré chez vous en 20 à 30 jours. Touchez pour voir.',

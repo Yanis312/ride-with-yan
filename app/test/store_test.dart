@@ -23,17 +23,30 @@ void _stockShoes() {
 }
 
 void main() {
-  test('tout le catalogue est sur commande : chaussures 80 \$, doudounes '
-      '120 \$, maillots 50 \$', () {
+  test('tout le catalogue est sur commande : chaussures 80 \$, The North Face '
+      '120 \$', () {
     for (final p in catalog) {
       expect(p.stockOf(), 0, reason: p.id);
       expect(p.preorder, isTrue, reason: p.id);
-      expect(p.price, switch (p.category) {
-        ProductCategory.sneakers => 80,
-        ProductCategory.jackets => 120,
-        ProductCategory.jerseys => 50,
-      }, reason: p.id);
+      expect(
+        p.price,
+        p.category == ProductCategory.northFace ? 120 : 80,
+        reason: p.id,
+      );
     }
+  });
+
+  test('quatre sections : Air Force 1, Dunk, Vans, The North Face', () {
+    for (final c in ProductCategory.values) {
+      expect(catalog.where((p) => p.category == c), isNotEmpty, reason: '$c');
+    }
+    expect(_find('chaussures-rose-bonbon').category, ProductCategory.dunk);
+    expect(_find('chaussures-patchwork').category, ProductCategory.vans);
+    expect(_find('doudoune-noire').category, ProductCategory.northFace);
+  });
+
+  test('plus de maillots dans la boutique', () {
+    expect(catalog.where((p) => p.id.startsWith('maillot')), isEmpty);
   });
 
   group('deux boutiques : hommes et femmes', () {
@@ -53,8 +66,8 @@ void main() {
     });
 
     test('chaque rayon montre d’abord ses propres articles', () {
-      expect(catalogFor(Shopper.women).first.id, 'chaussures-rose-bonbon');
-      expect(catalogFor(Shopper.men).first.id, 'chaussures-bleu-ciel');
+      expect(catalogFor(Shopper.women).first.id, 'chaussures-rose-bordeaux');
+      expect(catalogFor(Shopper.men).first.id, 'chaussures-bleu-vernis');
     });
 
     test('le blanc, le noir et les doudounes dans les deux rayons', () {
@@ -67,12 +80,13 @@ void main() {
       }
     });
 
-    test('la vitrine d’un rayon alterne les catégories', () {
+    test('la vitrine d’un rayon alterne les sections', () {
       final shown = featuredFor(Shopper.men);
-      expect(shown.take(3).map((p) => p.category), [
-        ProductCategory.sneakers,
-        ProductCategory.jackets,
-        ProductCategory.jerseys,
+      expect(shown.take(4).map((p) => p.category), [
+        ProductCategory.airForce1,
+        ProductCategory.dunk,
+        ProductCategory.vans,
+        ProductCategory.northFace,
       ]);
       expect(shown.every((p) => p.shoppers.contains(Shopper.men)), isTrue);
       expect(featuredFor(Shopper.women, limit: 5), hasLength(5));
@@ -92,84 +106,39 @@ void main() {
   });
 
   test('la moitié à la commande, le reste à la livraison', () {
-    final cart = Cart()..add(_find('doudoune-noire'), 'M');
-    expect(cart.total, 120);
-    expect(cart.deposit, 60);
-    expect(cart.balance, 60);
+    final cart = Cart()
+      ..add(_find('doudoune-noire'), 'M')
+      ..add(_find('chaussures-moka'), 'US 9');
+    expect(cart.total, 200);
+    expect(cart.deposit, 100);
+    expect(cart.balance, 100);
   });
 
   test('retirer le dernier exemplaire enlève la ligne', () {
-    final jersey = _find('maillot-olise');
-    final cart = Cart()..add(jersey, 'L');
-    cart.remove(jersey, 'L');
+    final jacket = _find('doudoune-orange');
+    final cart = Cart()..add(jacket, 'L');
+    cart.remove(jacket, 'L');
     expect(cart.isEmpty, isTrue);
   });
 
   test('quelques pièces au plus pour un même article sur commande', () {
-    final jersey = _find('maillot-mbappe');
+    final jacket = _find('doudoune-jaune');
     final cart = Cart();
     for (var i = 0; i < 10; i++) {
-      cart.add(jersey, 'S');
+      cart.add(jacket, 'S');
     }
     expect(cart.lines.single.onOrder, isTrue);
-    expect(cart.quantityOf(jersey, 'S'), Cart.maxOnOrder);
+    expect(cart.quantityOf(jacket, 'S'), Cart.maxOnOrder);
   });
 
-  group('combo paire + maillot à 120 \$', () {
-    test('une paire et un maillot reviennent à 120 \$', () {
-      final cart = Cart()
-        ..add(_find('chaussures-blanc'), 'US 9')
-        ..add(_find('maillot-yamal'), 'M');
-
-      expect(cart.combos, 1);
-      expect(cart.comboDiscount, 10);
-      expect(cart.total, comboPrice);
-      expect(cart.deposit, comboPrice / 2);
-    });
-
-    test('pas de rabais sans maillot, ou sans chaussures', () {
-      expect((Cart()..add(_find('chaussures-noir'), 'US 8')).total, 80);
-      expect((Cart()..add(_find('maillot-olise'), 'S')).total, 50);
-      final twoJerseys = Cart()
-        ..add(_find('maillot-olise'), 'S')
-        ..add(_find('maillot-yamal'), 'S');
-      expect(twoJerseys.comboDiscount, 0);
-      expect(twoJerseys.total, 100);
-    });
-
-    test('un rabais par paire accompagnée d’un maillot', () {
-      final cart = Cart()
-        ..add(_find('chaussures-noir'), 'US 8')
-        ..add(_find('chaussures-camel'), 'US 9')
-        ..add(_find('maillot-olise'), 'S')
-        ..add(_find('maillot-yamal'), 'M')
-        ..add(_find('maillot-mbappe'), 'L');
-
-      // Deux combos (240 \$) et un maillot seul (50 \$).
-      expect(cart.combos, 2);
-      expect(cart.total, 290);
-    });
-
-    test('retirer le maillot annule le rabais', () {
-      final jersey = _find('maillot-yamal');
-      final cart = Cart()
-        ..add(_find('chaussures-blanc'), 'US 9')
-        ..add(jersey, 'M');
-      cart.remove(jersey, 'M');
-      expect(cart.total, 80);
-    });
-  });
-
-  group('avec du stock à bord', () {
-    test('impossible de dépasser le stock d’une taille', () {
-      _stockShoes();
-      final shoes = _find('chaussures-blanc');
-      final cart = Cart();
-      for (var i = 0; i < 5; i++) {
-        cart.add(shoes, 'US 9');
-      }
-      expect(cart.quantityOf(shoes, 'US 9'), 2);
-    });
+  test('impossible de dépasser le stock d’une taille à bord', () {
+    _stockShoes();
+    final shoes = _find('chaussures-blanc');
+    final cart = Cart();
+    for (var i = 0; i < 5; i++) {
+      cart.add(shoes, 'US 9');
+    }
+    expect(cart.quantityOf(shoes, 'US 9'), 2);
   });
 
   test("un article épuisé qui ne se commande pas ne s'ajoute pas", () {
@@ -178,8 +147,8 @@ void main() {
       name: Bi('Test', 'Test'),
       blurb: Bi('', ''),
       price: 10,
-      category: ProductCategory.jerseys,
-      icon: AppIcons.tShirt,
+      category: ProductCategory.northFace,
+      icon: AppIcons.snowflake,
       colors: [],
       stock: 0,
     );
@@ -189,22 +158,30 @@ void main() {
   group('message WhatsApp de la commande', () {
     Cart order() => Cart()
       ..add(_find('chaussures-blanc'), 'US 9')
-      ..add(_find('maillot-yamal'), 'M');
+      ..add(_find('doudoune-noire'), 'M');
 
     test('en français : articles, tailles, total et acompte', () {
       final message = orderMessage(order(), english: false);
       expect(message, startsWith('Bonjour Yanis, je voudrais commander :'));
-      expect(message, contains('1 × Blanc intégral (Chaussures), taille US 9'));
-      expect(message, contains('1 × Maillot Yamal (Maillots), taille M'));
-      expect(message, contains('Rabais combo : −10 \$'));
-      expect(message, contains('Total : 120 \$ · acompte 50 % : 60 \$'));
+      expect(
+        message,
+        contains('1 × Blanc intégral (Air Force 1), taille US 9 : 80 \$'),
+      );
+      expect(
+        message,
+        contains('1 × Doudoune noire (The North Face), taille M'),
+      );
+      expect(message, contains('Total : 200 \$ · acompte 50 % : 100 \$'));
       expect(message, endsWith('Mon adresse de livraison :'));
     });
 
     test('en anglais', () {
       final message = orderMessage(order(), english: true);
-      expect(message, contains('1 × All white (Shoes), size US 9 : \$80'));
-      expect(message, contains('Total: \$120 · 50% deposit: \$60'));
+      expect(
+        message,
+        contains('1 × All white (Air Force 1), size US 9 : \$80'),
+      );
+      expect(message, contains('Total: \$200 · 50% deposit: \$100'));
       expect(message, endsWith('My delivery address:'));
     });
 
@@ -212,12 +189,6 @@ void main() {
       expect(orderAmount(42.5, english: false), '42,50 \$');
       expect(orderAmount(42.5, english: true), '\$42.50');
     });
-  });
-
-  test('aucun nom de marque dans le catalogue', () {
-    for (final p in catalog) {
-      expect(p.brand, isNull);
-    }
   });
 
   test('la vitrine montre tous les articles commandables', () {

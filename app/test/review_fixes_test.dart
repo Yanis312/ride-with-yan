@@ -77,8 +77,8 @@ void main() {
       await tester.pump();
       expect(find.byType(StoreScreen), findsOneWidget);
 
-      // Un maillot au panier : fiche, taille, puis commande.
-      await tester.tap(find.text('Maillots'));
+      // Une doudoune au panier : fiche, taille, puis commande.
+      await tester.tap(find.text('The North Face'));
       await tester.pump(const Duration(seconds: 2));
       final view = find.byIcon(AppIcons.arrowRight).first;
       await tester.ensureVisible(view);
@@ -150,7 +150,7 @@ void main() {
           'price': 'cent dollars',
           'sizes': {'US 9': -3, 'US 8': 'deux'},
         },
-        'maillot-yamal': {'price': -5, 'stock': 'beaucoup'},
+        'doudoune-jaune': {'price': -5, 'stock': 'beaucoup'},
       },
     );
 
@@ -160,8 +160,8 @@ void main() {
     expect(shoes.stockOf('US 9'), base.stockOf('US 9'));
     expect(shoes.stockOf('US 8'), base.stockOf('US 8'));
 
-    final jersey = catalog.firstWhere((p) => p.id == 'maillot-yamal');
-    expect(jersey.price, 50);
-    expect(jersey.stock, 5);
+    final jacket = catalog.firstWhere((p) => p.id == 'doudoune-jaune');
+    expect(jacket.price, 120);
+    expect(jacket.stock, 5);
   });
 }

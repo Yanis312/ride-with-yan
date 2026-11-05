@@ -43,8 +43,8 @@ test.describe('Accessibilité', () => {
     await expect(store.emptyCart).toBeVisible();
     expect(await seriousViolations(page)).toEqual([]);
 
-    await store.showCategory('Jerseys');
-    await store.addSized('Yamal jersey', 'M');
+    await store.showCategory('The North Face');
+    await store.addSized('Black puffer', 'M');
     await store.order();
     expect(await seriousViolations(page)).toEqual([]);
   });

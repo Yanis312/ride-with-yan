@@ -9,7 +9,7 @@ test.describe('Boutique', () => {
 
   test('s’ouvre avec un panier vide, les prix et la mention de revendeur', async ({ store }) => {
     await expect(store.emptyCart).toBeVisible();
-    await expect(store.pitch).toContainText('Shoes $80 · Puffer jackets $120 · Jerseys $50');
+    await expect(store.pitch).toContainText('Shoes $80 · The North Face $120');
     await expect(store.pitch).toContainText('20 to 30 days');
     await expect(store.resellerNotice).toBeVisible();
     await expect(store.whatsAppButton).toBeVisible();
@@ -18,53 +18,53 @@ test.describe('Boutique', () => {
   test('propose deux rayons, hommes et femmes, ouverts sur les hommes', async ({ store }) => {
     await expect(store.shopper('Men')).toBeVisible();
     await expect(store.shopper('Women')).toBeVisible();
-    await expect(store.product('Sky blue and white')).toBeVisible();
+    await expect(store.product('Blue patent')).toBeVisible();
     await expect(store.product('Candy pink')).toHaveCount(0);
   });
 
   test('le rayon femmes montre le rose, pas le bleu', async ({ store }) => {
     await store.showShopper('Women');
 
-    await expect(store.product('Candy pink')).toBeVisible();
-    await expect(store.product('Sky blue and white')).toHaveCount(0);
+    await expect(store.product('Pink and burgundy patent')).toBeVisible();
+    await expect(store.product('Blue patent')).toHaveCount(0);
     // Le blanc et les doudounes sont dans les deux rayons.
-    await expect(store.product('All white')).toBeVisible();
+    await store.showCategory('The North Face');
     await expect(store.product('Black puffer')).toBeVisible();
   });
 
-  test('range les articles en chaussures, doudounes et maillots', async ({ page, store }) => {
-    await expect(store.category('Shoes')).toBeVisible();
-    await expect(store.category('Puffer jackets')).toBeVisible();
-    await expect(store.category('Jerseys')).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Essentials' })).toHaveCount(0);
+  test('range les articles par modèle, sans maillots', async ({ page, store }) => {
+    for (const category of ['Air Force 1', 'Dunk', 'Vans', 'The North Face'] as const) {
+      await expect(store.category(category)).toBeVisible();
+    }
+    await expect(page.getByRole('button', { name: 'Jerseys' })).toHaveCount(0);
   });
 
-  test('toutes les chaussures sont sur commande à 80 $', async ({ store }) => {
-    await store.showCategory('Shoes');
+  test('les Air Force 1 sont sur commande à 80 $', async ({ store }) => {
+    await store.showCategory('Air Force 1');
 
     await expect(store.product('All white')).toHaveAccessibleName(/On order.*\$80$/);
     await expect(store.product('All black')).toHaveAccessibleName(/On order.*\$80$/);
     await expect(store.products().filter({ hasText: /in stock/ })).toHaveCount(0);
   });
 
-  test('les doudounes sont sur commande à 120 $', async ({ store }) => {
-    await store.showCategory('Puffer jackets');
+  test('les Dunk et les Vans ont chacune leur section', async ({ store }) => {
+    await store.showCategory('Dunk');
+    await expect(store.product('Sky blue and white')).toBeVisible();
+    await expect(store.product('All white')).toHaveCount(0);
 
-    await expect(store.product('Black puffer')).toHaveAccessibleName(/On order.*\$120$/);
-    await expect(store.product('Sky blue and white')).toHaveCount(0);
+    await store.showCategory('Vans');
+    await expect(store.product('White, studded')).toBeVisible();
   });
 
-  test('tous les maillots sont sur commande à 50 $', async ({ store }) => {
-    await store.showCategory('Jerseys');
+  test('les doudounes The North Face sont sur commande à 120 $', async ({ store }) => {
+    await store.showCategory('The North Face');
 
-    await expect(store.products()).toHaveCount(4);
-    for (const player of ['Yamal', 'Olise', 'Mbappé', 'Bellingham']) {
-      await expect(store.product(`${player} jersey`)).toHaveAccessibleName(/On order.*\$50$/);
-    }
+    await expect(store.product('Black puffer')).toHaveAccessibleName(/On order.*\$120$/);
+    await expect(store.product('All white')).toHaveCount(0);
   });
 
   test('une paire : 40 $ d’acompte, 40 $ à la livraison', async ({ store }) => {
-    await store.showCategory('Shoes');
+    await store.showCategory('Air Force 1');
     await store.addSized('All white', 'US 9');
 
     await expect(store.cartLine('All white')).toBeVisible();
@@ -72,18 +72,6 @@ test.describe('Boutique', () => {
     await expect(store.depositLine).toBeVisible();
     await expect(store.onDelivery).toBeVisible();
     await expect(store.amount('$40')).toHaveCount(2);
-    await expect(store.comboLine).toBeHidden();
-  });
-
-  test('une paire avec un maillot revient à 120 $ (combo)', async ({ store }) => {
-    await store.showCategory('Shoes');
-    await store.addSized('All white', 'US 9');
-    await store.showCategory('Jerseys');
-    await store.addSized('Yamal jersey', 'M');
-
-    await expect(store.comboLine).toBeVisible();
-    await expect(store.amount('− $10')).toBeVisible();
-    await expect(store.amount('$120')).toBeVisible();
   });
 
   test('applique un prix modifié depuis le panneau d’administration', async ({
@@ -94,15 +82,15 @@ test.describe('Boutique', () => {
     store,
   }) => {
     backend.overrides = [
-      { id: 'maillot-yamal', price: 45, sizes: null, stock: null, hidden: false },
+      { id: 'doudoune-jaune', price: 99, sizes: null, stock: null, hidden: false },
     ];
     await page.reload();
     await welcome.startButton.waitFor({ timeout: 45_000 });
     await welcome.start('en');
     await lounge.openStore();
-    await store.showCategory('Jerseys');
+    await store.showCategory('The North Face');
 
-    await expect(store.product('Yamal jersey')).toHaveAccessibleName(/\$45$/);
-    await expect(store.product('Olise jersey')).toHaveAccessibleName(/\$50$/);
+    await expect(store.product('Yellow puffer')).toHaveAccessibleName(/\$99$/);
+    await expect(store.product('Orange puffer')).toHaveAccessibleName(/\$120$/);
   });
 });

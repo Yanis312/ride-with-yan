@@ -155,7 +155,7 @@ abstract class AppLocalizations {
   /// No description provided for @sectionStoreHint.
   ///
   /// In fr, this message translates to:
-  /// **'Chaussures et maillots de foot, neufs'**
+  /// **'Air Force 1, Dunk, Vans et The North Face, neufs'**
   String get sectionStoreHint;
 
   /// No description provided for @sectionWeather.
@@ -323,7 +323,7 @@ abstract class AppLocalizations {
   /// No description provided for @storeSubtitle.
   ///
   /// In fr, this message translates to:
-  /// **'Chaussures, maillots et petits essentiels, payés par Interac.'**
+  /// **'Chaussures et doudounes The North Face, livrées chez vous.'**
   String get storeSubtitle;
 
   /// No description provided for @addToCart.

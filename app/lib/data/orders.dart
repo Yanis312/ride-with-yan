@@ -20,20 +20,12 @@ String orderMessage(Cart cart, {required bool english}) {
           '${line.size == null ? '' : (english ? ', size ${line.size}' : ', taille ${line.size}')}'
           ' : ${money(line.subtotal)}',
   ];
-  final combo = cart.comboDiscount > 0
-      ? [
-          english
-              ? 'Combo discount: −${money(cart.comboDiscount)}'
-              : 'Rabais combo : −${money(cart.comboDiscount)}',
-        ]
-      : const <String>[];
 
   return [
     english
         ? 'Hi Yanis, I would like to order:'
         : 'Bonjour Yanis, je voudrais commander :',
     ...items,
-    ...combo,
     english
         ? 'Total: ${money(cart.total)} · 50% deposit: ${money(cart.deposit)}'
         : 'Total : ${money(cart.total)} · acompte 50 % : ${money(cart.deposit)}',

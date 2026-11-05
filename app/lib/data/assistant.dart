@@ -56,9 +56,9 @@ Bi failureMessage(AssistantFailure failure) => switch (failure) {
 /// Questions proposées quand la conversation est vide.
 const assistantSuggestions = [
   Bi('Que faire à Ottawa ce soir ?', 'What to do in Ottawa tonight?'),
-  Bi('C’est quoi le combo à 120 \$ ?', 'What is the \$120 combo?'),
+  Bi('Comment se passe la livraison ?', 'How does delivery work?'),
   Bi('Yanis peut-il créer mon site web ?', 'Can Yanis build my website?'),
-  Bi('Comment commander un maillot ?', 'How do I order a jersey?'),
+  Bi('Comment commander une paire ?', 'How do I order a pair?'),
 ];
 
 /// Conversation du passager en cours, oubliée à la fin de sa course.

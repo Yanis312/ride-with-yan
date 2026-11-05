@@ -19,7 +19,7 @@ architecture, app Flutter, base Supabase, tests, CI/CD, Terraform et Azure AI.
 
 - **Écran de veille** centré sur la boutique : une vitrine hommes, une vitrine femmes, puis quelques présentations.
 - **Lounge** : vidéos, musique, nouvelles, météo, question du jour.
-- **Boutique** en deux rayons (hommes, femmes) : chaussures, doudounes et maillots, panier, commande envoyée sur WhatsApp par code QR, acompte de 50 % par Interac et le reste à la livraison (20 à 30 jours).
+- **Boutique** en deux rayons (hommes, femmes) : sections Air Force 1, Dunk, Vans et The North Face, panier, commande envoyée sur WhatsApp par code QR, acompte de 50 % par Interac et le reste à la livraison (20 à 30 jours).
 - **Panneau d'administration** (`?admin`) : prix, stock, articles masqués, sondage.
 
 ## Technologies
