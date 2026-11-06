@@ -1,6 +1,7 @@
 import React from "react";
 import { Composition } from "remotion";
 import { Reel, ReelProps, REEL_FRAMES } from "./Reel";
+import { Presentation, PRESENTATION_FRAMES } from "./Presentation";
 
 /** Un reel par site de démonstration de la section Collaborations. */
 const reels: ReelProps[] = [
@@ -45,6 +46,15 @@ const reels: ReelProps[] = [
 export const RemotionRoot: React.FC = () => {
   return (
     <>
+      {/* Présentation du projet complet, pour LinkedIn. */}
+      <Composition
+        id="presentation"
+        component={Presentation}
+        durationInFrames={PRESENTATION_FRAMES}
+        fps={30}
+        width={1920}
+        height={1080}
+      />
       {reels.map((reel) => (
         <Composition
           key={reel.slug}
