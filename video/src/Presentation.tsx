@@ -868,7 +868,12 @@ const Outro: React.FC = () => {
       <Rise delay={26} style={{ marginTop: 56 }}>
         <div style={{ fontFamily: sans, fontSize: 34, color: text }}>
           {t("Essayer l'app : ", "Try the app: ")}
-          <span style={{ color: gold }}>yanis312.github.io/ride-with-yan</span>
+          <span style={{ color: gold }}>ride-with-yan.yanisgaroui1.workers.dev</span>
+        </div>
+      </Rise>
+      <Rise delay={32} style={{ marginTop: 18 }}>
+        <div style={{ fontFamily: sans, fontSize: 30, color: muted }}>
+          {t("Bientôt sur Google Play", "Coming soon to Google Play")}
         </div>
       </Rise>
     </AbsoluteFill>
