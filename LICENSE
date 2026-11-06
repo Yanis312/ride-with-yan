@@ -1,0 +1,72 @@
+Ride with Yan
+Copyright (c) 2026 Yanis Garoui. Tous droits réservés / All rights reserved.
+
+──────────────────────────────── FRANÇAIS ────────────────────────────────
+
+Ce dépôt est public pour être consulté, pas pour être réutilisé.
+
+1. Ce qui est permis, sans autre autorisation
+   - Lire le code et la documentation sur GitHub.
+   - L'évaluer dans le cadre d'un recrutement ou d'une collaboration.
+   - Le copier sur GitHub (« fork ») dans la seule mesure où les conditions
+     d'utilisation de GitHub l'exigent, sans autre usage.
+
+2. Ce qui est interdit sans l'accord écrit de Yanis Garoui
+   - Toute utilisation commerciale, directe ou indirecte : vendre, louer,
+     héberger pour des clients, intégrer à un produit ou à un service payant,
+     afficher de la publicité, ou s'en servir pour vendre quoi que ce soit.
+   - Copier, modifier, publier, distribuer ou déployer tout ou partie du code,
+     des textes, des images, des vidéos ou de la conception de l'application.
+   - Utiliser le nom « Ride with Yan », le logo ou l'identité visuelle.
+
+3. Éléments de tiers
+   Les polices (app/assets/fonts/LICENSE.txt), les photos de démonstration
+   (showcase/CREDITS.md) et les bibliothèques utilisées restent sous leurs
+   propres licences. Rien ici ne restreint ces droits.
+
+4. Aucune garantie
+   Le contenu est fourni « tel quel », sans garantie d'aucune sorte. L'auteur
+   n'est pas responsable des dommages liés à son utilisation.
+
+5. Droit applicable
+   Cette licence est régie par les lois de l'Ontario et les lois fédérales du
+   Canada qui s'y appliquent, dont la Loi sur le droit d'auteur.
+
+Pour toute demande d'autorisation : Yanis Garoui, par la page GitHub
+https://github.com/Yanis312 ou par LinkedIn.
+
+──────────────────────────────── ENGLISH ─────────────────────────────────
+
+This repository is public to be viewed, not to be reused.
+
+1. What is allowed, without further permission
+   - Reading the code and documentation on GitHub.
+   - Evaluating it for hiring or for a potential collaboration.
+   - Forking it on GitHub only to the extent required by GitHub's Terms of
+     Service, with no other use.
+
+2. What is forbidden without Yanis Garoui's written permission
+   - Any commercial use, direct or indirect: selling, renting, hosting for
+     clients, including it in a paid product or service, showing ads, or
+     using it to sell anything.
+   - Copying, modifying, publishing, distributing or deploying all or part of
+     the code, texts, images, videos or design of the application.
+   - Using the name "Ride with Yan", its logo or its visual identity.
+
+3. Third-party material
+   Fonts (app/assets/fonts/LICENSE.txt), demo photos (showcase/CREDITS.md)
+   and libraries keep their own licenses. Nothing here restricts those
+   rights.
+
+4. No warranty
+   The content is provided "as is", without warranty of any kind. The author
+   is not liable for any damages arising from its use.
+
+5. Governing law
+   This license is governed by the laws of Ontario and the federal laws of
+   Canada that apply there, including the Copyright Act.
+
+For permission requests: Yanis Garoui, through https://github.com/Yanis312
+or LinkedIn.
+
+If the French and English versions differ, the French version prevails.
