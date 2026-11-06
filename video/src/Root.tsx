@@ -46,15 +46,19 @@ const reels: ReelProps[] = [
 export const RemotionRoot: React.FC = () => {
   return (
     <>
-      {/* Présentation du projet complet, pour LinkedIn. */}
-      <Composition
-        id="presentation"
-        component={Presentation}
-        durationInFrames={PRESENTATION_FRAMES}
-        fps={30}
-        width={1920}
-        height={1080}
-      />
+      {/* Présentation du projet complet, pour LinkedIn, en français et en anglais. */}
+      {(["fr", "en"] as const).map((lang) => (
+        <Composition
+          key={lang}
+          id={`presentation-${lang}`}
+          component={Presentation}
+          durationInFrames={PRESENTATION_FRAMES}
+          fps={30}
+          width={1920}
+          height={1080}
+          defaultProps={{ lang }}
+        />
+      ))}
       {reels.map((reel) => (
         <Composition
           key={reel.slug}

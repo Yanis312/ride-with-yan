@@ -102,3 +102,12 @@ cd app
 flutter pub get
 flutter run -d chrome
 ```
+
+## Licence
+
+© 2026 Yanis Garoui. **Tous droits réservés.** Ce dépôt est public pour être
+consulté, notamment dans le cadre d'un recrutement. Toute réutilisation, et en
+particulier toute utilisation commerciale, est interdite sans accord écrit.
+Voir [`LICENSE`](LICENSE).
+
+*All rights reserved. Viewing only; no reuse or commercial use without written permission.*
