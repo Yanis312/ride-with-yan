@@ -646,7 +646,9 @@ class _StoreStage extends StatelessWidget {
       symbol: r'$',
       decimalDigits: 0,
     ).format(product.price);
-    final light = product.colors.first.computeLuminance() > 0.45;
+    // Sur une photo, le texte est posé sur le bas assombri : toujours clair.
+    final light =
+        !product.framed && product.colors.first.computeLuminance() > 0.45;
     final onStage = light ? Brand.ink : Colors.white;
 
     Widget swap(Widget child, {bool slide = false}) => AnimatedSwitcher(
@@ -687,10 +689,30 @@ class _StoreStage extends StatelessWidget {
               ProductFigure(
                 product: product,
                 padding: const EdgeInsets.fromLTRB(24, 50, 24, 62),
+                whole: true,
               ),
               slide: !product.framed,
             ),
           ),
+          // Le bas assombri garde le nom et le prix lisibles sur la photo.
+          if (product.framed)
+            const Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              height: 110,
+              child: IgnorePointer(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [Color(0x00000000), Color(0xB3000000)],
+                    ),
+                  ),
+                ),
+              ),
+            ),
           Positioned(
             left: 12,
             top: 12,
