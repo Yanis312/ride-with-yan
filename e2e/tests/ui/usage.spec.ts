@@ -9,7 +9,7 @@ test('une course est mesurée sans aucune donnée personnelle', async ({
   await welcome.open();
   await welcome.start('fr');
   await lounge.shortcut('Ma boutique').click();
-  await expect(page.getByRole('button', { name: 'Maillots', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'The North Face', exact: true })).toBeVisible();
 
   // Les évènements partent groupés, toutes les 20 secondes.
   await expect

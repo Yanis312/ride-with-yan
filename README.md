@@ -17,11 +17,10 @@ architecture, app Flutter, base Supabase, tests, CI/CD, Terraform et Azure AI.
 
 ## Ce que fait l'app
 
-- **Écran de veille** qui fait défiler dix présentations et invite à toucher l'écran.
+- **Écran de veille** centré sur la boutique : une vitrine hommes, une vitrine femmes, puis quelques présentations.
 - **Lounge** : vidéos, musique, nouvelles, météo, question du jour.
-- **Boutique** : catalogue, panier, coordonnées du client, paiement par virement Interac, articles sur commande livrés à domicile.
-- **Panneau d'administration** (`?admin`) : commandes reçues, prix, stock, sondage.
-- **Alerte sur téléphone** à chaque nouvelle commande.
+- **Boutique** en deux rayons (hommes, femmes) : sections Air Force 1, Dunk, Vans et The North Face, panier, commande envoyée sur WhatsApp par code QR, acompte de 50 % par Interac et le reste à la livraison (20 à 30 jours).
+- **Panneau d'administration** (`?admin`) : prix, stock, articles masqués, sondage.
 
 ## Technologies
 
@@ -54,7 +53,7 @@ Trois niveaux, du plus rapide au plus proche du passager :
 
 1. **Tests unitaires et de widgets** (`app/test`) : panier, stock, session, panneau d'administration, mise en page à la taille d'une tablette.
 2. **Tests d'API** (`e2e/tests/api`) : ils jouent le rôle d'un inconnu qui n'a que la clé publique de l'app et vérifient que la base refuse tout ce qu'elle doit refuser : lire les commandes des clients, changer un prix, déposer une commande déjà « payée », envoyer des données invalides. Les réponses sont validées par des schémas Zod.
-3. **Tests de bout en bout** (`e2e/tests/ui`) : un vrai navigateur ouvre l'app et suit le parcours d'un passager, de l'écran de veille jusqu'au paiement Interac, y compris quand le réseau tombe au moment de commander.
+3. **Tests de bout en bout** (`e2e/tests/ui`) : un vrai navigateur ouvre l'app et suit le parcours d'un passager, de l'écran de veille jusqu'au code QR de la commande WhatsApp, dans les deux rayons de la boutique.
 
 4. **Tests d'accessibilité** (`e2e/tests/ui/accessibility.spec.ts`) : axe-core vérifie les règles WCAG 2 (A et AA) sur l'écran de veille, le lounge, la boutique et le formulaire. Ils ont trouvé, puis fait corriger, des boutons sans nom et des images sans description.
 

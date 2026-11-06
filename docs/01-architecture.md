@@ -25,18 +25,18 @@ flowchart LR
     end
 
     ext[Services publics<br/>météo · alertes · nouvelles · YouTube]
-    ntfy[ntfy.sh<br/>notification]
+    wa[WhatsApp<br/>commandes]
 
     passager --> tablette
     yanis --> web
-    tablette -->|lit les prix, dépose les commandes| db
+    tablette -->|lit les prix et le stock| db
+    passager -->|code QR : commande + adresse| wa
+    wa --> yanis
     web -->|admin : gère tout| db
     tablette -->|questions à Yan| fn
     fn --> llm
     fn --> speech
     fn --> db
-    db -->|nouvelle commande| ntfy
-    ntfy -->|alerte| yanis
     tablette --> ext
 ```
 
@@ -46,7 +46,8 @@ flowchart LR
   a le droit de faire.
 - Les clés d'Azure restent dans les **fonctions serveur** (`supabase/functions`) :
   l'app demande « réponds à cette question », la fonction appelle Azure.
-- Tout ce qui touche aux personnes (commandes, questions) reste **au Canada**.
+- Les commandes ne passent pas par la tablette : le passager les envoie sur
+  **WhatsApp** depuis son téléphone. Les questions à Yan restent **au Canada**.
 
 ## Les « conteneurs » (au sens C4 : ce qui tourne séparément)
 
@@ -74,7 +75,7 @@ ride-with-yan/
 │   │   │   └── usage.dart          ← statistiques anonymes
 │   │   ├── data/             ← données et logique métier, sans interface
 │   │   │   ├── store_catalog.dart  ← produits, panier, combo
-│   │   │   ├── orders.dart         ← envoi d'une commande
+│   │   │   ├── orders.dart         ← message WhatsApp d'une commande
 │   │   │   ├── assistant.dart      ← conversation avec Yan
 │   │   │   ├── alerts.dart         ← alertes météo
 │   │   │   └── …                   ← météo, nouvelles, sondage, annonceurs
@@ -117,14 +118,14 @@ sequenceDiagram
     participant L as Lounge
     participant B as Boutique
     participant DB as Supabase
-    participant N as ntfy (téléphone de Yanis)
+    participant W as WhatsApp de Yanis
 
-    P->>V: touche l'écran, choisit sa langue
-    V->>L: début de la course (SessionController.start)
-    L->>DB: GET prix et réglages (RemoteConfig.refresh)
+    P->>V: touche la vitrine hommes ou femmes
+    V->>B: boutique ouverte sur ce rayon (SessionController.start)
+    B->>DB: GET prix et réglages (RemoteConfig.refresh)
     P->>B: ajoute une paire et un maillot (combo 120 $)
-    P->>B: nom, téléphone, adresse
-    B->>DB: POST /rest/v1/orders
-    DB-->>N: déclencheur SQL → notification
+    B-->>P: code QR avec la commande déjà écrite
+    P->>W: envoie la commande et son adresse
+    W-->>P: numéro pour l'acompte Interac (50 %)
     Note over P,L: 90 s sans toucher l'écran → fin de course,<br/>panier vidé, retour à l'écran de veille
 ```

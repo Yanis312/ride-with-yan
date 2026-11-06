@@ -37,7 +37,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sectionStore => 'My store';
 
   @override
-  String get sectionStoreHint => 'Shoes and football jerseys, brand new';
+  String get sectionStoreHint =>
+      'Air Force 1, Dunk, Vans and The North Face, brand new';
 
   @override
   String get sectionWeather => 'Weather';
@@ -122,7 +123,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get storeSubtitle =>
-      'Shoes, jerseys and ride essentials, paid by Interac.';
+      'Shoes and The North Face jackets, delivered to your door.';
 
   @override
   String get addToCart => 'Add';

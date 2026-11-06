@@ -5,7 +5,7 @@ export type Language = 'en' | 'fr';
 /** Écran de veille : ce que le passager voit en montant dans la voiture. */
 export class WelcomePage {
   readonly startButton: Locator;
-  /** Présentation en cours (l'écran en fait défiler dix). */
+  /** Présentation en cours (l'écran en fait défiler six). */
   readonly slide: Locator;
   readonly discoverButton: Locator;
   readonly frenchChoice: Locator;
@@ -30,8 +30,6 @@ export class WelcomePage {
   }
 
   async start(language: Language = 'en') {
-    // « Tap to start » laisse sa place à « Shop now » pendant les 15 s de la
-    // vitrine : sur une machine lente, ce clic peut donc attendre un moment.
     await this.startButton.click();
     await (language === 'fr' ? this.frenchChoice : this.englishChoice).click();
   }

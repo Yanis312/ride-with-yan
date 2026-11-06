@@ -110,8 +110,8 @@ void main() {
           'price': 85,
           'sizes': {'US 9': 4, 'US 99': 7},
         },
-        'maillot-olise': {'hidden': true},
-        'maillot-yamal': {'price': 45},
+        'doudoune-orange': {'hidden': true},
+        'doudoune-jaune': {'price': 45},
       },
       settings: {'poll_question': 'plat'},
     );
@@ -124,11 +124,11 @@ void main() {
       isFalse,
     ); // taille inconnue ignorée
     expect(shoes.stockOf('US 8'), 0); // taille non modifiée
-    expect(catalog.any((p) => p.id == 'maillot-olise'), isFalse);
-    expect(catalog.firstWhere((p) => p.id == 'maillot-yamal').price, 45);
+    expect(catalog.any((p) => p.id == 'doudoune-orange'), isFalse);
+    expect(catalog.firstWhere((p) => p.id == 'doudoune-jaune').price, 45);
     expect(questionOfTheDay().id, 'plat');
 
     remote.setForTest();
-    expect(catalog.any((p) => p.id == 'maillot-olise'), isTrue);
+    expect(catalog.any((p) => p.id == 'doudoune-orange'), isTrue);
   });
 }

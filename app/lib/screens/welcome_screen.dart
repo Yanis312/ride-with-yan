@@ -24,19 +24,19 @@ import '../widgets/decor_clock.dart';
 /// Une phase de l'écran de veille : une ambiance de couleurs, une
 /// illustration animée et plusieurs phrases bilingues possibles.
 class _Phase {
-  const _Phase(
-    this.scene,
-    this.icon,
-    this.lines, {
-    this.note,
-    this.duration = WelcomeScreen.phaseDuration,
-  });
+  const _Phase(this.scene, this.icon, this.lines, {this.note, this.shopper});
 
   final Scene scene;
   final IconData icon;
 
-  /// Temps d'affichage ; la vitrine de la boutique reste plus longtemps.
-  final Duration duration;
+  /// Rayon montré par une vitrine de la boutique ; null pour les autres.
+  final Shopper? shopper;
+
+  /// Temps d'affichage : une vitrine reste le temps de montrer ses articles.
+  Duration get duration => switch (shopper) {
+    final s? => StoreShowcase.durationFor(s),
+    null => WelcomeScreen.phaseDuration,
+  };
 
   /// Petite ligne sous la phrase (français, anglais), ex. la réponse de Yanis.
   final (String, String)? note;
@@ -51,36 +51,41 @@ const _phases = [
     ('Bienvenue à bord.', 'Welcome aboard.'),
     ('Ravi de vous accueillir.', 'Glad to have you on board.'),
   ]),
-  // La diapo vedette : ce que Yanis vend, juste après l'accueil.
+  // Les diapos vedettes : les deux rayons de la boutique, juste après
+  // l'accueil. Le reste (films, jeux, actualités, musique) attend que le
+  // passager ouvre l'app.
   _Phase(
     Scene.store,
-    AppIcons.shoppingBag,
+    AppIcons.users,
     [
-      ('Voici ce que je vends.', "Here's what I sell."),
-      ('Jetez un œil à ma boutique.', 'Take a look at my shop.'),
+      ('La boutique hommes.', "The men's shop."),
+      (
+        'Air Force 1, Dunk, Vans, North Face.',
+        'Air Force 1, Dunk, Vans, North Face.',
+      ),
     ],
     note: (
-      'Chaussures 80 \$, maillots 50 \$, combo 120 \$. Livrés chez vous.',
-      'Shoes \$80, jerseys \$50, combo \$120. Delivered to your door.',
+      'Neuf, livré chez vous en 20 à 30 jours. Touchez pour voir.',
+      'New, delivered to your door in 20 to 30 days. Tap to see.',
     ),
-    duration: WelcomeScreen.storeDuration,
+    shopper: Shopper.men,
   ),
-  _Phase(Scene.cinema, AppIcons.filmSlate, [
-    ('Regardez un film.', 'Watch a movie.'),
-    ('Le cinéma, en route.', 'Cinema on the go.'),
-  ]),
-  _Phase(Scene.games, AppIcons.gameController, [
-    ('Jouez à un jeu.', 'Play a game.'),
-    ('Un petit défi ?', 'Up for a challenge?'),
-  ]),
-  _Phase(Scene.poll, AppIcons.chartBar, [
-    ('Donnez votre avis.', 'Have your say.'),
-    ('Votre ville préférée ?', "What's your favourite city?"),
-  ]),
-  _Phase(Scene.news, AppIcons.newspaper, [
-    ("Suivez l'actualité.", 'Catch up on the news.'),
-    ("Le monde, d'un coup d'œil.", 'The world at a glance.'),
-  ]),
+  _Phase(
+    Scene.store,
+    AppIcons.sparkle,
+    [
+      ('La boutique femmes.', "The women's shop."),
+      (
+        'Air Force 1, Dunk, Vans, North Face.',
+        'Air Force 1, Dunk, Vans, North Face.',
+      ),
+    ],
+    note: (
+      'Neuf, livré chez vous en 20 à 30 jours. Touchez pour voir.',
+      'New, delivered to your door in 20 to 30 days. Tap to see.',
+    ),
+    shopper: Shopper.women,
+  ),
   _Phase(Scene.collab, AppIcons.code, [
     ('Envie d’un site web ou d’une app ?', 'Want a website or an app?'),
     ('Voyez ce que je peux créer pour vous.', 'See what I can build for you.'),
@@ -91,37 +96,21 @@ const _phases = [
     ('Faites-vous connaître à bord.', 'Get noticed on board.'),
     ('Gratuit à vie pour les premiers.', 'Free for life for early partners.'),
   ]),
-  // Question pour lancer la conversation, avec la réponse de Yanis.
-  _Phase(
-    Scene.music,
-    AppIcons.headphones,
-    [
-      (
-        'Une seule chanson pour toute votre vie ?',
-        'One song for the rest of your life?',
-      ),
-      ('Votre chanson pour l’éternité ?', 'Your song for eternity?'),
-    ],
-    note: (
-      'Pour moi : Nothing Else Matters, de Metallica. Et vous ?',
-      'Mine: Nothing Else Matters by Metallica. What’s yours?',
-    ),
-  ),
   _Phase(Scene.finale, AppIcons.handTap, [
     ('Explorez librement, tout est à vous.', 'Feel free to discover!'),
     ('Touchez l’écran, la suite est à vous.', 'Feel free to discover!'),
   ]),
 ];
 
-/// Ordre d'un cycle : l'accueil, puis la vitrine de la boutique,
+/// Ordre d'un cycle : l'accueil, puis les deux vitrines de la boutique,
 /// "Feel free to discover" à la fin, et les autres phases mélangées au hasard
 /// (sans répéter la dernière vue).
 List<int> _shuffledCycle(math.Random random, {int? avoidFirst}) {
-  final middle = [for (var i = 2; i < _phases.length - 1; i++) i];
+  final middle = [for (var i = 3; i < _phases.length - 1; i++) i];
   do {
     middle.shuffle(random);
   } while (middle.length > 1 && middle.first == avoidFirst);
-  return [0, 1, ...middle, _phases.length - 1];
+  return [0, 1, 2, ...middle, _phases.length - 1];
 }
 
 /// Écran de veille haut de gamme : les phases défilent toutes seules,
@@ -131,7 +120,6 @@ class WelcomeScreen extends StatefulWidget {
 
   /// Assez long pour lire la phrase tranquillement.
   static const phaseDuration = Duration(milliseconds: 8000);
-  static const storeDuration = StoreShowcase.total;
 
   @override
   State<WelcomeScreen> createState() => _WelcomeScreenState();
@@ -188,7 +176,14 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     ];
     final photos = [
       ...lounge,
-      for (final product in featuredProducts) ...product.photos.take(1),
+      // Les deux premières pages de chaque vitrine : la suite se charge
+      // pendant qu'elles défilent.
+      for (final shopper in Shopper.values)
+        for (final product in featuredFor(
+          shopper,
+          limit: StoreShowcase.perPage * 2,
+        ))
+          ...product.photos.take(1),
     ];
     for (final photo in photos) {
       if (!mounted) return;
@@ -560,10 +555,11 @@ class _AnimatedVignette extends StatelessWidget {
         ),
       ),
       child: SceneVignette(
-        key: ValueKey(phase.scene),
+        key: ValueKey((phase.scene, phase.shopper)),
         scene: phase.scene,
         loop: loop,
         size: size,
+        shopper: phase.shopper ?? Shopper.men,
       ),
     );
   }
@@ -693,17 +689,43 @@ class _Footer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final progress = _Progress(index: index, clock: clock);
-    final shop = phase.scene == Scene.store;
+    final shopper = phase.shopper;
+    final start = shopper == null
+        ? GlowButton(
+            label: 'Touchez pour commencer  ·  Tap to start',
+            icon: AppIcons.arrowRight,
+            onTap: onStart,
+          )
+        : PillButton(
+            label: 'Touchez pour commencer  ·  Tap to start',
+            filled: false,
+            onTap: onStart,
+            trailing: const Icon(AppIcons.arrowRight),
+          );
+    // Pendant une vitrine, le bouton doré mène droit à ce rayon ; l'entrée
+    // dans l'app reste à côté.
     final cta = AnimatedSwitcher(
       duration: AppMotion.medium,
       switchInCurve: AppMotion.spring,
-      child: GlowButton(
-        key: ValueKey(shop),
-        label: shop
-            ? 'Boutique  ·  Shop now'
-            : 'Touchez pour commencer  ·  Tap to start',
-        icon: shop ? AppIcons.shoppingBag : AppIcons.arrowRight,
-        onTap: shop ? () => openSection(context, Section.store) : onStart,
+      child: Wrap(
+        key: ValueKey(shopper),
+        spacing: 14,
+        runSpacing: 12,
+        alignment: WrapAlignment.center,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        children: [
+          if (shopper != null)
+            GlowButton(
+              label: switch (shopper) {
+                Shopper.men => 'Boutique hommes  ·  Men',
+                Shopper.women => 'Boutique femmes  ·  Women',
+              },
+              icon: AppIcons.shoppingBag,
+              onTap: () =>
+                  openSection(context, Section.store, shopper: shopper),
+            ),
+          start,
+        ],
       ),
     );
 

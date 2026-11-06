@@ -24,7 +24,7 @@ export class FakeBackend {
   readonly chats: Record<string, unknown>[] = [];
   chatReply: { status: number; body: Record<string, unknown> } = {
     status: 200,
-    body: { reply: 'Le combo, c’est une paire et un maillot pour 120 $.' },
+    body: { reply: 'Livraison chez vous en 20 à 30 jours, 50 % à la commande.' },
   };
 
   async install(page: Page) {
