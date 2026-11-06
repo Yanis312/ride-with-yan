@@ -76,6 +76,7 @@ class ProductFigure extends StatelessWidget {
     this.padding = EdgeInsets.zero,
     this.photo = 0,
     this.shadow = true,
+    this.whole = false,
   });
 
   final Product product;
@@ -83,9 +84,37 @@ class ProductFigure extends StatelessWidget {
   final int photo;
   final bool shadow;
 
+  /// Montre la photo entière, sur un fond flou fait de la même photo, au lieu
+  /// de la recadrer pour remplir une zone très large.
+  final bool whole;
+
   @override
   Widget build(BuildContext context) {
     final photos = product.photos;
+    if (product.framed && photos.isNotEmpty && whole) {
+      final src = photos[photo % photos.length];
+      return Stack(
+        fit: StackFit.expand,
+        children: [
+          ImageFiltered(
+            imageFilter: ui.ImageFilter.blur(sigmaX: 24, sigmaY: 24),
+            child: Image.asset(
+              excludeFromSemantics: true,
+              src,
+              fit: BoxFit.cover,
+              filterQuality: FilterQuality.low,
+            ),
+          ),
+          ColoredBox(color: Colors.black.withValues(alpha: 0.25)),
+          Image.asset(
+            excludeFromSemantics: true,
+            src,
+            fit: BoxFit.contain,
+            filterQuality: FilterQuality.medium,
+          ),
+        ],
+      );
+    }
     if (product.framed && photos.isNotEmpty) {
       return Image.asset(
         excludeFromSemantics: true,
