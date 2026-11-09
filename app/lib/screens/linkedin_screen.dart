@@ -1,7 +1,10 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
 import '../config.dart';
+import '../data/bilingual.dart';
 import '../data/profile.dart';
 import '../l10n/app_localizations.dart';
 import '../navigation/sections.dart';
@@ -91,38 +94,14 @@ class _ScanPanel extends StatelessWidget {
   }
 }
 
-/// Reproduction de la page de profil en mode invité, défilable.
+/// Reproduction de la page de profil LinkedIn en mode invité, défilable.
 class _ProfilePreview extends StatelessWidget {
   const _ProfilePreview();
 
   @override
   Widget build(BuildContext context) {
-    final dark = context.isDark;
-    final page = dark ? const Color(0xFF000000) : const Color(0xFFF4F2EE);
-    final card = dark ? const Color(0xFF1B1F23) : Colors.white;
-    final text = dark ? const Color(0xFFE9E9E9) : const Color(0xE6000000);
-    final muted = dark ? const Color(0xFFA6A6A6) : const Color(0x99000000);
+    final c = _LiColors.of(context);
     final l10n = AppLocalizations.of(context);
-
-    Widget section(String title, Widget body) => Container(
-      margin: const EdgeInsets.only(top: 10),
-      padding: const EdgeInsets.all(22),
-      decoration: BoxDecoration(
-        color: card,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: AppText.body(20, weight: FontWeight.w600, color: text),
-          ),
-          const SizedBox(height: 12),
-          body,
-        ],
-      ),
-    );
 
     return Container(
       decoration: BoxDecoration(
@@ -138,115 +117,50 @@ class _ProfilePreview extends StatelessWidget {
       child: ClipRRect(
         borderRadius: BorderRadius.circular(24),
         child: ColoredBox(
-          color: page,
+          color: c.page,
           child: Column(
             children: [
-              // Barre façon LinkedIn, avec la mention "aperçu".
-              Container(
-                height: 52,
-                color: card,
-                padding: const EdgeInsets.symmetric(horizontal: 18),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 30,
-                      height: 30,
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        color: _linkedInBlue,
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Text(
-                        'in',
-                        style: AppText.body(
-                          17,
-                          weight: FontWeight.w600,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Text(
-                      l10n.profilePreview,
-                      style: AppText.body(
-                        14,
-                        weight: FontWeight.w500,
-                        color: muted,
-                      ),
-                    ),
-                    const Spacer(),
-                    Icon(AppIcons.globe, size: 18, color: muted),
-                  ],
-                ),
-              ),
+              _TopBar(c: c, label: l10n.profilePreview),
               Expanded(
                 child: ListView(
                   padding: const EdgeInsets.fromLTRB(14, 12, 14, 24),
                   children: [
-                    _Header(card: card, text: text, muted: muted),
-                    section(
-                      l10n.aboutTitle,
-                      Text(
+                    _Header(c: c),
+                    _Card(
+                      c: c,
+                      title: const Bi('Infos', 'About'),
+                      child: Text(
                         Profile.about.of(context),
-                        style: AppText.body(15, color: text),
+                        style: AppText.body(15, color: c.text),
                       ),
                     ),
-                    section(
-                      l10n.experienceTitle,
-                      Column(
-                        children: [
-                          for (final (icon, title, detail)
-                              in Profile.experience)
-                            Padding(
-                              padding: const EdgeInsets.only(bottom: 14),
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Container(
-                                    width: 48,
-                                    height: 48,
-                                    decoration: BoxDecoration(
-                                      color: _linkedInBlue.withValues(
-                                        alpha: 0.12,
-                                      ),
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: Icon(
-                                      icon,
-                                      color: _linkedInBlue,
-                                      size: 24,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 14),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          title.of(context),
-                                          style: AppText.body(
-                                            16,
-                                            weight: FontWeight.w600,
-                                            color: text,
-                                          ),
-                                        ),
-                                        Text(
-                                          detail.of(context),
-                                          style: AppText.body(14, color: muted),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                        ],
-                      ),
+                    _EntriesCard(
+                      c: c,
+                      title: const Bi('Expérience', 'Experience'),
+                      entries: Profile.experience,
                     ),
-                    section(
-                      l10n.skillsTitle,
-                      Wrap(
+                    _EntriesCard(
+                      c: c,
+                      title: const Bi('Formation', 'Education'),
+                      entries: Profile.education,
+                    ),
+                    _EntriesCard(
+                      c: c,
+                      title: const Bi(
+                        'Licences et certifications',
+                        'Licenses & certifications',
+                      ),
+                      entries: Profile.certifications,
+                    ),
+                    _EntriesCard(
+                      c: c,
+                      title: const Bi('Projets', 'Projects'),
+                      entries: Profile.projects,
+                    ),
+                    _Card(
+                      c: c,
+                      title: const Bi('Compétences', 'Skills'),
+                      child: Wrap(
                         spacing: 8,
                         runSpacing: 8,
                         children: [
@@ -258,29 +172,28 @@ class _ProfilePreview extends StatelessWidget {
                               ),
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(999),
-                                border: Border.all(
-                                  color: muted.withValues(alpha: 0.5),
-                                ),
+                                border: Border.all(color: c.border),
                               ),
                               child: Text(
                                 s,
                                 style: AppText.body(
                                   14,
-                                  weight: FontWeight.w500,
-                                  color: text,
+                                  weight: FontWeight.w600,
+                                  color: c.text,
                                 ),
                               ),
                             ),
                         ],
                       ),
                     ),
-                    section(
-                      l10n.languagesTitle,
-                      Text(
+                    _Card(
+                      c: c,
+                      title: const Bi('Langues', 'Languages'),
+                      child: Text(
                         Profile.languages
                             .map((l) => l.of(context))
                             .join('  ·  '),
-                        style: AppText.body(15, color: text),
+                        style: AppText.body(15, color: c.text),
                       ),
                     ),
                   ],
@@ -294,93 +207,531 @@ class _ProfilePreview extends StatelessWidget {
   }
 }
 
-class _Header extends StatelessWidget {
-  const _Header({required this.card, required this.text, required this.muted});
+/// Couleurs de LinkedIn, en clair et en sombre.
+class _LiColors {
+  const _LiColors({
+    required this.page,
+    required this.card,
+    required this.text,
+    required this.muted,
+    required this.border,
+    required this.link,
+    required this.openBg,
+  });
 
+  factory _LiColors.of(BuildContext context) => context.isDark
+      ? const _LiColors(
+          page: Color(0xFF000000),
+          card: Color(0xFF1B1F23),
+          text: Color(0xFFE9E9E9),
+          muted: Color(0xFFA6A6A6),
+          border: Color(0xFF5E6265),
+          link: Color(0xFF71B7FB),
+          openBg: Color(0xFF263A4F),
+        )
+      : const _LiColors(
+          page: Color(0xFFF4F2EE),
+          card: Colors.white,
+          text: Color(0xE6000000),
+          muted: Color(0x99000000),
+          border: Color(0x66000000),
+          link: _linkedInBlue,
+          openBg: Color(0xFFDDE7F1),
+        );
+
+  final Color page;
   final Color card;
   final Color text;
   final Color muted;
+  final Color border;
+  final Color link;
+  final Color openBg;
+}
+
+/// Barre du haut : logo, champ de recherche, mention "aperçu".
+class _TopBar extends StatelessWidget {
+  const _TopBar({required this.c, required this.label});
+
+  final _LiColors c;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 56,
+      color: c.card,
+      padding: const EdgeInsets.symmetric(horizontal: 18),
+      child: Row(
+        children: [
+          Container(
+            width: 34,
+            height: 34,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: _linkedInBlue,
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Text(
+              'in',
+              style: AppText.body(
+                20,
+                weight: FontWeight.w700,
+                color: Colors.white,
+              ),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Flexible(
+            child: Container(
+              height: 36,
+              constraints: const BoxConstraints(maxWidth: 260),
+              padding: const EdgeInsets.symmetric(horizontal: 14),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(999),
+                border: Border.all(color: c.border),
+              ),
+              child: Row(
+                children: [
+                  Icon(AppIcons.globe, size: 16, color: c.muted),
+                  const SizedBox(width: 8),
+                  Flexible(
+                    child: Text(
+                      Profile.name,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppText.body(14, color: c.muted),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const Spacer(),
+          Text(
+            label,
+            style: AppText.body(13, weight: FontWeight.w600, color: c.muted),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// En-tête : photo de couverture, photo de profil #OPENTOWORK, nom, titre,
+/// école, abonnés et encart "à l'écoute d'opportunités".
+class _Header extends StatelessWidget {
+  const _Header({required this.c});
+
+  final _LiColors c;
 
   @override
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: card,
+        color: c.card,
         borderRadius: BorderRadius.circular(12),
       ),
       clipBehavior: Clip.antiAlias,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Bannière et photo de profil.
-          SizedBox(
-            height: 170,
-            child: Stack(
-              clipBehavior: Clip.none,
-              children: [
-                Container(
-                  height: 120,
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        Color(0xFF0A66C2),
-                        Color(0xFF16305C),
-                        Color(0xFF8A6200),
-                      ],
+      child: LayoutBuilder(
+        builder: (context, box) {
+          final wide = box.maxWidth > 620;
+          final identity = Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Wrap(
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: 8,
+                children: [
+                  Text(
+                    Profile.name,
+                    style: AppText.body(
+                      26,
+                      weight: FontWeight.w600,
+                      color: c.text,
                     ),
                   ),
-                ),
-                Positioned(
-                  left: 22,
-                  top: 56,
-                  child: Container(
-                    width: 112,
-                    height: 112,
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: const LinearGradient(
-                        colors: [Brand.goldSoft, Brand.gold],
-                      ),
-                      border: Border.all(color: card, width: 5),
-                    ),
-                    child: Text(
-                      'YG',
-                      style: AppText.display(44, color: Brand.ink),
-                    ),
+                  Icon(AppIcons.sealCheck, size: 22, color: c.muted),
+                  Text(
+                    Profile.pronoun,
+                    style: AppText.body(14, color: c.muted),
                   ),
-                ),
-              ],
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(22, 4, 22, 22),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  Profile.name,
-                  style: AppText.body(26, weight: FontWeight.w600, color: text),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  Profile.headline.of(context),
-                  style: AppText.body(16, color: text),
-                ),
-                const SizedBox(height: 6),
-                Row(
+                ],
+              ),
+              const SizedBox(height: 4),
+              Text(
+                Profile.headline.of(context),
+                style: AppText.body(16, color: c.text),
+              ),
+              const SizedBox(height: 6),
+              Text.rich(
+                TextSpan(
                   children: [
-                    Icon(AppIcons.mapPin, size: 16, color: muted),
-                    const SizedBox(width: 4),
-                    Text(
-                      Profile.location.of(context),
-                      style: AppText.body(14, color: muted),
+                    TextSpan(text: '${Profile.location.of(context)}  ·  '),
+                    TextSpan(
+                      text: const Bi('Coordonnées', 'Contact info').of(context),
+                      style: AppText.body(
+                        14,
+                        weight: FontWeight.w600,
+                        color: c.link,
+                      ),
                     ),
                   ],
                 ),
-              ],
+                style: AppText.body(14, color: c.muted),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                '${Profile.followers.of(context)}  ·  '
+                '${Profile.connections.of(context)}',
+                style: AppText.body(14, weight: FontWeight.w600, color: c.link),
+              ),
+            ],
+          );
+          final school = Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 32,
+                height: 32,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF3FAE49),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  'LC',
+                  style: AppText.body(
+                    12,
+                    weight: FontWeight.w700,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Text(
+                Profile.school,
+                style: AppText.body(15, weight: FontWeight.w600, color: c.text),
+              ),
+            ],
+          );
+
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(
+                height: wide ? 250 : 210,
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    SizedBox(
+                      height: wide ? 170 : 130,
+                      width: double.infinity,
+                      child: Image.asset(
+                        Profile.cover,
+                        fit: BoxFit.cover,
+                        alignment: const Alignment(0.2, -0.55),
+                        excludeFromSemantics: true,
+                      ),
+                    ),
+                    Positioned(
+                      left: 22,
+                      bottom: 0,
+                      child: _OpenToWorkAvatar(
+                        size: wide ? 150 : 132,
+                        border: c.card,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(22, 14, 22, 22),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (wide)
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(child: identity),
+                          const SizedBox(width: 18),
+                          school,
+                        ],
+                      )
+                    else ...[
+                      identity,
+                      const SizedBox(height: 12),
+                      school,
+                    ],
+                    const SizedBox(height: 16),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: c.openBg,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            Profile.openToWork.of(context),
+                            style: AppText.body(
+                              14,
+                              weight: FontWeight.w600,
+                              color: c.text,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            Profile.openToWorkDetail.of(context),
+                            style: AppText.body(14, color: c.text),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            const Bi(
+                              'Afficher les détails',
+                              'Show details',
+                            ).of(context),
+                            style: AppText.body(
+                              14,
+                              weight: FontWeight.w600,
+                              color: c.link,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
+/// Photo de profil entourée de l'anneau vert #OPENTOWORK.
+class _OpenToWorkAvatar extends StatelessWidget {
+  const _OpenToWorkAvatar({required this.size, required this.border});
+
+  final double size;
+  final Color border;
+
+  static const _green = Color(0xFF3F8B3F);
+
+  @override
+  Widget build(BuildContext context) {
+    final ring = size * 0.09;
+    return Container(
+      width: size,
+      height: size,
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(shape: BoxShape.circle, color: border),
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          const DecoratedBox(
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: SweepGradient(
+                colors: [_green, _green, Color(0x003F8B3F), _green],
+                stops: [0, 0.55, 0.75, 1],
+              ),
+            ),
+            child: SizedBox.expand(),
+          ),
+          Padding(
+            padding: EdgeInsets.all(ring),
+            child: ClipOval(
+              child: Image.asset(
+                Profile.avatar,
+                fit: BoxFit.cover,
+                semanticLabel: Profile.name,
+              ),
             ),
           ),
+          Positioned.fill(
+            child: CustomPaint(
+              painter: _ArcLabel(
+                '#OPENTOWORK',
+                AppText.body(
+                  size * 0.062,
+                  weight: FontWeight.w800,
+                  color: Colors.white,
+                ),
+                inset: ring / 2,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Écrit un texte le long du bas-gauche d'un cercle, lisible de l'extérieur.
+class _ArcLabel extends CustomPainter {
+  _ArcLabel(this.text, this.style, {required this.inset});
+
+  final String text;
+  final TextStyle style;
+  final double inset;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = size.center(Offset.zero);
+    final radius = size.width / 2 - inset;
+    final glyphs = [
+      for (final ch in text.split(''))
+        TextPainter(
+          text: TextSpan(text: ch, style: style),
+          textDirection: TextDirection.ltr,
+        )..layout(),
+    ];
+    final total = glyphs.fold<double>(0, (s, g) => s + g.width);
+    // Centré vers 135° (bas-gauche), lu de gauche à droite.
+    var angle = 2.36 + total / radius / 2;
+    for (final g in glyphs) {
+      final half = g.width / 2 / radius;
+      angle -= half;
+      canvas
+        ..save()
+        ..translate(
+          center.dx + radius * math.cos(angle),
+          center.dy + radius * math.sin(angle),
+        )
+        ..rotate(angle - math.pi / 2);
+      g.paint(canvas, Offset(-g.width / 2, -g.height / 2));
+      canvas.restore();
+      angle -= half;
+    }
+  }
+
+  @override
+  bool shouldRepaint(_ArcLabel old) => old.text != text || old.style != style;
+}
+
+/// Carte de section avec titre, façon LinkedIn.
+class _Card extends StatelessWidget {
+  const _Card({required this.c, required this.title, required this.child});
+
+  final _LiColors c;
+  final Bi title;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(top: 10),
+      padding: const EdgeInsets.all(22),
+      decoration: BoxDecoration(
+        color: c.card,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title.of(context),
+            style: AppText.body(20, weight: FontWeight.w600, color: c.text),
+          ),
+          const SizedBox(height: 14),
+          child,
+        ],
+      ),
+    );
+  }
+}
+
+/// Section faite de lignes (expérience, formation, certifications, projets).
+class _EntriesCard extends StatelessWidget {
+  const _EntriesCard({
+    required this.c,
+    required this.title,
+    required this.entries,
+  });
+
+  final _LiColors c;
+  final Bi title;
+  final List<ProfileEntry> entries;
+
+  @override
+  Widget build(BuildContext context) {
+    return _Card(
+      c: c,
+      title: title,
+      child: Column(
+        children: [
+          for (final (i, e) in entries.indexed) ...[
+            if (i > 0)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(62, 12, 0, 12),
+                child: Divider(
+                  height: 1,
+                  color: c.border.withValues(alpha: 0.15),
+                ),
+              ),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 48,
+                  height: 48,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: _linkedInBlue.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    e.logo ?? '',
+                    style: AppText.body(
+                      15,
+                      weight: FontWeight.w700,
+                      color: c.link,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        e.title.of(context),
+                        style: AppText.body(
+                          16,
+                          weight: FontWeight.w600,
+                          color: c.text,
+                        ),
+                      ),
+                      Text(
+                        e.org.of(context),
+                        style: AppText.body(14, color: c.text),
+                      ),
+                      Text(
+                        e.dates.of(context),
+                        style: AppText.body(14, color: c.muted),
+                      ),
+                      if (e.place case final place?)
+                        Text(
+                          place.of(context),
+                          style: AppText.body(14, color: c.muted),
+                        ),
+                      if (e.detail case final detail?) ...[
+                        const SizedBox(height: 6),
+                        Text(
+                          detail.of(context),
+                          style: AppText.body(14, color: c.text),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ],
         ],
       ),
     );
