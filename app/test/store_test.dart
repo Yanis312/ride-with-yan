@@ -23,11 +23,15 @@ void _stockShoes() {
 }
 
 void main() {
-  test('tout le catalogue est sur commande, à 80 \$', () {
+  test('tout le catalogue est sur commande : 80 \$, sacs 100 \$', () {
     for (final p in catalog) {
       expect(p.stockOf(), 0, reason: p.id);
       expect(p.preorder, isTrue, reason: p.id);
-      expect(p.price, 80, reason: p.id);
+      expect(
+        p.price,
+        p.category == ProductCategory.bags ? 100 : 80,
+        reason: p.id,
+      );
     }
   });
 

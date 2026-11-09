@@ -9,7 +9,7 @@ test.describe('Boutique', () => {
 
   test('s’ouvre avec un panier vide, les prix et la mention de revendeur', async ({ store }) => {
     await expect(store.emptyCart).toBeVisible();
-    await expect(store.pitch).toContainText('Everything $80');
+    await expect(store.pitch).toContainText('From $80');
     await expect(store.pitch).toContainText('20 to 30 days');
     await expect(store.resellerNotice).toBeVisible();
     await expect(store.whatsAppButton).toBeVisible();

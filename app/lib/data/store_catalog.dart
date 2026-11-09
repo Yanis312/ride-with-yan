@@ -23,7 +23,8 @@ enum ProductCategory {
   airForce1(Bi('Air Force 1', 'Air Force 1'), AppIcons.sneaker),
   dunk(Bi('Dunk', 'Dunk'), AppIcons.sneaker),
   vans(Bi('Vans', 'Vans'), AppIcons.sneaker),
-  northFace(Bi('The North Face', 'The North Face'), AppIcons.snowflake);
+  northFace(Bi('The North Face', 'The North Face'), AppIcons.snowflake),
+  bags(Bi('Sacs', 'Bags'), AppIcons.handbag);
 
   const ProductCategory(this.label, this.icon);
 
@@ -202,6 +203,11 @@ const _sneakerDetails = [
   ..._howToOrder,
 ];
 
+const _bagDetails = [
+  Bi('Neuf, avec sa pochette assortie', 'New, with its matching pouch'),
+  ..._howToOrder,
+];
+
 const _jacketDetails = [
   Bi('Neuve, jamais portée', 'New, never worn'),
   ..._howToOrder,
@@ -217,8 +223,8 @@ const orderNotice = Bi(
 
 /// Rappel des prix affiché en haut de la boutique.
 const storePitch = Bi(
-  'Tout à 80 \$ · Livré chez vous en 20 à 30 jours.',
-  'Everything \$80 · Delivered to your door in 20 to 30 days.',
+  'À partir de 80 \$ · Livré chez vous en 20 à 30 jours.',
+  'From \$80 · Delivered to your door in 20 to 30 days.',
 );
 
 /// Tailles des doudounes, sur commande comme le reste.
@@ -306,6 +312,23 @@ Product _jacket(
   framed: true,
   preorder: true,
   details: _jacketDetails,
+);
+
+/// Un sac cabas à carreaux pour femmes : 100 \$, sur commande, une photo.
+Product _bag(String id, Bi name) => Product(
+  id: id,
+  name: name,
+  blurb: const Bi('Sac cabas à carreaux · neuf', 'Check tote bag · new'),
+  price: 100,
+  category: ProductCategory.bags,
+  icon: AppIcons.handbag,
+  colors: _studio,
+  shoppers: const {Shopper.women},
+  stock: 0,
+  photoCount: 1,
+  framed: true,
+  preorder: true,
+  details: _bagDetails,
 );
 
 /// Catalogue, rangé par modèle ; chaque article est désigné par sa couleur. Tailles, quantités et prix sont à ajuster au vrai stock.
@@ -453,6 +476,42 @@ final baseCatalog = <Product>[
     'veste-sans-manches-noire',
     Bi('Sans manches noire', 'Black vest'),
     blurb: _vestBlurb,
+  ),
+  // Sacs, pour femmes
+  _bag(
+    'sac-carreaux-blanc-rose',
+    Bi(
+      'Cabas à carreaux blanc, intérieur rose',
+      'White check tote, pink lining',
+    ),
+  ),
+  _bag(
+    'sac-carreaux-blanc-beige',
+    Bi(
+      'Cabas à carreaux blanc, intérieur beige',
+      'White check tote, beige lining',
+    ),
+  ),
+  _bag(
+    'sac-carreaux-marron-rouge',
+    Bi(
+      'Cabas à carreaux marron, intérieur rouge',
+      'Brown check tote, red lining',
+    ),
+  ),
+  _bag(
+    'sac-carreaux-marron-rose',
+    Bi(
+      'Cabas à carreaux marron, intérieur rose',
+      'Brown check tote, pink lining',
+    ),
+  ),
+  _bag(
+    'sac-carreaux-marron-beige',
+    Bi(
+      'Cabas à carreaux marron, intérieur beige',
+      'Brown check tote, beige lining',
+    ),
   ),
 ];
 
