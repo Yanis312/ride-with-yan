@@ -6,6 +6,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 
 import '../data/store_catalog.dart';
 import '../navigation/sections.dart';
+import 'cat_screen.dart';
 import '../session/session_controller.dart';
 import '../data/bilingual.dart';
 import '../theme/app_icons.dart';
@@ -326,6 +327,8 @@ class _Header extends StatelessWidget {
         trailing: const Icon(AppIcons.translate),
       ),
       const SizedBox(width: 12),
+      CatButton(onTap: () => openPage(context, const CatScreen(), name: 'cat')),
+      const SizedBox(width: 12),
       LiquidIconButton(
         icon: context.isDark ? AppIcons.sun : AppIcons.moon,
         label: const Bi(
@@ -359,7 +362,14 @@ class _Header extends StatelessWidget {
               style: AppText.display(26, color: p.text),
             ),
           ),
-          ...controls,
+          Flexible(
+            flex: 4,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerRight,
+              child: Row(mainAxisSize: MainAxisSize.min, children: controls),
+            ),
+          ),
         ],
       ],
     );
