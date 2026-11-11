@@ -13,6 +13,7 @@ import '../theme/app_icons.dart';
 import '../theme/app_theme.dart';
 import '../widgets/glass.dart';
 import '../widgets/mesh_background.dart';
+import '../widgets/safe_youtube.dart';
 import '../widgets/section_scaffold.dart';
 import '../backend/usage.dart';
 
@@ -53,14 +54,14 @@ class _EntertainmentScreenState extends State<EntertainmentScreen> {
         setState(() => _playing = playing);
         _session?.setMediaPlaying(playing);
         // Le plafond de volume vaut aussi pour la toute première lecture.
-        if (playing) _player.setVolume(_volume);
+        if (playing) _player.safely((p) => p.setVolume(_volume));
       }
       // Vidéo terminée : on enchaîne, une seule fois, sur la suivante.
       final ended = v.playerState == PlayerState.ended;
       if (ended && !_wasEnded && mounted) _next();
       _wasEnded = ended;
     });
-    _player.cueVideoById(videoId: _current.id);
+    _player.safely((p) => p.cueVideoById(videoId: _current.id));
   }
 
   @override
@@ -80,9 +81,11 @@ class _EntertainmentScreenState extends State<EntertainmentScreen> {
   Future<void> _play(Video video) async {
     Usage.instance.tap('video.play:${video.id}');
     setState(() => _current = video);
-    await _player.loadVideoById(videoId: video.id);
-    if (!mounted) return;
-    await _player.setVolume(_volume);
+    await guardYoutube(() async {
+      await _player.loadVideoById(videoId: video.id);
+      if (!mounted) return;
+      await _player.setVolume(_volume);
+    });
   }
 
   void _next() {
@@ -90,13 +93,14 @@ class _EntertainmentScreenState extends State<EntertainmentScreen> {
     _play(_videos[(i + 1) % _videos.length]);
   }
 
-  void _toggle() => _playing ? _player.pauseVideo() : _player.playVideo();
+  void _toggle() =>
+      _player.safely((p) => _playing ? p.pauseVideo() : p.playVideo());
 
   void _changeVolume(int delta) {
     setState(
       () => _volume = (_volume + delta).clamp(0, AppConfig.maxMusicVolume),
     );
-    _player.setVolume(_volume);
+    _player.safely((p) => p.setVolume(_volume));
   }
 
   @override

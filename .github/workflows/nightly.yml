@@ -27,6 +27,8 @@ jobs:
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
+          # 3.50 rend material.dart obsolète : migration à faire avant de monter.
+          flutter-version: 3.47.9
           cache: true
       - run: flutter pub get
       - run: flutter build web --release --wasm

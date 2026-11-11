@@ -40,6 +40,7 @@ flutter:
     - assets/products/
     - assets/profile/
     - assets/driver/
+    - assets/cat/
 
   shaders:
     - shaders/mesh.frag

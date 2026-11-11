@@ -15,6 +15,7 @@ import '../theme/app_theme.dart';
 import '../widgets/decor_clock.dart';
 import '../widgets/glass.dart';
 import '../widgets/mesh_background.dart';
+import '../widgets/safe_youtube.dart';
 import '../widgets/section_scaffold.dart';
 import '../backend/usage.dart';
 
@@ -56,7 +57,7 @@ class _MusicScreenState extends State<MusicScreen> {
         setState(() => _playing = playing);
         SessionScope.of(context).setMediaPlaying(playing);
         // Le plafond de volume vaut aussi pour la toute première lecture.
-        if (playing) _player.setVolume(_volume);
+        if (playing) _player.safely((p) => p.setVolume(_volume));
       }
       // Morceau terminé : on enchaîne sur le suivant de la sélection.
       final ended = v.playerState == PlayerState.ended;
@@ -66,7 +67,7 @@ class _MusicScreenState extends State<MusicScreen> {
     if (widget.autoPlayFavorite) {
       _play(yanFavorite);
     } else {
-      _player.cueVideoById(videoId: _current.videoId);
+      _player.safely((p) => p.cueVideoById(videoId: _current.videoId));
     }
   }
 
@@ -92,12 +93,15 @@ class _MusicScreenState extends State<MusicScreen> {
 
   Future<void> _play(Track track) async {
     setState(() => _current = track);
-    await _player.loadVideoById(videoId: track.videoId);
-    if (!mounted) return;
-    await _player.setVolume(_volume);
+    await guardYoutube(() async {
+      await _player.loadVideoById(videoId: track.videoId);
+      if (!mounted) return;
+      await _player.setVolume(_volume);
+    });
   }
 
-  void _toggle() => _playing ? _player.pauseVideo() : _player.playVideo();
+  void _toggle() =>
+      _player.safely((p) => _playing ? p.pauseVideo() : p.playVideo());
 
   void _step(int delta) {
     final list = _visible;
@@ -111,7 +115,7 @@ class _MusicScreenState extends State<MusicScreen> {
     setState(
       () => _volume = (_volume + delta).clamp(0, AppConfig.maxMusicVolume),
     );
-    _player.setVolume(_volume);
+    _player.safely((p) => p.setVolume(_volume));
   }
 
   @override

@@ -11,6 +11,7 @@ import '../data/store_catalog.dart';
 import '../data/weather.dart';
 import '../l10n/app_localizations.dart';
 import '../navigation/sections.dart';
+import 'cat_screen.dart';
 import '../session/session_controller.dart';
 import 'entertainment_screen.dart';
 import 'news_screen.dart';
@@ -121,6 +122,8 @@ class _TopBar extends StatelessWidget {
         onTap: session.switchLanguage,
         trailing: const Icon(AppIcons.translate),
       ),
+      const SizedBox(width: 12),
+      CatButton(onTap: () => openPage(context, const CatScreen(), name: 'cat')),
     ];
 
     return Row(
@@ -158,7 +161,14 @@ class _TopBar extends StatelessWidget {
                     style: AppText.display(26, color: p.text),
                   ),
           ),
-          ...controls,
+          Flexible(
+            flex: 4,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerRight,
+              child: Row(mainAxisSize: MainAxisSize.min, children: controls),
+            ),
+          ),
         ],
       ],
     ).animate().fadeIn(duration: AppMotion.medium, curve: AppMotion.spring);

@@ -43,7 +43,7 @@ class _QuickDockState extends State<QuickDock> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final items = [
-      (Section.driver, AppIcons.navigation, DriverScreen.title.of(context)),
+      (Section.driver, AppIcons.steeringWheel, DriverScreen.title.of(context)),
       (Section.music, AppIcons.music, l10n.dockMusic),
       (Section.linkedin, AppIcons.linkedin, l10n.dockLinkedIn),
       (Section.collaboration, AppIcons.handshake, l10n.dockCollab),
