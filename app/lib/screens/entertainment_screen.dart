@@ -122,7 +122,14 @@ class _EntertainmentScreenState extends State<EntertainmentScreen> {
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(28),
-            child: YoutubePlayer(controller: _player, aspectRatio: 16 / 9),
+            child: YoutubePlayer(
+              controller: _player,
+              aspectRatio: 16 / 9,
+              // Pas de plein écran automatique en paysage : il cachait
+              // l’app sans bouton pour revenir.
+              autoFullScreen: false,
+              enableFullScreenOnVerticalDrag: false,
+            ),
           ),
         ),
         const SizedBox(height: 20),

@@ -207,7 +207,14 @@ class _PlayerPanel extends StatelessWidget {
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(28),
-            child: YoutubePlayer(controller: controller, aspectRatio: 16 / 9),
+            child: YoutubePlayer(
+              controller: controller,
+              aspectRatio: 16 / 9,
+              // Pas de plein écran automatique en paysage : il cachait
+              // l’app sans bouton pour revenir.
+              autoFullScreen: false,
+              enableFullScreenOnVerticalDrag: false,
+            ),
           ),
         ),
         const SizedBox(height: 22),
