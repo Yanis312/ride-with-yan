@@ -84,21 +84,52 @@ const pollQuestions = [
       'Your favourite season in the region?',
     ),
     [
-      PollOption('hiver', Bi('Hiver', 'Winter'), colors: _cool),
-      PollOption('printemps', Bi('Printemps', 'Spring'), colors: _green),
-      PollOption('ete', Bi('Été', 'Summer'), colors: _warm),
-      PollOption('automne', Bi('Automne', 'Fall'), colors: _violet),
+      PollOption(
+        'hiver',
+        Bi('Hiver', 'Winter'),
+        photo: 'assets/photos/poll-hiver.jpg',
+        colors: _cool,
+      ),
+      PollOption(
+        'printemps',
+        Bi('Printemps', 'Spring'),
+        photo: 'assets/photos/poll-printemps.jpg',
+        colors: _green,
+      ),
+      PollOption(
+        'ete',
+        Bi('Été', 'Summer'),
+        photo: 'assets/photos/poll-ete.jpg',
+        colors: _warm,
+      ),
+      PollOption(
+        'automne',
+        Bi('Automne', 'Fall'),
+        photo: 'assets/photos/poll-automne.jpg',
+        colors: _violet,
+      ),
     ],
   ),
   PollQuestion(
     'plat',
     Bi('Poutine ou smoked meat ?', 'Poutine or smoked meat?'),
     [
-      PollOption('poutine', Bi('Poutine', 'Poutine'), colors: _warm),
-      PollOption('smoked', Bi('Smoked meat', 'Smoked meat'), colors: _violet),
+      PollOption(
+        'poutine',
+        Bi('Poutine', 'Poutine'),
+        photo: 'assets/photos/poll-poutine.jpg',
+        colors: _warm,
+      ),
+      PollOption(
+        'smoked',
+        Bi('Smoked meat', 'Smoked meat'),
+        photo: 'assets/photos/poll-smoked.jpg',
+        colors: _violet,
+      ),
       PollOption(
         'bagel',
         Bi('Bagel de Montréal', 'Montréal bagel'),
+        photo: 'assets/photos/poll-bagel.jpg',
         colors: _green,
       ),
     ],
@@ -107,17 +138,25 @@ const pollQuestions = [
     PollOption(
       'resto',
       Bi('Un bon restaurant', 'A great restaurant'),
+      photo: 'assets/photos/poll-resto.jpg',
       colors: _warm,
     ),
     PollOption(
       'match',
       Bi('Un match au Centre Bell', 'A game at the Bell Centre'),
+      photo: 'assets/photos/poll-match.jpg',
       colors: _cool,
     ),
-    PollOption('concert', Bi('Un concert', 'A concert'), colors: _violet),
+    PollOption(
+      'concert',
+      Bi('Un concert', 'A concert'),
+      photo: 'assets/photos/poll-concert.jpg',
+      colors: _violet,
+    ),
     PollOption(
       'maison',
       Bi('Tranquille à la maison', 'A quiet night in'),
+      photo: 'assets/photos/poll-maison.jpg',
       colors: _green,
     ),
   ]),
@@ -125,10 +164,152 @@ const pollQuestions = [
     'musique',
     Bi('Quelle musique pour la route ?', 'What music for the ride?'),
     [
-      PollOption('rock', Bi('Rock', 'Rock'), colors: _violet),
-      PollOption('pop', Bi('Pop', 'Pop'), colors: _warm),
-      PollOption('rap', Bi('Rap', 'Hip-hop'), colors: _cool),
-      PollOption('silence', Bi('Le silence', 'Silence'), colors: _green),
+      PollOption(
+        'rock',
+        Bi('Rock', 'Rock'),
+        photo: 'assets/photos/poll-rock.jpg',
+        colors: _violet,
+      ),
+      PollOption(
+        'pop',
+        Bi('Pop', 'Pop'),
+        photo: 'assets/photos/poll-pop.jpg',
+        colors: _warm,
+      ),
+      PollOption(
+        'rap',
+        Bi('Rap', 'Hip-hop'),
+        photo: 'assets/photos/poll-rap.jpg',
+        colors: _cool,
+      ),
+      PollOption(
+        'silence',
+        Bi('Le silence', 'Silence'),
+        photo: 'assets/photos/poll-silence.jpg',
+        colors: _green,
+      ),
+    ],
+  ),
+  PollQuestion(
+    'vacances',
+    Bi('Vos vacances idéales ?', 'Your ideal vacation?'),
+    [
+      PollOption(
+        'plage',
+        Bi('La plage', 'The beach'),
+        photo: 'assets/photos/poll-plage.jpg',
+        colors: _warm,
+      ),
+      PollOption(
+        'montagne',
+        Bi('La montagne', 'The mountains'),
+        photo: 'assets/photos/poll-montagne.jpg',
+        colors: _green,
+      ),
+      PollOption(
+        'camping',
+        Bi('Le camping', 'Camping'),
+        photo: 'assets/photos/poll-camping.jpg',
+        colors: _green,
+      ),
+      PollOption(
+        'roadtrip',
+        Bi('Un road trip', 'A road trip'),
+        photo: 'assets/photos/poll-roadtrip.jpg',
+        colors: _cool,
+      ),
+    ],
+  ),
+  PollQuestion(
+    'boisson',
+    Bi('Le matin, vous prenez quoi ?', "What's your morning drink?"),
+    [
+      PollOption(
+        'cafe',
+        Bi('Un café', 'Coffee'),
+        photo: 'assets/photos/poll-cafe.jpg',
+        colors: _warm,
+      ),
+      PollOption(
+        'the',
+        Bi('Un thé', 'Tea'),
+        photo: 'assets/photos/poll-the.jpg',
+        colors: _green,
+      ),
+      PollOption(
+        'chocolat',
+        Bi('Un chocolat chaud', 'Hot chocolate'),
+        photo: 'assets/photos/poll-chocolat.jpg',
+        colors: _violet,
+      ),
+    ],
+  ),
+  PollQuestion(
+    'sport',
+    Bi('Votre sport préféré à regarder ?', 'Your favourite sport to watch?'),
+    [
+      PollOption(
+        'hockey',
+        Bi('Hockey', 'Hockey'),
+        photo: 'assets/photos/poll-hockey.jpg',
+        colors: _cool,
+      ),
+      PollOption(
+        'soccer',
+        Bi('Soccer', 'Soccer'),
+        photo: 'assets/photos/poll-soccer.jpg',
+        colors: _green,
+      ),
+      PollOption(
+        'basket',
+        Bi('Basketball', 'Basketball'),
+        photo: 'assets/photos/poll-basket.jpg',
+        colors: _warm,
+      ),
+      PollOption(
+        'football',
+        Bi('Football', 'Football'),
+        photo: 'assets/photos/poll-football.jpg',
+        colors: _violet,
+      ),
+    ],
+  ),
+  PollQuestion('animal', Bi('Chien ou chat ?', 'Dog or cat?'), [
+    PollOption(
+      'chien',
+      Bi('Chien', 'Dog'),
+      photo: 'assets/photos/poll-chien.jpg',
+      colors: _warm,
+    ),
+    PollOption(
+      'chat',
+      Bi('Chat', 'Cat'),
+      photo: 'assets/photos/poll-chat.jpg',
+      colors: _violet,
+    ),
+  ]),
+  PollQuestion(
+    'ecran',
+    Bi('Ce soir, vous regardez quoi ?', 'What are you watching tonight?'),
+    [
+      PollOption(
+        'film',
+        Bi('Un film au cinéma', 'A movie at the theatre'),
+        photo: 'assets/photos/poll-film.jpg',
+        colors: _violet,
+      ),
+      PollOption(
+        'serie',
+        Bi('Une série à la maison', 'A series at home'),
+        photo: 'assets/photos/vintage-tv.jpg',
+        colors: _cool,
+      ),
+      PollOption(
+        'jeu',
+        Bi('Un jeu vidéo', 'A video game'),
+        photo: 'assets/photos/poll-jeu.jpg',
+        colors: _green,
+      ),
     ],
   ),
 ];
