@@ -19,7 +19,7 @@ class CatScreen extends StatelessWidget {
   static const born = 2022;
 
   /// Photos d'Obama, dans assets/cat/. Vide : une illustration les remplace.
-  static const photos = <String>[];
+  static const photos = ['assets/cat/obama-2.jpg', 'assets/cat/obama-1.jpg'];
 
   static const story = Bi(
     'Voici Obama, mon chat noir, né en $born. C’est lui le vrai patron à la '
