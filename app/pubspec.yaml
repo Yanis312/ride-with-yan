@@ -39,6 +39,7 @@ flutter:
     - assets/photos/
     - assets/products/
     - assets/profile/
+    - assets/driver/
 
   shaders:
     - shaders/mesh.frag

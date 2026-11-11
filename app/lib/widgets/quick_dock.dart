@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../l10n/app_localizations.dart';
 import '../navigation/sections.dart';
+import '../screens/driver_screen.dart';
 import '../theme/app_icons.dart';
 import '../theme/app_theme.dart';
 import 'glass.dart';
@@ -42,6 +43,7 @@ class _QuickDockState extends State<QuickDock> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final items = [
+      (Section.driver, AppIcons.navigation, DriverScreen.title.of(context)),
       (Section.music, AppIcons.music, l10n.dockMusic),
       (Section.linkedin, AppIcons.linkedin, l10n.dockLinkedIn),
       (Section.collaboration, AppIcons.handshake, l10n.dockCollab),

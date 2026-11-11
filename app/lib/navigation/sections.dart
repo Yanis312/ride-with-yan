@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../data/store_catalog.dart';
 import '../screens/ads_screen.dart';
 import '../screens/collaboration_screen.dart';
+import '../screens/driver_screen.dart';
 import '../screens/linkedin_screen.dart';
 import '../screens/music_screen.dart';
 import '../screens/store_screen.dart';
@@ -10,7 +11,7 @@ import '../session/session_controller.dart';
 import '../theme/app_theme.dart';
 
 /// Sections accessibles depuis le dock, partout dans l'app.
-enum Section { music, linkedin, collaboration, store, ads }
+enum Section { driver, music, linkedin, collaboration, store, ads }
 
 /// Ouvre une section. Depuis l'écran de veille, la session démarre d'abord
 /// dans la langue affichée (anglais par défaut, modifiable ensuite).
@@ -37,6 +38,7 @@ void openPage(BuildContext context, Widget page, {required String name}) {
 
 Route<void> _sectionRoute(Section section, Shopper shopper) {
   return _fadeRoute(section.name, switch (section) {
+    Section.driver => const DriverScreen(),
     Section.music => const MusicScreen(),
     Section.linkedin => const LinkedInScreen(),
     Section.collaboration => const CollaborationScreen(),
