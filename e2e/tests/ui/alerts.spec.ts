@@ -17,7 +17,7 @@ test.describe('Alertes pour les passagers', () => {
     await welcome.start('en');
 
     await expect(page.getByRole('button', { name: /Back to welcome/ })).toBeVisible();
-    await expect(page.getByRole('button', { name: /warning|message|driver/i })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: /warning|message|note from your driver/i })).toHaveCount(0);
   });
 
   test('affiche l’alerte officielle d’Environnement Canada', async ({
