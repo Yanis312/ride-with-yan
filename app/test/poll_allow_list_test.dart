@@ -6,7 +6,7 @@ import 'package:ride_with_yan/data/poll.dart';
 
 void main() {
   test('la base accepte exactement les questions et réponses de l’app', () {
-    final sql = File('../supabase/migrations/20261011_poll_allow_list.sql')
+    final sql = File('../supabase/migrations/20261110_poll_dix_questions.sql')
         .readAsStringSync();
     final start = sql.indexOf("jsonb := '") + "jsonb := '".length;
     final allowed = jsonDecode(

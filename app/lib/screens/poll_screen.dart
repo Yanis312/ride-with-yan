@@ -22,7 +22,14 @@ class PollScreen extends StatefulWidget {
 
 class _PollScreenState extends State<PollScreen> {
   final _store = PollStore.instance;
-  late int _index = pollQuestions.indexOf(questionOfTheDay());
+
+  /// On commence par la question du jour, puis on fait le tour des autres.
+  late final int _start = pollQuestions.indexOf(questionOfTheDay());
+  late int _index = _start;
+
+  /// Rang de la question affichée dans le tour : 1 pour la première.
+  int get _rank =>
+      (_index - _start + pollQuestions.length) % pollQuestions.length + 1;
 
   @override
   void initState() {
@@ -64,6 +71,18 @@ class _PollScreenState extends State<PollScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
+                          Bi(
+                            'Question $_rank sur ${pollQuestions.length}',
+                            'Question $_rank of ${pollQuestions.length}',
+                          ).of(context),
+                          style: AppText.body(
+                            16,
+                            weight: FontWeight.w700,
+                            color: Brand.gold,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
                               question.question.of(context),
                               style: AppText.display(
                                 width < 760 ? 34 : 50,
@@ -92,10 +111,14 @@ class _PollScreenState extends State<PollScreen> {
                   ),
                   const SizedBox(width: 12),
                   PillButton(
-                    label: const Bi(
-                      'Autre question',
-                      'Another question',
-                    ).of(context),
+                    label:
+                        (_rank == pollQuestions.length
+                                ? const Bi('Recommencer', 'Start over')
+                                : const Bi(
+                                    'Question suivante',
+                                    'Next question',
+                                  ))
+                            .of(context),
                     filled: false,
                     onTap: () => setState(
                       () => _index = (_index + 1) % pollQuestions.length,
