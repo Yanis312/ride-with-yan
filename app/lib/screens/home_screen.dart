@@ -122,8 +122,12 @@ class _TopBar extends StatelessWidget {
         onTap: session.switchLanguage,
         trailing: const Icon(AppIcons.translate),
       ),
-      const SizedBox(width: 12),
-      CatButton(onTap: () => openPage(context, const CatScreen(), name: 'cat')),
+      if (CatButton.visible) ...[
+        const SizedBox(width: 12),
+        CatButton(
+          onTap: () => openPage(context, const CatScreen(), name: 'cat'),
+        ),
+      ],
     ];
 
     return Row(

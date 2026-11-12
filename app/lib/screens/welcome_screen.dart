@@ -326,8 +326,12 @@ class _Header extends StatelessWidget {
         onTap: SessionScope.of(context).togglePreferred,
         trailing: const Icon(AppIcons.translate),
       ),
-      const SizedBox(width: 12),
-      CatButton(onTap: () => openPage(context, const CatScreen(), name: 'cat')),
+      if (CatButton.visible) ...[
+        const SizedBox(width: 12),
+        CatButton(
+          onTap: () => openPage(context, const CatScreen(), name: 'cat'),
+        ),
+      ],
       const SizedBox(width: 12),
       LiquidIconButton(
         icon: context.isDark ? AppIcons.sun : AppIcons.moon,

@@ -160,6 +160,9 @@ class _Card extends StatelessWidget {
 class CatButton extends StatelessWidget {
   const CatButton({super.key, required this.onTap});
 
+  /// Bouton masqué pour l'instant : passer à true pour le faire apparaître.
+  static const visible = false;
+
   final VoidCallback onTap;
 
   @override
