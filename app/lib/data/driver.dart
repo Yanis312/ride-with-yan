@@ -38,6 +38,7 @@ abstract final class Driver {
     ('🇧🇪', Bi('Belgique', 'Belgium')),
     ('🇳🇱', Bi('Pays-Bas', 'Netherlands')),
     ('🇩🇪', Bi('Allemagne', 'Germany')),
+    ('🇱🇺', Bi('Luxembourg', 'Luxembourg')),
   ];
 
   static const List<TravelPhoto> photos = [
