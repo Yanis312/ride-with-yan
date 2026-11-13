@@ -76,7 +76,12 @@ class RemoteConfig extends ChangeNotifier {
       final rows = await Future.wait([
         Backend.select('product_overrides'),
         Backend.select('settings'),
-        Backend.select('custom_products', order: 'created_at.desc'),
+        // Les articles ajoutés ne doivent jamais empêcher de recharger les
+        // prix et réglages : en cas d'échec, on garde ceux déjà connus.
+        Backend.select(
+          'custom_products',
+          order: 'created_at.desc',
+        ).catchError((Object _) => _custom),
       ]);
       final products = {for (final r in rows[0]) r['id'] as String: r};
       final settings = {
