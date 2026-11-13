@@ -1,6 +1,9 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+
+import 'online_store.dart';
+
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:intl/intl.dart';
 
@@ -120,6 +123,11 @@ class _StoreScreenState extends State<StoreScreen> {
               children: [
                 _Subtitle(),
                 const SizedBox(height: 14),
+                const Align(
+                  alignment: Alignment.centerLeft,
+                  child: _PhoneStoreButton(),
+                ),
+                const SizedBox(height: 14),
                 tabs,
                 const SizedBox(height: 16),
                 grid,
@@ -157,7 +165,17 @@ class _StoreScreenState extends State<StoreScreen> {
                   ),
                 ),
                 const SizedBox(width: 28),
-                Expanded(flex: 4, child: panel),
+                Expanded(
+                  flex: 4,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const _PhoneStoreButton(),
+                      const SizedBox(height: 14),
+                      Expanded(child: panel),
+                    ],
+                  ),
+                ),
               ],
             ),
     );
@@ -405,6 +423,139 @@ class _Tab extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// Bouton qui brille : « Scannez pour voir ma boutique sur votre
+/// téléphone ». Ouvre un grand QR code vers la boutique en ligne.
+class _PhoneStoreButton extends StatelessWidget {
+  const _PhoneStoreButton();
+
+  static const _label = Bi(
+    'Scannez pour voir ma boutique sur votre téléphone',
+    'Scan to see my shop on your phone',
+  );
+
+  void _open(BuildContext context) {
+    showGeneralDialog<void>(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: MaterialLocalizations.of(context).closeButtonLabel,
+      barrierColor: Colors.black87,
+      transitionDuration: AppMotion.medium,
+      pageBuilder: (context, _, _) => Theme(
+        data: buildAppTheme(Brightness.dark),
+        child: Center(
+          child: Material(
+            color: Colors.transparent,
+            child: GestureDetector(
+              onTap: () => Navigator.pop(context),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    const Bi(
+                      'Ma boutique sur votre téléphone',
+                      'My shop on your phone',
+                    ).of(context),
+                    textAlign: TextAlign.center,
+                    style: AppText.display(44, color: Colors.white),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    const Bi(
+                      'Scannez avec l’appareil photo, prenez le temps de '
+                          'choisir, commandez sur WhatsApp.',
+                      'Scan with your camera, take your time, order on '
+                          'WhatsApp.',
+                    ).of(context),
+                    textAlign: TextAlign.center,
+                    style: AppText.body(17, color: Colors.white70),
+                  ),
+                  const SizedBox(height: 28),
+                  QrCard(
+                    data: onlineStoreUrl,
+                    icon: AppIcons.storefront,
+                    label: const Bi(
+                      'Touchez pour fermer',
+                      'Tap to close',
+                    ).of(context),
+                    size: 260,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+      transitionBuilder: (context, animation, _, child) => FadeTransition(
+        opacity: animation,
+        child: ScaleTransition(
+          scale: Tween(begin: 0.94, end: 1.0).animate(
+            CurvedAnimation(parent: animation, curve: AppMotion.spring),
+          ),
+          child: child,
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final label = _label.of(context);
+    return Semantics(
+      button: true,
+      label: label,
+      excludeSemantics: true,
+      child: Pressable(
+        onTap: () => _open(context),
+        child:
+            Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(999),
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF3A2A06), Color(0xFF1A1205)],
+                    ),
+                    border: Border.all(color: Brand.gold, width: 1.4),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Brand.gold.withValues(alpha: 0.45),
+                        blurRadius: 22,
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(AppIcons.qrCode, size: 20, color: Brand.gold),
+                      const SizedBox(width: 8),
+                      Flexible(
+                        child: Text(
+                          label,
+                          textAlign: TextAlign.center,
+                          style: AppText.body(
+                            15,
+                            weight: FontWeight.w600,
+                            color: const Color(0xFFFFE08A),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+                .animate(onPlay: (c) => c.repeat())
+                .shimmer(
+                  duration: 2400.ms,
+                  delay: 1200.ms,
+                  color: const Color(0xFFFFF4C2),
+                ),
       ),
     );
   }

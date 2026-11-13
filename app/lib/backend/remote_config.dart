@@ -18,6 +18,10 @@ class RemoteConfig extends ChangeNotifier {
 
   Map<String, Map<String, dynamic>> _products = {};
   Map<String, dynamic> _settings = {};
+  List<Map<String, dynamic>> _custom = [];
+
+  /// Articles ajoutés depuis l'administration (table custom_products).
+  List<Map<String, dynamic>> get customProducts => _custom;
   bool _restored = false;
 
   /// Change à chaque mise à jour : sert à recalculer le catalogue.
@@ -29,10 +33,12 @@ class RemoteConfig extends ChangeNotifier {
 
   void _apply(
     Map<String, Map<String, dynamic>> products,
-    Map<String, dynamic> settings,
-  ) {
+    Map<String, dynamic> settings, [
+    List<Map<String, dynamic>> custom = const [],
+  ]) {
     _products = products;
     _settings = settings;
+    _custom = custom;
     revision++;
     notifyListeners();
   }
@@ -45,10 +51,17 @@ class RemoteConfig extends ChangeNotifier {
       final raw = prefs.getString(_cacheKey);
       if (raw == null) return;
       final json = jsonDecode(raw) as Map<String, dynamic>;
-      _apply({
-        for (final e in (json['products'] as Map<String, dynamic>).entries)
-          e.key: (e.value as Map).cast<String, dynamic>(),
-      }, (json['settings'] as Map).cast<String, dynamic>());
+      _apply(
+        {
+          for (final e in (json['products'] as Map<String, dynamic>).entries)
+            e.key: (e.value as Map).cast<String, dynamic>(),
+        },
+        (json['settings'] as Map).cast<String, dynamic>(),
+        [
+          for (final r in (json['custom'] as List? ?? []))
+            (r as Map).cast<String, dynamic>(),
+        ],
+      );
     } catch (_) {
       // Pas de copie locale utilisable : on garde les valeurs de l'app.
     }
@@ -63,16 +76,21 @@ class RemoteConfig extends ChangeNotifier {
       final rows = await Future.wait([
         Backend.select('product_overrides'),
         Backend.select('settings'),
+        Backend.select('custom_products', order: 'created_at.desc'),
       ]);
       final products = {for (final r in rows[0]) r['id'] as String: r};
       final settings = {
         for (final r in rows[1]) r['key'] as String: r['value'],
       };
-      _apply(products, settings);
+      _apply(products, settings, rows[2]);
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(
         _cacheKey,
-        jsonEncode({'products': products, 'settings': settings}),
+        jsonEncode({
+          'products': products,
+          'settings': settings,
+          'custom': rows[2],
+        }),
       );
     } catch (_) {
       // Voir le commentaire de la méthode.
@@ -84,5 +102,6 @@ class RemoteConfig extends ChangeNotifier {
   void setForTest({
     Map<String, Map<String, dynamic>> products = const {},
     Map<String, dynamic> settings = const {},
-  }) => _apply(products, settings);
+    List<Map<String, dynamic>> custom = const [],
+  }) => _apply(products, settings, custom);
 }

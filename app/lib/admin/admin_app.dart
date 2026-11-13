@@ -1,3 +1,4 @@
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 
 import 'package:intl/intl.dart';
@@ -13,6 +14,8 @@ import '../data/store_catalog.dart';
 import '../theme/app_icons.dart';
 import '../theme/app_theme.dart';
 import '../widgets/product_art.dart';
+
+part 'new_product.dart';
 
 /// Panneau d'administration de Yanis, pensé pour son téléphone.
 /// On y accède en ajoutant `?admin` à l'adresse web de l'app. Seul son
@@ -901,6 +904,22 @@ class _ProductsTabState extends State<_ProductsTab>
               style: AppText.body(13, color: context.inkMuted),
             ),
           ),
+          _NewProductCard(session: widget.session),
+          ListenableBuilder(
+            listenable: RemoteConfig.instance,
+            builder: (context, _) => Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                for (final row in RemoteConfig.instance.customProducts)
+                  _CustomProductTile(
+                    key: ValueKey(row['id']),
+                    row: row,
+                    session: widget.session,
+                  ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 8),
           for (final product in baseCatalog)
             _ProductEditor(
               key: ValueKey(product.id),

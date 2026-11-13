@@ -5,6 +5,29 @@ import 'package:flutter/material.dart';
 
 import '../data/store_catalog.dart';
 
+/// Photo d'un article : dans l'app (assets/) ou en ligne (ajoutée depuis
+/// l'administration).
+ImageProvider productImageProvider(String src) =>
+    src.startsWith('http') ? NetworkImage(src) : AssetImage(src);
+
+Widget productImage(
+  String src, {
+  BoxFit? fit,
+  Alignment alignment = Alignment.center,
+  double? width,
+  double? height,
+  FilterQuality filterQuality = FilterQuality.medium,
+}) => Image(
+  image: productImageProvider(src),
+  excludeFromSemantics: true,
+  fit: fit,
+  alignment: alignment,
+  width: width,
+  height: height,
+  filterQuality: filterQuality,
+  errorBuilder: (context, error, stack) => const SizedBox.shrink(),
+);
+
 /// Visuel d'un article : sa photo quand elle existe (détourée en .png, ou
 /// photo de studio entière en .jpg), sinon une illustration dessinée.
 class ProductVisual extends StatelessWidget {
@@ -29,9 +52,7 @@ class ProductVisual extends StatelessWidget {
       visual = product.framed
           ? ClipRRect(
               borderRadius: BorderRadius.circular(8),
-              child: Image.asset(
-                excludeFromSemantics: true,
-
+              child: productImage(
                 photos[photo % photos.length],
                 fit: BoxFit.cover,
                 width: double.infinity,
@@ -39,9 +60,7 @@ class ProductVisual extends StatelessWidget {
                 filterQuality: FilterQuality.medium,
               ),
             )
-          : Image.asset(
-              excludeFromSemantics: true,
-
+          : productImage(
               photos[photo % photos.length],
               fit: BoxFit.contain,
               filterQuality: FilterQuality.medium,
@@ -98,16 +117,14 @@ class ProductFigure extends StatelessWidget {
         children: [
           ImageFiltered(
             imageFilter: ui.ImageFilter.blur(sigmaX: 24, sigmaY: 24),
-            child: Image.asset(
-              excludeFromSemantics: true,
+            child: productImage(
               src,
               fit: BoxFit.cover,
               filterQuality: FilterQuality.low,
             ),
           ),
           ColoredBox(color: Colors.black.withValues(alpha: 0.25)),
-          Image.asset(
-            excludeFromSemantics: true,
+          productImage(
             src,
             fit: BoxFit.contain,
             filterQuality: FilterQuality.medium,
@@ -116,9 +133,7 @@ class ProductFigure extends StatelessWidget {
       );
     }
     if (product.framed && photos.isNotEmpty) {
-      return Image.asset(
-        excludeFromSemantics: true,
-
+      return productImage(
         photos[photo % photos.length],
         fit: BoxFit.cover,
         // Cadre un peu vers le haut : les deux chaussures restent visibles.

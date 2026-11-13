@@ -16,6 +16,7 @@ import '../widgets/glass.dart';
 import '../widgets/heartbeat.dart';
 import '../widgets/liquid_metal_logo.dart';
 import '../widgets/mesh_background.dart';
+import '../widgets/product_art.dart';
 import '../widgets/quick_dock.dart';
 import '../widgets/road_logo.dart';
 import '../widgets/scene_vignettes.dart';
@@ -189,7 +190,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     for (final photo in photos) {
       if (!mounted) return;
       try {
-        await precacheImage(AssetImage(photo), context);
+        await precacheImage(productImageProvider(photo), context);
       } catch (_) {
         // Une photo manquante n'empêche pas les autres.
       }

@@ -24,7 +24,8 @@ enum ProductCategory {
   dunk(Bi('Dunk', 'Dunk'), AppIcons.sneaker),
   vans(Bi('Vans', 'Vans'), AppIcons.sneaker),
   northFace(Bi('The North Face', 'The North Face'), AppIcons.snowflake),
-  bags(Bi('Sacs', 'Bags'), AppIcons.handbag);
+  bags(Bi('Sacs', 'Bags'), AppIcons.handbag),
+  other(Bi('Nouveautés', 'New in'), AppIcons.tag);
 
   const ProductCategory(this.label, this.icon);
 
@@ -88,7 +89,43 @@ class Product {
     this.framed = false,
     this.preorder = false,
     this.details = const [],
+    this.photoUrls = const [],
   });
+
+  /// Article ajouté depuis le panneau d'administration (table
+  /// custom_products). Les photos sont en ligne, prises entières.
+  factory Product.fromRow(Map<String, dynamic> row) {
+    final category = ProductCategory.values.firstWhere(
+      (c) => c.name == row['category'],
+      orElse: () => ProductCategory.other,
+    );
+    final shoppers = {
+      for (final s in Shopper.values)
+        if ((row['shoppers'] as List?)?.contains(s.name) ?? true) s,
+    };
+    final sizes = [for (final s in (row['sizes'] as List? ?? [])) '$s'];
+    final descFr = '${row['description_fr'] ?? ''}'.trim();
+    final descEn = '${row['description_en'] ?? ''}'.trim();
+    return Product(
+      id: '${row['id']}',
+      name: Bi('${row['name_fr']}', '${row['name_en']}'),
+      blurb: Bi(
+        descFr.isEmpty ? 'Neuf' : descFr,
+        descEn.isEmpty ? 'New' : descEn,
+      ),
+      price: _amount(row['price']) ?? 0,
+      category: category,
+      icon: category.icon,
+      colors: _studio,
+      shoppers: shoppers.isEmpty ? _everyone : shoppers,
+      sizes: {for (final s in sizes) s: 0},
+      stock: 0,
+      framed: true,
+      preorder: true,
+      details: orderConditions,
+      photoUrls: [for (final p in (row['photos'] as List? ?? [])) '$p'],
+    );
+  }
 
   final String id;
   final Bi name;
@@ -121,6 +158,9 @@ class Product {
   final bool preorder;
   final List<Bi> details;
 
+  /// Photos en ligne (articles ajoutés depuis l'administration).
+  final List<String> photoUrls;
+
   bool get hasSizes => sizes.isNotEmpty;
 
   /// Le même article avec le prix et le stock saisis dans l'administration.
@@ -147,6 +187,7 @@ class Product {
     framed: framed,
     preorder: preorder,
     details: details,
+    photoUrls: photoUrls,
   );
 
   // Une valeur mal saisie dans la base (texte, négatif) est ignorée plutôt
@@ -156,10 +197,12 @@ class Product {
   static int? _count(Object? v) =>
       v is num && v.isFinite && v >= 0 ? v.toInt() : null;
 
-  List<String> get photos => [
-    for (var i = 1; i <= photoCount; i++)
-      'assets/products/$id-$i.${framed ? 'jpg' : 'png'}',
-  ];
+  List<String> get photos => photoUrls.isNotEmpty
+      ? photoUrls
+      : [
+          for (var i = 1; i <= photoCount; i++)
+            'assets/products/$id-$i.${framed ? 'jpg' : 'png'}',
+        ];
 
   int stockOf([String? size]) {
     if (!hasSizes) return stock;
@@ -186,7 +229,7 @@ const deliveryWindow = Bi('20 à 30 jours', '20 to 30 days');
 const depositShare = 0.5;
 
 /// Comment se passe une commande, rappelé sur chaque fiche article.
-const _howToOrder = [
+const orderConditions = [
   Bi(
     'Livré chez vous en 20 à 30 jours',
     'Delivered to your door in 20 to 30 days',
@@ -200,17 +243,17 @@ const _howToOrder = [
 
 const _sneakerDetails = [
   Bi('Neuves, jamais portées', 'New, never worn'),
-  ..._howToOrder,
+  ...orderConditions,
 ];
 
 const _bagDetails = [
   Bi('Neuf, avec sa pochette assortie', 'New, with its matching pouch'),
-  ..._howToOrder,
+  ...orderConditions,
 ];
 
 const _jacketDetails = [
   Bi('Neuve, jamais portée', 'New, never worn'),
-  ..._howToOrder,
+  ...orderConditions,
 ];
 
 /// Délai et paiement d'une commande, affichés sous les tailles.
@@ -531,6 +574,14 @@ List<Product> get catalog {
         products.add(p);
       } else if (o['hidden'] != true) {
         products.add(p.withOverride(o));
+      }
+    }
+    // Les articles ajoutés depuis l'administration, les plus récents d'abord.
+    for (final row in remote.customProducts) {
+      try {
+        products.add(Product.fromRow(row));
+      } on Object catch (_) {
+        // Une ligne mal remplie est ignorée plutôt que de casser la boutique.
       }
     }
     _catalog = products;
