@@ -37,6 +37,8 @@ void main() {
 
   test('quatre sections : Air Force 1, Dunk, Vans, The North Face', () {
     for (final c in ProductCategory.values) {
+      // « Nouveautés » ne se remplit qu'avec les articles de l'administration.
+      if (c == ProductCategory.other) continue;
       expect(catalog.where((p) => p.category == c), isNotEmpty, reason: '$c');
     }
     expect(_find('chaussures-rose-bonbon').category, ProductCategory.dunk);
@@ -200,5 +202,32 @@ void main() {
         expect(File(photo).existsSync(), isTrue, reason: photo);
       }
     }
+  });
+
+  test('un article ajouté depuis l’administration apparaît en boutique', () {
+    RemoteConfig.instance.setForTest(
+      custom: [
+        {
+          'id': 'casquette-noire',
+          'name_fr': 'Casquette noire',
+          'name_en': 'Black cap',
+          'description_fr': '',
+          'description_en': '',
+          'price': 35,
+          'category': 'other',
+          'shoppers': ['men'],
+          'sizes': <String>[],
+          'photos': ['https://exemple.test/casquette.jpg'],
+        },
+      ],
+    );
+    addTearDown(RemoteConfig.instance.setForTest);
+
+    final p = _find('casquette-noire');
+    expect(p.price, 35);
+    expect(p.category, ProductCategory.other);
+    expect(p.photos, ['https://exemple.test/casquette.jpg']);
+    expect(catalogFor(Shopper.men), contains(p));
+    expect(catalogFor(Shopper.women), isNot(contains(p)));
   });
 }

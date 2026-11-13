@@ -136,6 +136,31 @@ abstract final class Backend {
     _read(response);
   }
 
+  /// Envoie une photo dans le stockage public [bucket] et renvoie son
+  /// adresse publique.
+  static Future<String> uploadPhoto(
+    String bucket,
+    String path,
+    List<int> bytes, {
+    required String contentType,
+    required String token,
+  }) async {
+    final response = await http
+        .post(
+          Uri.parse('$_url/storage/v1/object/$bucket/$path'),
+          headers: {
+            'apikey': _key,
+            'Authorization': 'Bearer $token',
+            'Content-Type': contentType,
+            'x-upsert': 'false',
+          },
+          body: bytes,
+        )
+        .timeout(const Duration(seconds: 60));
+    _read(response);
+    return '$_url/storage/v1/object/public/$bucket/$path';
+  }
+
   /// Supprime les lignes dont [column] vaut [value].
   static Future<void> delete(
     String table,

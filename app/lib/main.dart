@@ -13,6 +13,7 @@ import 'admin/admin_app.dart' deferred as admin;
 import 'app.dart';
 import 'backend/crash_reports.dart';
 import 'backend/remote_config.dart';
+import 'screens/online_store.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -26,6 +27,14 @@ Future<void> main() async {
     }
     await admin.loadLibrary();
     runApp(admin.AdminApp());
+    return;
+  }
+
+  // Adresse terminée par ?boutique : la boutique seule, sur le téléphone du
+  // client (QR code de la tablette).
+  if (Uri.base.queryParameters.containsKey('boutique')) {
+    unawaited(RemoteConfig.instance.refresh());
+    await CrashReports.run(() => runApp(const OnlineStoreApp()));
     return;
   }
 

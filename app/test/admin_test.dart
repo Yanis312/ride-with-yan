@@ -31,16 +31,32 @@ void main() {
 
       await tester.tap(find.text('Articles'));
       await tester.pumpAndSettle();
+      expect(find.text('Ajouter un article'), findsOneWidget);
+      await tester.ensureVisible(find.text('Blanc intégral'));
+      await tester.pumpAndSettle();
       expect(find.text('Blanc intégral'), findsOneWidget);
       expect(find.text('Enregistrer'), findsWidgets);
 
       // Modifier un stock rend la fiche enregistrable.
-      await tester.tap(
-        find.byIcon(const IconData(0xe3d4, fontFamily: 'PhosphorLight')).first,
-      );
+      final plus = find
+          .descendant(
+            of: find.widgetWithText(Card, 'Blanc intégral'),
+            matching: find.byIcon(
+              const IconData(0xe3d4, fontFamily: 'PhosphorLight'),
+            ),
+          )
+          .first;
+      await tester.ensureVisible(plus);
+      await tester.pumpAndSettle();
+      await tester.tap(plus);
       await tester.pump();
       final save = tester.widget<FilledButton>(
-        find.widgetWithText(FilledButton, 'Enregistrer').first,
+        find
+            .descendant(
+              of: find.widgetWithText(Card, 'Blanc intégral'),
+              matching: find.widgetWithText(FilledButton, 'Enregistrer'),
+            )
+            .first,
       );
       expect(save.onPressed, isNotNull);
 
