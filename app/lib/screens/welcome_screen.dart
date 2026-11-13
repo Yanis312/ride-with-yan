@@ -148,8 +148,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   int _variant =
       0; // le tout premier écran est toujours la phrase d'accueil classique
 
-  /// Grande phrase en anglais ou en français, tirée au hasard à chaque phase.
-  bool _englishFirst = false;
+  /// Langue de la grande phrase : un tour complet en anglais (la plupart des
+  /// passagers), puis un tour complet en français, et ainsi de suite.
+  bool get _englishFirst => _cycle.isEven;
   bool _choosingLanguage = false;
 
   _Phase get _phase => _phases[_order[_step]];
@@ -214,7 +215,6 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
         _order = _shuffledCycle(_random, avoidFirst: _order[_order.length - 2]);
       }
       _variant = _random.nextInt(_phase.lines.length);
-      _englishFirst = _random.nextBool();
     });
     _startPhase();
   }
