@@ -9,6 +9,8 @@ import '../data/orders.dart';
 import '../data/store_catalog.dart';
 import '../theme/app_icons.dart';
 import '../theme/app_theme.dart';
+import '../widgets/glass.dart';
+import '../widgets/mesh_background.dart';
 import '../widgets/product_art.dart';
 
 /// Adresse publique de la boutique sur téléphone (le QR code de la tablette).
@@ -41,7 +43,7 @@ String productOrderMessage(
     '- $name ($category)'
         '${size == null ? '' : (english ? ', size $size' : ', taille $size')}'
         ' : $price',
-    if (photo != null) '${english ? 'Photo' : 'Photo'} : $photo',
+    if (photo != null) 'Photo : $photo',
     '',
     english ? 'My delivery address:' : 'Mon adresse de livraison :',
   ].join('\n');
@@ -49,33 +51,62 @@ String productOrderMessage(
 
 /// Boutique seule, pensée pour le téléphone du client : on l'ouvre en
 /// scannant le QR code de la tablette (adresse terminée par ?boutique).
-class OnlineStoreApp extends StatelessWidget {
+/// Claire par défaut, à toute heure ; le passager peut passer en mode nuit.
+class OnlineStoreApp extends StatefulWidget {
   const OnlineStoreApp({super.key});
+
+  @override
+  State<OnlineStoreApp> createState() => _OnlineStoreAppState();
+}
+
+class _OnlineStoreAppState extends State<OnlineStoreApp> {
+  bool _dark = false;
+  late bool _english =
+      WidgetsBinding.instance.platformDispatcher.locale.languageCode != 'fr';
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Ride with Yan · Boutique',
       debugShowCheckedModeBanner: false,
-      theme: buildAppTheme(Brightness.dark),
-      home: const OnlineStoreScreen(),
+      theme: buildAppTheme(Brightness.light),
+      darkTheme: buildAppTheme(Brightness.dark),
+      themeMode: _dark ? ThemeMode.dark : ThemeMode.light,
+      themeAnimationDuration: const Duration(milliseconds: 600),
+      themeAnimationCurve: AppMotion.spring,
+      home: OnlineStoreScreen(
+        english: _english,
+        dark: _dark,
+        onEnglish: (v) => setState(() => _english = v),
+        onDark: (v) => setState(() => _dark = v),
+      ),
     );
   }
 }
 
 class OnlineStoreScreen extends StatefulWidget {
-  const OnlineStoreScreen({super.key});
+  const OnlineStoreScreen({
+    super.key,
+    this.english = true,
+    this.dark = false,
+    this.onEnglish,
+    this.onDark,
+  });
+
+  final bool english;
+  final bool dark;
+  final ValueChanged<bool>? onEnglish;
+  final ValueChanged<bool>? onDark;
 
   @override
   State<OnlineStoreScreen> createState() => _OnlineStoreScreenState();
 }
 
 class _OnlineStoreScreenState extends State<OnlineStoreScreen> {
-  late bool _english =
-      WidgetsBinding.instance.platformDispatcher.locale.languageCode != 'fr';
   Shopper _shopper = Shopper.women;
   ProductCategory? _category;
 
+  bool get _english => widget.english;
   String t(Bi text) => _english ? text.en : text.fr;
 
   void _open(Product product) {
@@ -84,6 +115,7 @@ class _OnlineStoreScreenState extends State<OnlineStoreScreen> {
       isScrollControlled: true,
       useSafeArea: true,
       backgroundColor: Colors.transparent,
+      barrierColor: Colors.black54,
       builder: (_) => _ProductSheet(product: product, english: _english),
     );
   }
@@ -92,62 +124,77 @@ class _OnlineStoreScreenState extends State<OnlineStoreScreen> {
   Widget build(BuildContext context) {
     final p = context.palette;
     return Scaffold(
-      backgroundColor: Brand.ink,
-      body: ListenableBuilder(
-        listenable: RemoteConfig.instance,
-        builder: (context, _) {
-          final shelf = catalogFor(_shopper);
-          final categories = [
-            for (final c in ProductCategory.values)
-              if (shelf.any((x) => x.category == c)) c,
-          ];
-          final products = [
-            for (final x in shelf)
-              if (_category == null || x.category == _category) x,
-          ];
-          return Stack(
-            children: [
-              const _Glow(),
-              CustomScrollView(
+      body: MeshBackground(
+        scene: Scene.store,
+        child: ListenableBuilder(
+          listenable: RemoteConfig.instance,
+          builder: (context, _) {
+            final shelf = catalogFor(_shopper);
+            final categories = [
+              for (final c in ProductCategory.values)
+                if (shelf.any((x) => x.category == c)) c,
+            ];
+            final products = [
+              for (final x in shelf)
+                if (_category == null || x.category == _category) x,
+            ];
+            return SafeArea(
+              bottom: false,
+              child: CustomScrollView(
                 slivers: [
                   SliverToBoxAdapter(
                     child: _Center(
                       child: Padding(
-                        padding: const EdgeInsets.fromLTRB(20, 18, 20, 8),
+                        padding: const EdgeInsets.fromLTRB(18, 14, 18, 6),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Row(
                               children: [
-                                Text(
-                                  'RIDE WITH YAN',
-                                  style: AppText.eyebrow(Brand.gold),
+                                Expanded(
+                                  child: Text(
+                                    'RIDE WITH YAN',
+                                    style: AppText.eyebrow(p.accentText),
+                                  ),
                                 ),
-                                const Spacer(),
                                 _LanguageToggle(
                                   english: _english,
-                                  onChanged: (v) =>
-                                      setState(() => _english = v),
+                                  onChanged: (v) => widget.onEnglish?.call(v),
+                                ),
+                                const SizedBox(width: 8),
+                                LiquidIconButton(
+                                  size: 42,
+                                  icon: widget.dark
+                                      ? AppIcons.sun
+                                      : AppIcons.moon,
+                                  label: t(
+                                    widget.dark
+                                        ? const Bi('Mode jour', 'Day mode')
+                                        : const Bi('Mode nuit', 'Night mode'),
+                                  ),
+                                  onTap: () =>
+                                      widget.onDark?.call(!widget.dark),
                                 ),
                               ],
                             ),
                             const SizedBox(height: 22),
                             Text(
                                   t(const Bi('La boutique', 'The shop')),
-                                  style: AppText.display(56, color: p.text),
+                                  style: AppText.display(52, color: p.text),
                                 )
                                 .animate()
                                 .fadeIn(duration: 600.ms)
                                 .slideY(
-                                  begin: 0.15,
+                                  begin: 0.2,
                                   curve: AppMotion.emphasized,
+                                  duration: 700.ms,
                                 ),
-                            const SizedBox(height: 10),
+                            const SizedBox(height: 8),
                             Text(
                               t(storePitch),
-                              style: AppText.body(15, color: p.textMuted),
-                            ),
-                            const SizedBox(height: 22),
+                              style: AppText.body(14.5, color: p.textMuted),
+                            ).animate().fadeIn(delay: 150.ms, duration: 500.ms),
+                            const SizedBox(height: 20),
                             _Segmented(
                               english: _english,
                               value: _shopper,
@@ -156,13 +203,15 @@ class _OnlineStoreScreenState extends State<OnlineStoreScreen> {
                                 _category = null;
                               }),
                             ),
-                            const SizedBox(height: 14),
+                            const SizedBox(height: 12),
                             SingleChildScrollView(
                               scrollDirection: Axis.horizontal,
+                              clipBehavior: Clip.none,
                               child: Row(
                                 children: [
                                   _Chip(
                                     label: t(const Bi('Tout', 'All')),
+                                    icon: AppIcons.storefront,
                                     selected: _category == null,
                                     onTap: () =>
                                         setState(() => _category = null),
@@ -170,6 +219,7 @@ class _OnlineStoreScreenState extends State<OnlineStoreScreen> {
                                   for (final c in categories)
                                     _Chip(
                                       label: t(c.label),
+                                      icon: c.icon,
                                       selected: _category == c,
                                       onTap: () =>
                                           setState(() => _category = c),
@@ -183,41 +233,61 @@ class _OnlineStoreScreenState extends State<OnlineStoreScreen> {
                     ),
                   ),
                   SliverPadding(
-                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+                    padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
                     sliver: SliverLayoutBuilder(
                       builder: (context, c) {
-                        final width = c.crossAxisExtent.clamp(0, 1100);
-                        final columns = width > 820
+                        final width = c.crossAxisExtent;
+                        final columns = width > 900
+                            ? 5
+                            : width > 680
                             ? 4
-                            : width > 560
+                            : width > 480
                             ? 3
                             : 2;
                         return SliverGrid.builder(
+                          key: ValueKey((_shopper, _category)),
                           gridDelegate:
                               SliverGridDelegateWithFixedCrossAxisCount(
                                 crossAxisCount: columns,
-                                mainAxisSpacing: 14,
-                                crossAxisSpacing: 14,
-                                childAspectRatio: 0.68,
+                                mainAxisSpacing: 12,
+                                crossAxisSpacing: 12,
+                                mainAxisExtent: 250,
                               ),
                           itemCount: products.length,
-                          itemBuilder: (context, i) => _ProductCard(
-                            product: products[i],
-                            english: _english,
-                            onTap: () => _open(products[i]),
-                          ).animate().fadeIn(delay: (40 * (i % 8)).ms),
+                          itemBuilder: (context, i) =>
+                              _ProductCard(
+                                    product: products[i],
+                                    english: _english,
+                                    onTap: () => _open(products[i]),
+                                  )
+                                  .animate()
+                                  .fadeIn(
+                                    delay: (45 * (i % 8)).ms,
+                                    duration: 420.ms,
+                                  )
+                                  .slideY(
+                                    begin: 0.08,
+                                    delay: (45 * (i % 8)).ms,
+                                    duration: 480.ms,
+                                    curve: AppMotion.spring,
+                                  ),
                         );
                       },
                     ),
                   ),
                   SliverToBoxAdapter(
-                    child: _Center(child: _Conditions(english: _english)),
+                    child: _Center(
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(14, 10, 14, 40),
+                        child: _Conditions(english: _english),
+                      ),
+                    ),
                   ),
                 ],
               ),
-            ],
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }
@@ -239,25 +309,6 @@ class _Center extends StatelessWidget {
   );
 }
 
-/// Halo doré en haut de page.
-class _Glow extends StatelessWidget {
-  const _Glow();
-
-  @override
-  Widget build(BuildContext context) => IgnorePointer(
-    child: Container(
-      height: 420,
-      decoration: BoxDecoration(
-        gradient: RadialGradient(
-          center: const Alignment(-0.6, -1.1),
-          radius: 1.1,
-          colors: [Brand.gold.withValues(alpha: 0.22), Colors.transparent],
-        ),
-      ),
-    ),
-  );
-}
-
 class _LanguageToggle extends StatelessWidget {
   const _LanguageToggle({required this.english, required this.onChanged});
 
@@ -266,13 +317,17 @@ class _LanguageToggle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Widget option(String label, bool value) => GestureDetector(
+    final p = context.palette;
+    Widget option(String label, bool value) => Pressable(
       onTap: () => onChanged(value),
       child: AnimatedContainer(
-        duration: AppMotion.fast,
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        duration: AppMotion.medium,
+        curve: AppMotion.spring,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          color: english == value ? Brand.gold : Colors.transparent,
+          gradient: english == value
+              ? const LinearGradient(colors: [Brand.goldSoft, Brand.gold])
+              : null,
           borderRadius: BorderRadius.circular(99),
         ),
         child: Text(
@@ -280,17 +335,13 @@ class _LanguageToggle extends StatelessWidget {
           style: AppText.body(
             12,
             weight: FontWeight.w700,
-            color: english == value ? Brand.ink : Colors.white70,
+            color: english == value ? Brand.ink : p.textMuted,
           ),
         ),
       ),
     );
-    return Container(
+    return LiquidPill(
       padding: const EdgeInsets.all(3),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(99),
-        border: Border.all(color: Colors.white24),
-      ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [option('EN', true), option('FR', false)],
@@ -312,23 +363,19 @@ class _Segmented extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    final p = context.palette;
+    return LiquidPill(
       padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.06),
-        borderRadius: BorderRadius.circular(99),
-        border: Border.all(color: Colors.white12),
-      ),
       child: Row(
         children: [
           for (final s in [Shopper.women, Shopper.men])
             Expanded(
-              child: GestureDetector(
+              child: Pressable(
                 onTap: () => onChanged(s),
                 child: AnimatedContainer(
                   duration: AppMotion.medium,
                   curve: AppMotion.spring,
-                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  padding: const EdgeInsets.symmetric(vertical: 11),
                   decoration: BoxDecoration(
                     gradient: value == s
                         ? const LinearGradient(
@@ -337,14 +384,24 @@ class _Segmented extends StatelessWidget {
                         : null,
                     borderRadius: BorderRadius.circular(99),
                   ),
-                  child: Text(
-                    english ? s.label.en : s.label.fr,
-                    textAlign: TextAlign.center,
-                    style: AppText.body(
-                      15,
-                      weight: FontWeight.w700,
-                      color: value == s ? Brand.ink : Colors.white,
-                    ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        s.icon,
+                        size: 17,
+                        color: value == s ? Brand.ink : p.text,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        english ? s.label.en : s.label.fr,
+                        style: AppText.body(
+                          15,
+                          weight: FontWeight.w600,
+                          color: value == s ? Brand.ink : p.text,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -360,38 +417,59 @@ class _Chip extends StatelessWidget {
     required this.label,
     required this.selected,
     required this.onTap,
+    this.icon,
   });
 
   final String label;
+  final IconData? icon;
   final bool selected;
   final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.only(right: 8),
-    child: GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: AppMotion.fast,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(99),
-          color: selected ? Colors.white : Colors.transparent,
-          border: Border.all(color: selected ? Colors.white : Colors.white24),
-        ),
-        child: Text(
-          label,
-          style: AppText.body(
-            13,
-            weight: FontWeight.w600,
-            color: selected ? Brand.ink : Colors.white,
+  Widget build(BuildContext context) {
+    final p = context.palette;
+    final fg = selected ? Brand.ink : p.text;
+    final content = Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (icon != null) ...[
+            Icon(icon, size: 15, color: fg),
+            const SizedBox(width: 6),
+          ],
+          Text(
+            label,
+            style: AppText.body(13, weight: FontWeight.w600, color: fg),
           ),
+        ],
+      ),
+    );
+    return Padding(
+      padding: const EdgeInsets.only(right: 8),
+      child: Pressable(
+        onTap: onTap,
+        child: AnimatedSwitcher(
+          duration: AppMotion.fast,
+          child: selected
+              ? DecoratedBox(
+                  key: const ValueKey(true),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Brand.goldSoft, Brand.gold],
+                    ),
+                    borderRadius: BorderRadius.circular(99),
+                  ),
+                  child: content,
+                )
+              : LiquidPill(key: const ValueKey(false), child: content),
         ),
       ),
-    ),
-  );
+    );
+  }
 }
 
+/// Carte d'un article, du même style que la boutique de la tablette.
 class _ProductCard extends StatelessWidget {
   const _ProductCard({
     required this.product,
@@ -405,59 +483,83 @@ class _ProductCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final p = context.palette;
+    final name = english ? product.name.en : product.name.fr;
     return Semantics(
       button: true,
-      label: english ? product.name.en : product.name.fr,
-      child: GestureDetector(
+      label: name,
+      excludeSemantics: true,
+      child: Pressable(
         onTap: onTap,
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(22),
-            color: Colors.white.withValues(alpha: 0.05),
-            border: Border.all(color: Colors.white12),
-          ),
-          clipBehavior: Clip.antiAlias,
+        child: BezelCard(
+          radius: 24,
+          padding: const EdgeInsets.all(7),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Expanded(
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: product.colors,
+                child: _Stage(
+                  product: product,
+                  radius: 17,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(17),
+                    child: ProductFigure(
+                      product: product,
+                      padding: const EdgeInsets.all(12),
                     ),
-                  ),
-                  child: ProductFigure(
-                    product: product,
-                    padding: const EdgeInsets.all(14),
                   ),
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+                padding: const EdgeInsets.fromLTRB(6, 10, 4, 2),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      english ? product.name.en : product.name.fr,
-                      maxLines: 2,
+                      (english
+                              ? product.category.label.en
+                              : product.category.label.fr)
+                          .toUpperCase(),
+                      maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: AppText.body(
-                        13.5,
-                        weight: FontWeight.w600,
-                        color: Colors.white,
-                      ).copyWith(height: 1.25),
+                      style: AppText.eyebrow(p.accentText)
+                          .copyWith(fontSize: 9.5, letterSpacing: 1.8),
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 3),
                     Text(
-                      orderAmount(product.price, english: english),
-                      style: AppText.body(
-                        15,
-                        weight: FontWeight.w700,
-                        color: Brand.gold,
-                      ),
+                      name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppText.display(19, color: p.text),
+                    ),
+                    const SizedBox(height: 6),
+                    Row(
+                      children: [
+                        Text(
+                          orderAmount(product.price, english: english),
+                          style: AppText.body(
+                            15,
+                            weight: FontWeight.w700,
+                            color: p.text,
+                          ),
+                        ),
+                        const Spacer(),
+                        Container(
+                          width: 30,
+                          height: 30,
+                          decoration: const BoxDecoration(
+                            shape: BoxShape.circle,
+                            gradient: LinearGradient(
+                              colors: [Brand.goldSoft, Brand.gold],
+                            ),
+                          ),
+                          child: const Icon(
+                            AppIcons.arrowRight,
+                            size: 15,
+                            color: Brand.ink,
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -468,6 +570,28 @@ class _ProductCard extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Fond de vitrine d'un article : dégradé radial, comme sur la tablette.
+class _Stage extends StatelessWidget {
+  const _Stage({required this.product, required this.radius, this.child});
+
+  final Product product;
+  final double radius;
+  final Widget? child;
+
+  @override
+  Widget build(BuildContext context) => DecoratedBox(
+    decoration: BoxDecoration(
+      borderRadius: BorderRadius.circular(radius),
+      gradient: RadialGradient(
+        center: const Alignment(-0.2, -0.45),
+        radius: 1.15,
+        colors: product.colors,
+      ),
+    ),
+    child: child,
+  );
 }
 
 class _ProductSheet extends StatefulWidget {
@@ -504,25 +628,28 @@ class _ProductSheetState extends State<_ProductSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final p = context.palette;
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final sheet = dark ? const Color(0xFF111217) : const Color(0xFFF7F8FA);
     final product = widget.product;
     final photos = product.photos;
     final needsSize = product.hasSizes && _size == null;
 
     return DraggableScrollableSheet(
-      initialChildSize: 0.92,
+      initialChildSize: 0.9,
       maxChildSize: 0.95,
       minChildSize: 0.5,
       expand: false,
       builder: (context, scroll) => Container(
-        decoration: const BoxDecoration(
-          color: Color(0xFF111217),
-          borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
+        decoration: BoxDecoration(
+          color: sheet,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
         ),
         child: Stack(
           children: [
             ListView(
               controller: scroll,
-              padding: const EdgeInsets.fromLTRB(0, 0, 0, 120),
+              padding: const EdgeInsets.only(bottom: 120),
               children: [
                 Center(
                   child: Container(
@@ -530,103 +657,128 @@ class _ProductSheetState extends State<_ProductSheet> {
                     width: 40,
                     height: 4,
                     decoration: BoxDecoration(
-                      color: Colors.white24,
+                      color: p.hairline,
                       borderRadius: BorderRadius.circular(9),
                     ),
                   ),
                 ),
-                AspectRatio(
-                  aspectRatio: 1,
-                  child: Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 16),
-                    clipBehavior: Clip.antiAlias,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(24),
-                      gradient: LinearGradient(colors: product.colors),
-                    ),
-                    child: Stack(
-                      children: [
-                        PageView.builder(
-                          itemCount: photos.isEmpty ? 1 : photos.length,
-                          onPageChanged: (i) => setState(() => _page = i),
-                          itemBuilder: (context, i) => ProductFigure(
-                            product: product,
-                            photo: i,
-                            whole: true,
-                            padding: const EdgeInsets.all(24),
-                          ),
-                        ),
-                        if (photos.length > 1)
-                          Positioned(
-                            bottom: 12,
-                            left: 0,
-                            right: 0,
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                for (var i = 0; i < photos.length; i++)
-                                  AnimatedContainer(
-                                    duration: AppMotion.fast,
-                                    margin: const EdgeInsets.symmetric(
-                                      horizontal: 3,
+                Center(
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 520),
+                        child: AspectRatio(
+                          aspectRatio: 1.35,
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            child: _Stage(
+                              product: product,
+                              radius: 24,
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(24),
+                                child: Stack(
+                                  children: [
+                                    PageView.builder(
+                                      itemCount: photos.isEmpty
+                                          ? 1
+                                          : photos.length,
+                                      onPageChanged: (i) =>
+                                          setState(() => _page = i),
+                                      itemBuilder: (context, i) =>
+                                          ProductFigure(
+                                            product: product,
+                                            photo: i,
+                                            whole: true,
+                                            padding: const EdgeInsets.all(24),
+                                          ),
                                     ),
-                                    width: i == _page ? 18 : 6,
-                                    height: 6,
-                                    decoration: BoxDecoration(
-                                      color: i == _page
-                                          ? Brand.gold
-                                          : Colors.white54,
-                                      borderRadius: BorderRadius.circular(9),
-                                    ),
-                                  ),
-                              ],
+                                    if (photos.length > 1)
+                                      Positioned(
+                                        bottom: 12,
+                                        left: 0,
+                                        right: 0,
+                                        child: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: [
+                                            for (
+                                              var i = 0;
+                                              i < photos.length;
+                                              i++
+                                            )
+                                              AnimatedContainer(
+                                                duration: AppMotion.fast,
+                                                margin:
+                                                    const EdgeInsets.symmetric(
+                                                      horizontal: 3,
+                                                    ),
+                                                width: i == _page ? 18 : 6,
+                                                height: 6,
+                                                decoration: BoxDecoration(
+                                                  color: i == _page
+                                                      ? Brand.gold
+                                                      : Colors.white70,
+                                                  borderRadius:
+                                                      BorderRadius.circular(9),
+                                                ),
+                                              ),
+                                          ],
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                              ),
                             ),
                           ),
-                      ],
+                        ),
+                      ),
+                    )
+                    .animate()
+                    .fadeIn(duration: 400.ms)
+                    .scaleXY(
+                      begin: 0.96,
+                      curve: AppMotion.spring,
+                      duration: 500.ms,
                     ),
-                  ),
-                ),
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+                  padding: const EdgeInsets.fromLTRB(20, 18, 20, 0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         t(product.category.label).toUpperCase(),
-                        style: AppText.eyebrow(Brand.gold),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        t(product.name),
-                        style: AppText.display(34, color: Colors.white),
+                        style: AppText.eyebrow(p.accentText),
                       ),
                       const SizedBox(height: 6),
                       Text(
-                        t(product.blurb),
-                        style: AppText.body(14, color: Colors.white60),
+                        t(product.name),
+                        style: AppText.display(32, color: p.text),
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 4),
+                      Text(
+                        t(product.blurb),
+                        style: AppText.body(14, color: p.textMuted),
+                      ),
+                      const SizedBox(height: 10),
                       Text(
                         orderAmount(product.price, english: widget.english),
                         style: AppText.body(
-                          26,
+                          24,
                           weight: FontWeight.w700,
-                          color: Brand.gold,
+                          color: p.text,
                         ),
                       ),
                       if (product.hasSizes) ...[
-                        const SizedBox(height: 20),
+                        const SizedBox(height: 18),
                         Text(
                           t(const Bi('Votre taille', 'Your size')),
                           style: AppText.body(
                             14,
                             weight: FontWeight.w600,
-                            color: Colors.white,
+                            color: p.text,
                           ),
                         ),
                         const SizedBox(height: 10),
                         Wrap(
-                          spacing: 8,
+                          spacing: 0,
                           runSpacing: 8,
                           children: [
                             for (final s in product.sizes.keys)
@@ -638,8 +790,8 @@ class _ProductSheetState extends State<_ProductSheet> {
                           ],
                         ),
                       ],
-                      const SizedBox(height: 24),
-                      _Conditions(english: widget.english, compact: true),
+                      const SizedBox(height: 22),
+                      _Conditions(english: widget.english),
                     ],
                   ),
                 ),
@@ -651,12 +803,12 @@ class _ProductSheetState extends State<_ProductSheet> {
               bottom: 0,
               child: Container(
                 padding: const EdgeInsets.fromLTRB(16, 28, 16, 16),
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
-                    colors: [Color(0x00111217), Color(0xFF111217)],
-                    stops: [0, 0.45],
+                    colors: [sheet.withValues(alpha: 0), sheet],
+                    stops: const [0, 0.45],
                   ),
                 ),
                 child: SafeArea(
@@ -690,48 +842,59 @@ class _WhatsAppButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final p = context.palette;
     final enabled = onTap != null;
+    final fg = enabled ? Colors.white : p.textMuted;
+    final button = AnimatedContainer(
+      duration: AppMotion.medium,
+      curve: AppMotion.spring,
+      height: 58,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(99),
+        gradient: enabled
+            ? const LinearGradient(
+                colors: [Color(0xFF2BD96B), Color(0xFF16A34A)],
+              )
+            : null,
+        border: enabled ? null : Border.all(color: p.hairline),
+        boxShadow: enabled
+            ? [
+                BoxShadow(
+                  color: const Color(0xFF25D366).withValues(alpha: 0.4),
+                  blurRadius: 24,
+                  offset: const Offset(0, 8),
+                ),
+              ]
+            : null,
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(AppIcons.whatsapp, color: fg),
+          const SizedBox(width: 10),
+          Text(
+            label,
+            style: AppText.body(16, weight: FontWeight.w700, color: fg),
+          ),
+        ],
+      ),
+    );
     return Semantics(
       button: true,
       enabled: enabled,
       label: label,
-      child: GestureDetector(
+      excludeSemantics: true,
+      child: Pressable(
         onTap: onTap,
-        child: AnimatedContainer(
-          duration: AppMotion.fast,
-          height: 58,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(99),
-            color: enabled ? const Color(0xFF25D366) : const Color(0xFF2A2B32),
-            boxShadow: enabled
-                ? [
-                    BoxShadow(
-                      color: const Color(0xFF25D366).withValues(alpha: 0.4),
-                      blurRadius: 24,
-                      offset: const Offset(0, 8),
-                    ),
-                  ]
-                : null,
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                AppIcons.whatsapp,
-                color: enabled ? Colors.white : Colors.white54,
-              ),
-              const SizedBox(width: 10),
-              Text(
-                label,
-                style: AppText.body(
-                  16,
-                  weight: FontWeight.w700,
-                  color: enabled ? Colors.white : Colors.white54,
-                ),
-              ),
-            ],
-          ),
-        ),
+        child: enabled
+            ? button
+                  .animate(onPlay: (c) => c.repeat())
+                  .shimmer(
+                    duration: 2200.ms,
+                    delay: 1400.ms,
+                    color: Colors.white38,
+                  )
+            : LiquidPill(child: button),
       ),
     );
   }
@@ -739,27 +902,22 @@ class _WhatsAppButton extends StatelessWidget {
 
 /// Les conditions de commande, en liste.
 class _Conditions extends StatelessWidget {
-  const _Conditions({required this.english, this.compact = false});
+  const _Conditions({required this.english});
 
   final bool english;
-  final bool compact;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: compact ? null : const EdgeInsets.fromLTRB(16, 12, 16, 40),
+    final p = context.palette;
+    return BezelCard(
+      radius: 26,
       padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(22),
-        color: Colors.white.withValues(alpha: 0.04),
-        border: Border.all(color: Colors.white12),
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             english ? 'HOW TO ORDER' : 'COMMENT COMMANDER',
-            style: AppText.eyebrow(Brand.gold),
+            style: AppText.eyebrow(p.accentText),
           ),
           const SizedBox(height: 12),
           for (final c in [
@@ -790,7 +948,7 @@ class _Conditions extends StatelessWidget {
                   Expanded(
                     child: Text(
                       english ? c.en : c.fr,
-                      style: AppText.body(14, color: Colors.white),
+                      style: AppText.body(14, color: p.text),
                     ),
                   ),
                 ],
@@ -799,7 +957,7 @@ class _Conditions extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             english ? resellerNotice.en : resellerNotice.fr,
-            style: AppText.body(11.5, color: Colors.white38),
+            style: AppText.body(11.5, color: p.textMuted),
           ),
         ],
       ),
