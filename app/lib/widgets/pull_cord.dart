@@ -232,62 +232,65 @@ class _PullCordState extends State<PullCord> with TickerProviderStateMixin {
   Widget _cord(BuildContext context) {
     final dark = context.isDark;
     final height = widget.length + _maxPull + _bead * 3;
-    return Align(
-      alignment: Alignment.topLeft,
-      child: CompositedTransformFollower(
-        link: _link,
-        showWhenUnlinked: false,
-        offset: const Offset(0, _socketBottom),
-        child: SizedBox(
-          width: PullCord.size,
-          height: height,
-          child: AnimatedBuilder(
-            animation: Listenable.merge([_pull, _swing, _idle]),
-            builder: (context, _) {
-              final t = _swing.value;
-              final sway = _swing.isAnimating
-                  ? _swingAmplitude * math.exp(-3 * t) * math.sin(t * 20)
-                  : 0.0;
-              final idle = 0.04 * math.sin(_idle.value * 2 * math.pi);
-              final angle = sway + idle;
-              final length = widget.length + _pull.value;
-              const anchor = Offset(PullCord.size / 2, 0);
-              final bead =
-                  anchor +
-                  Offset(math.sin(angle) * length, math.cos(angle) * length);
-              return Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  Positioned.fill(
-                    child: IgnorePointer(
-                      child: CustomPaint(
-                        painter: _CordPainter(
-                          anchor: anchor,
-                          bead: bead,
-                          dark: dark,
-                          tense: _pull.value / _maxPull,
+    // Les lecteurs d'écran passent par la veilleuse, qui porte le nom.
+    return ExcludeSemantics(
+      child: Align(
+        alignment: Alignment.topLeft,
+        child: CompositedTransformFollower(
+          link: _link,
+          showWhenUnlinked: false,
+          offset: const Offset(0, _socketBottom),
+          child: SizedBox(
+            width: PullCord.size,
+            height: height,
+            child: AnimatedBuilder(
+              animation: Listenable.merge([_pull, _swing, _idle]),
+              builder: (context, _) {
+                final t = _swing.value;
+                final sway = _swing.isAnimating
+                    ? _swingAmplitude * math.exp(-3 * t) * math.sin(t * 20)
+                    : 0.0;
+                final idle = 0.04 * math.sin(_idle.value * 2 * math.pi);
+                final angle = sway + idle;
+                final length = widget.length + _pull.value;
+                const anchor = Offset(PullCord.size / 2, 0);
+                final bead =
+                    anchor +
+                    Offset(math.sin(angle) * length, math.cos(angle) * length);
+                return Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Positioned.fill(
+                      child: IgnorePointer(
+                        child: CustomPaint(
+                          painter: _CordPainter(
+                            anchor: anchor,
+                            bead: bead,
+                            dark: dark,
+                            tense: _pull.value / _maxPull,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                  // Zone attrapable : le fil et sa perle, pas plus large.
-                  Positioned(
-                    left: bead.dx - 18,
-                    top: 6,
-                    width: 36,
-                    height: bead.dy + _bead * 2,
-                    child: GestureDetector(
-                      key: PullCord.handleKey,
-                      behavior: HitTestBehavior.opaque,
-                      onTap: _tug,
-                      onVerticalDragStart: _onDragStart,
-                      onVerticalDragUpdate: _onDragUpdate,
-                      onVerticalDragEnd: _onDragEnd,
+                    // Zone attrapable : le fil et sa perle, pas plus large.
+                    Positioned(
+                      left: bead.dx - 18,
+                      top: 6,
+                      width: 36,
+                      height: bead.dy + _bead * 2,
+                      child: GestureDetector(
+                        key: PullCord.handleKey,
+                        behavior: HitTestBehavior.opaque,
+                        onTap: _tug,
+                        onVerticalDragStart: _onDragStart,
+                        onVerticalDragUpdate: _onDragUpdate,
+                        onVerticalDragEnd: _onDragEnd,
+                      ),
                     ),
-                  ),
-                ],
-              );
-            },
+                  ],
+                );
+              },
+            ),
           ),
         ),
       ),
