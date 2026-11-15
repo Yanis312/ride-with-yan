@@ -12,6 +12,7 @@ import '../theme/app_theme.dart';
 import '../widgets/glass.dart';
 import '../widgets/mesh_background.dart';
 import '../widgets/product_art.dart';
+import '../widgets/pull_cord.dart';
 
 /// Adresse publique de la boutique sur téléphone (le QR code de la tablette).
 const onlineStoreUrl =
@@ -162,17 +163,14 @@ class _OnlineStoreScreenState extends State<OnlineStoreScreen> {
                                   onChanged: (v) => widget.onEnglish?.call(v),
                                 ),
                                 const SizedBox(width: 8),
-                                LiquidIconButton(
-                                  size: 42,
-                                  icon: widget.dark
-                                      ? AppIcons.sun
-                                      : AppIcons.moon,
+                                PullCord(
+                                  dark: widget.dark,
                                   label: t(
                                     widget.dark
                                         ? const Bi('Mode jour', 'Day mode')
                                         : const Bi('Mode nuit', 'Night mode'),
                                   ),
-                                  onTap: () =>
+                                  onToggle: () =>
                                       widget.onDark?.call(!widget.dark),
                                 ),
                               ],

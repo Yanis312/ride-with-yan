@@ -9,6 +9,7 @@ import '../theme/appearance_controller.dart';
 import 'glass.dart';
 import 'mesh_background.dart';
 import 'quick_dock.dart';
+import 'pull_cord.dart';
 
 /// Cadre commun des sections : fond animé, retour, titre, mode clair/sombre
 /// et dock de navigation.
@@ -76,14 +77,13 @@ class SectionScaffold extends StatelessWidget {
                       trailing!,
                       const SizedBox(width: 12),
                     ],
-                    LiquidIconButton(
-                      icon: context.isDark ? AppIcons.sun : AppIcons.moon,
+                    PullCord(
+                      dark: context.isDark,
                       label: const Bi(
                         'Mode clair ou sombre',
                         'Light or dark mode',
                       ).of(context),
-                      size: 48,
-                      onTap: appearance.toggle,
+                      onToggle: appearance.toggle,
                     ),
                     const SizedBox(width: 12),
                     QuickDock(
