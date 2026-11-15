@@ -20,6 +20,9 @@ void main() {
         ),
       ),
     );
+    // La chaîne s'accroche à la couche du dessus après la première image.
+    await tester.pump();
+    await tester.pump();
     return toggles;
   }
 

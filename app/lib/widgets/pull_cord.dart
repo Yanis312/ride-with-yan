@@ -44,8 +44,13 @@ class PullCord extends StatefulWidget {
 }
 
 class _PullCordState extends State<PullCord> with TickerProviderStateMixin {
-  final _link = LayerLink();
-  final _portal = OverlayPortalController();
+  /// Couche du dessus où pend la chaîne (une simple entrée d'Overlay : un
+  /// OverlayPortal crée sur le web une zone invisible plein écran qui capte
+  /// les clics des lecteurs d'écran).
+  OverlayEntry? _entry;
+
+  /// La chaîne se cache quand une autre page passe par-dessus.
+  bool _routeVisible = true;
 
   /// Longueur tirée, en pixels.
   late final AnimationController _pull = AnimationController.unbounded(
@@ -78,7 +83,21 @@ class _PullCordState extends State<PullCord> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    _portal.show();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final overlay = Overlay.maybeOf(context);
+      if (!mounted || overlay == null) return;
+      _entry = OverlayEntry(builder: _cord);
+      overlay.insert(_entry!);
+    });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final visible = ModalRoute.of(context)?.isCurrent ?? true;
+    if (visible == _routeVisible) return;
+    _routeVisible = visible;
+    _rebuildCord();
   }
 
   @override
@@ -86,7 +105,16 @@ class _PullCordState extends State<PullCord> with TickerProviderStateMixin {
     super.didUpdateWidget(old);
     if (old.dark != widget.dark) {
       _lit.animateTo(widget.dark ? 0 : 1, curve: Curves.easeInOutCubic);
+      _rebuildCord();
     }
+  }
+
+  /// Reconstruit la chaîne après l'image en cours (on est peut-être en
+  /// pleine construction de l'arbre).
+  void _rebuildCord() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _entry?.markNeedsBuild();
+    });
   }
 
   @override
@@ -95,6 +123,9 @@ class _PullCordState extends State<PullCord> with TickerProviderStateMixin {
       entry.remove();
       controller.dispose();
     }
+    _entry
+      ?..remove()
+      ..dispose();
     _pull.dispose();
     _swing.dispose();
     _lit.dispose();
@@ -202,98 +233,106 @@ class _PullCordState extends State<PullCord> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    return CompositedTransformTarget(
-      link: _link,
-      child: OverlayPortal(
-        controller: _portal,
-        overlayChildBuilder: _cord,
-        child: Semantics(
-          button: true,
-          label: widget.label,
-          excludeSemantics: true,
-          onTap: _tug,
-          child: GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: _tug,
-            child: SizedBox.square(
-              dimension: PullCord.size,
-              child: CustomPaint(
-                painter: _LampPainter(lit: _lit, center: _lampCenter),
-              ),
-            ),
+    // Un seul bouton pour les lecteurs d'écran : la veilleuse. La chaîne,
+    // dessinée dans la couche du dessus, en est exclue.
+    return Semantics(
+      button: true,
+      label: widget.label,
+      excludeSemantics: true,
+      onTap: _tug,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: _tug,
+        excludeFromSemantics: true,
+        child: SizedBox.square(
+          dimension: PullCord.size,
+          child: CustomPaint(
+            painter: _LampPainter(lit: _lit, center: _lampCenter),
           ),
         ),
       ),
     );
   }
 
+  /// Position de la veilleuse dans la couche du dessus, relue à chaque
+  /// image (la barre peut défiler ou changer de taille).
+  Offset? _lampOrigin(OverlayState overlay) {
+    final box = context.findRenderObject() as RenderBox?;
+    final layer = overlay.context.findRenderObject() as RenderBox?;
+    if (box == null || layer == null || !box.attached || !box.hasSize) {
+      return null;
+    }
+    return box.localToGlobal(Offset.zero, ancestor: layer);
+  }
+
   /// Le fil est dessiné dans la couche du dessus : il dépasse de la barre
   /// et reste attrapable même en dehors d'elle.
   Widget _cord(BuildContext context) {
-    final dark = context.isDark;
+    if (!_routeVisible) return const SizedBox.shrink();
+    final dark = widget.dark;
     final height = widget.length + _maxPull + _bead * 3;
-    // Les lecteurs d'écran passent par la veilleuse, qui porte le nom.
-    return ExcludeSemantics(
-      child: Align(
-        alignment: Alignment.topLeft,
-        child: CompositedTransformFollower(
-          link: _link,
-          showWhenUnlinked: false,
-          offset: const Offset(0, _socketBottom),
-          child: SizedBox(
-            width: PullCord.size,
-            height: height,
-            child: AnimatedBuilder(
-              animation: Listenable.merge([_pull, _swing, _idle]),
-              builder: (context, _) {
-                final t = _swing.value;
-                final sway = _swing.isAnimating
-                    ? _swingAmplitude * math.exp(-3 * t) * math.sin(t * 20)
-                    : 0.0;
-                final idle = 0.04 * math.sin(_idle.value * 2 * math.pi);
-                final angle = sway + idle;
-                final length = widget.length + _pull.value;
-                const anchor = Offset(PullCord.size / 2, 0);
-                final bead =
-                    anchor +
-                    Offset(math.sin(angle) * length, math.cos(angle) * length);
-                return Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    Positioned.fill(
-                      child: IgnorePointer(
-                        child: CustomPaint(
-                          painter: _CordPainter(
-                            anchor: anchor,
-                            bead: bead,
-                            dark: dark,
-                            tense: _pull.value / _maxPull,
-                          ),
-                        ),
+    final overlay = Overlay.of(this.context);
+    return AnimatedBuilder(
+      animation: Listenable.merge([_pull, _swing, _idle]),
+      builder: (context, _) {
+        final t = _swing.value;
+        final sway = _swing.isAnimating
+            ? _swingAmplitude * math.exp(-3 * t) * math.sin(t * 20)
+            : 0.0;
+        final idle = 0.04 * math.sin(_idle.value * 2 * math.pi);
+        final angle = sway + idle;
+        final length = widget.length + _pull.value;
+        const anchor = Offset(PullCord.size / 2, 0);
+        final bead =
+            anchor + Offset(math.sin(angle) * length, math.cos(angle) * length);
+        final origin = _lampOrigin(overlay);
+        if (origin == null) return const SizedBox.shrink();
+        // Positioned à la taille du fil : la couche ne couvre pas
+        // tout l'écran et laisse passer les clics ailleurs.
+        return Positioned(
+          left: origin.dx,
+          top: origin.dy + _socketBottom,
+          width: PullCord.size,
+          height: height,
+          child: ExcludeSemantics(
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Positioned.fill(
+                  child: IgnorePointer(
+                    child: CustomPaint(
+                      painter: _CordPainter(
+                        anchor: anchor,
+                        bead: bead,
+                        dark: dark,
+                        tense: _pull.value / _maxPull,
                       ),
                     ),
-                    // Zone attrapable : le fil et sa perle, pas plus large.
-                    Positioned(
-                      left: bead.dx - 18,
-                      top: 6,
-                      width: 36,
-                      height: bead.dy + _bead * 2,
-                      child: GestureDetector(
-                        key: PullCord.handleKey,
-                        behavior: HitTestBehavior.opaque,
-                        onTap: _tug,
-                        onVerticalDragStart: _onDragStart,
-                        onVerticalDragUpdate: _onDragUpdate,
-                        onVerticalDragEnd: _onDragEnd,
-                      ),
-                    ),
-                  ],
-                );
-              },
+                  ),
+                ),
+                // Zone attrapable : le fil et sa perle, pas plus large.
+                Positioned(
+                  left: bead.dx - 18,
+                  top: 6,
+                  width: 36,
+                  height: bead.dy + _bead * 2,
+                  child: GestureDetector(
+                    key: PullCord.handleKey,
+                    behavior: HitTestBehavior.opaque,
+                    // Les lecteurs d'écran passent par la veilleuse, qui
+                    // porte déjà le nom du bouton.
+                    excludeFromSemantics: true,
+                    onTap: _tug,
+                    onVerticalDragStart: _onDragStart,
+                    onVerticalDragUpdate: _onDragUpdate,
+                    onVerticalDragEnd: _onDragEnd,
+                  ),
+                ),
+              ],
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }
