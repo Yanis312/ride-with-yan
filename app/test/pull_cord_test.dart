@@ -25,14 +25,16 @@ void main() {
 
   testWidgets('tirer le fil assez loin change de mode', (tester) async {
     final toggles = await pump(tester);
-    await tester.drag(find.byType(PullCord), const Offset(0, 80));
+    await tester.drag(find.byKey(PullCord.handleKey), const Offset(0, 80));
+    await tester.pump();
     await tester.pump(const Duration(seconds: 2));
     expect(toggles, hasLength(1));
   });
 
   testWidgets('un petit tiraillement ne change rien', (tester) async {
     final toggles = await pump(tester);
-    await tester.drag(find.byType(PullCord), const Offset(0, 30));
+    await tester.drag(find.byKey(PullCord.handleKey), const Offset(0, 30));
+    await tester.pump();
     await tester.pump(const Duration(seconds: 2));
     expect(toggles, isEmpty);
   });
@@ -40,6 +42,15 @@ void main() {
   testWidgets('un toucher suffit aussi', (tester) async {
     final toggles = await pump(tester);
     await tester.tap(find.byType(PullCord));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 2));
+    expect(toggles, hasLength(1));
+  });
+
+  testWidgets('toucher le fil aussi', (tester) async {
+    final toggles = await pump(tester);
+    await tester.tap(find.byKey(PullCord.handleKey));
+    await tester.pump();
     await tester.pump(const Duration(seconds: 2));
     expect(toggles, hasLength(1));
   });

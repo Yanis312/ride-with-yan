@@ -170,7 +170,6 @@ class _OnlineStoreScreenState extends State<OnlineStoreScreen> {
                                         ? const Bi('Mode jour', 'Day mode')
                                         : const Bi('Mode nuit', 'Night mode'),
                                   ),
-                                  reach: 60,
                                   onToggle: () =>
                                       widget.onDark?.call(!widget.dark),
                                 ),
