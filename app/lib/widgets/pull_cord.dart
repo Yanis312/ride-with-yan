@@ -408,67 +408,124 @@ class _CordPainter extends CustomPainter {
   final Offset bead;
   final bool dark;
 
-  /// 0 au repos, 1 tiré à fond : le fil se tend et la perle brille.
+  /// 0 au repos, 1 tiré à fond : la chaîne se tend et la goutte brille.
   final double tense;
 
   static const _beadR = _PullCordState._bead;
 
   @override
   void paint(Canvas canvas, Size size) {
-    // Fil un peu courbé : il suit le balancement avec du retard.
+    // Chaîne un peu courbée : elle suit le balancement avec du retard.
     final mid = Offset((anchor.dx + bead.dx) / 2, (anchor.dy + bead.dy) / 2);
     final bend = (bead.dx - anchor.dx) * -0.35 * (1 - tense);
-    final end = bead - const Offset(0, _beadR);
+    final end = bead - const Offset(0, _beadR + 3);
     final path = Path()
       ..moveTo(anchor.dx, anchor.dy)
       ..quadraticBezierTo(mid.dx + bend, mid.dy, end.dx, end.dy);
 
-    // Contour qui tranche avec le fond, puis l'âme colorée du fil.
-    final outline = dark ? const Color(0xCC000000) : const Color(0xF2FFFFFF);
-    final core = dark ? const Color(0xFFFFC94D) : const Color(0xFFB4441E);
-    Paint stroke(Color color, double width) => Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = width
-      ..strokeCap = StrokeCap.round
-      ..color = color;
-    canvas.drawPath(path, stroke(outline, 5.5));
-    canvas.drawPath(path, stroke(core, 3));
+    // Fine chaîne à billes en laiton, comme sur les belles lampes.
+    // Le jour, un liseré sombre la détache du fond clair.
+    final rim = dark ? const Color(0x99000000) : const Color(0xFF5A3A08);
+    const light = Color(0xFFFFE9A8);
+    final deep = dark ? const Color(0xFFE0A526) : const Color(0xFFB07A12);
     canvas.drawPath(
-      path.shift(const Offset(-0.7, 0)),
-      stroke(Colors.white.withValues(alpha: 0.35), 0.8),
+      path,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1
+        ..color = rim.withValues(alpha: 0.6),
     );
+    for (final metric in path.computeMetrics()) {
+      for (var d = 3.0; d < metric.length; d += 4.6) {
+        final p = metric.getTangentForOffset(d)?.position;
+        if (p == null) continue;
+        canvas.drawCircle(p, 2.1, Paint()..color = rim);
+        canvas.drawCircle(
+          p,
+          1.6,
+          Paint()
+            ..shader = RadialGradient(
+              center: const Alignment(-0.4, -0.5),
+              colors: [light, deep],
+            ).createShader(Rect.fromCircle(center: p, radius: 1.6)),
+        );
+      }
+    }
 
-    // Perle en bois au bout du fil.
-    if (tense > 0.4) {
+    // Petite goutte en laiton au bout : une bague, puis la goutte.
+    if (tense > 0.3) {
       canvas.drawCircle(
         bead,
-        _beadR + 7,
+        12,
         Paint()
-          ..color = core.withValues(alpha: 0.35 * tense)
-          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6),
+          ..color = Brand.gold.withValues(alpha: 0.45 * tense)
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 7),
       );
     }
-    final beadRect = Rect.fromCenter(
-      center: bead,
-      width: _beadR * 1.7,
-      height: _beadR * 2.2,
+    final collar = Rect.fromCenter(
+      center: end + const Offset(0, 2),
+      width: 4.5,
+      height: 4,
     );
-    canvas.drawOval(beadRect.inflate(1.6), Paint()..color = outline);
-    canvas.drawOval(
-      beadRect,
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(collar.inflate(0.8), const Radius.circular(1.5)),
+      Paint()..color = rim,
+    );
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(collar, const Radius.circular(1.2)),
+      Paint()..color = deep,
+    );
+    final top = end + const Offset(0, 4);
+    final round = top + const Offset(0, 9);
+    const w = 4.2;
+    final drop = Path()
+      ..moveTo(top.dx, top.dy)
+      ..cubicTo(
+        top.dx + 1,
+        top.dy + 3,
+        round.dx + w,
+        round.dy - 4,
+        round.dx + w,
+        round.dy,
+      )
+      ..arcToPoint(
+        Offset(round.dx - w, round.dy),
+        radius: const Radius.circular(w),
+      )
+      ..cubicTo(
+        round.dx - w,
+        round.dy - 4,
+        top.dx - 1,
+        top.dy + 3,
+        top.dx,
+        top.dy,
+      )
+      ..close();
+    canvas.drawPath(
+      drop,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.6
+        ..color = rim,
+    );
+    canvas.drawPath(
+      drop,
       Paint()
         ..shader = LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: dark
-              ? const [Color(0xFFFFE7A3), Color(0xFFD99A1E)]
-              : const [Color(0xFFE07A4F), Color(0xFF8C2F12)],
-        ).createShader(beadRect),
+          colors: [light, Brand.gold, deep],
+          stops: const [0, 0.45, 1],
+        ).createShader(drop.getBounds()),
     );
-    canvas.drawCircle(
-      bead + const Offset(-2.5, -4),
-      1.8,
-      Paint()..color = Colors.white.withValues(alpha: 0.6),
+    // Reflet.
+    canvas.drawLine(
+      round + const Offset(-1.8, -4),
+      round + const Offset(-1.8, -0.5),
+      Paint()
+        ..strokeWidth = 1.1
+        ..strokeCap = StrokeCap.round
+        ..color = Colors.white.withValues(alpha: 0.75),
     );
   }
 
