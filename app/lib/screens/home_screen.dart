@@ -29,6 +29,7 @@ import '../widgets/mesh_background.dart';
 import '../widgets/product_art.dart';
 import '../widgets/quick_dock.dart';
 import '../widgets/road_logo.dart';
+import '../widgets/pull_cord.dart';
 
 /// Lounge principal : grille "bento" asymétrique. Les deux cartes qui
 /// rapportent (ma boutique, services et collaborations) sont les plus
@@ -104,14 +105,13 @@ class _TopBar extends StatelessWidget {
     final controls = <Widget>[
       QuickDock(compact: compact),
       const SizedBox(width: 12),
-      LiquidIconButton(
-        icon: context.isDark ? AppIcons.sun : AppIcons.moon,
+      PullCord(
+        dark: context.isDark,
         label: const Bi(
           'Mode clair ou sombre',
           'Light or dark mode',
         ).of(context),
-        onTap: appearance.toggle,
-        size: 48,
+        onToggle: appearance.toggle,
       ),
       const SizedBox(width: 12),
       PillButton(

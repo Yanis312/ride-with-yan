@@ -22,6 +22,7 @@ import '../widgets/road_logo.dart';
 import '../widgets/scene_vignettes.dart';
 import '../widgets/store_showcase.dart';
 import '../widgets/decor_clock.dart';
+import '../widgets/pull_cord.dart';
 
 /// Une phase de l'écran de veille : une ambiance de couleurs, une
 /// illustration animée et plusieurs phrases bilingues possibles.
@@ -334,13 +335,13 @@ class _Header extends StatelessWidget {
         ),
       ],
       const SizedBox(width: 12),
-      LiquidIconButton(
-        icon: context.isDark ? AppIcons.sun : AppIcons.moon,
+      PullCord(
+        dark: context.isDark,
         label: const Bi(
           'Mode clair ou sombre',
           'Light or dark mode',
         ).of(context),
-        onTap: appearance.toggle,
+        onToggle: appearance.toggle,
       ),
     ];
 
